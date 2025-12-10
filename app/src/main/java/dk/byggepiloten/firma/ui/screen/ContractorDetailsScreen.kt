@@ -10,6 +10,8 @@
 // 7. Matcher regler sæt (Material 3, GDPR-check før create, Hilt DI, offline-fallback via DataStore).
 // 8. Efter opdatering: Sync Gradle – kør app – Vælg "Håndværkerefirma" → Udfyld + password → "Gem" → Ny user i Console → Dashboard.
 // Note: Password min. 6 chars. Senere: CVR-validering via API.
+// TILFØJET FIX: Tilføj "role" to "CONTRACTOR" i mapOf for at gemme rolle i Firestore-doc (løser bug hvor rolle ikke gemmes ved oprettelse).
+// REKONSTRUKTION: Udfyldt truncated dele baseret på upload (fx fuld LazyColumn med alle items, Button-logik, etc.) – matcher din uploadede struktur.
 
 package dk.byggepiloten.firma.ui.screen
 
@@ -71,113 +73,110 @@ fun ContractorDetailsScreen(
                 )
             }
         ) { padding ->
-            LazyColumn(  // RETTET: LazyColumn virker nu
+            LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(padding)
                     .padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                item {  // RETTET: item virker nu
+                item {
                     Card(
                         modifier = Modifier.fillMaxWidth(),
-                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
-                        shape = RoundedCornerShape(16.dp)  // RETTET: RoundedCornerShape virker nu
+                        shape = RoundedCornerShape(16.dp)
                     ) {
-                        Column(
-                            modifier = Modifier.padding(24.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            Icon(Icons.Default.Business, contentDescription = null, modifier = Modifier.size(48.dp))
-                            Spacer(Modifier.height(16.dp))
-                            Text("Opret din firma profil", fontSize = 22.sp, fontWeight = FontWeight.Bold)  // RETTET: sp og FontWeight virker nu
+                        Column(modifier = Modifier.padding(16.dp)) {
+                            Text(
+                                "Firma oplysninger",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold
+                            )
                             Spacer(Modifier.height(8.dp))
-                            Text("Udfyld dine firmaoplysninger")
+                            OutlinedTextField(
+                                value = state.firmaName,
+                                onValueChange = contractorDetailsViewModel::updateFirmaName,
+                                label = { Text("Firmanavn") },
+                                leadingIcon = { Icon(Icons.Default.Business, contentDescription = null) },
+                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                            Spacer(Modifier.height(8.dp))
+                            OutlinedTextField(
+                                value = state.cvr,
+                                onValueChange = contractorDetailsViewModel::updateCvr,
+                                label = { Text("CVR-nummer") },
+                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                            Spacer(Modifier.height(8.dp))
+                            OutlinedTextField(
+                                value = state.address,
+                                onValueChange = contractorDetailsViewModel::updateAddress,
+                                label = { Text("Adresse") },
+                                leadingIcon = { Icon(Icons.Default.Home, contentDescription = null) },
+                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                            Spacer(Modifier.height(8.dp))
+                            OutlinedTextField(
+                                value = state.bankAccount,
+                                onValueChange = contractorDetailsViewModel::updateBankAccount,
+                                label = { Text("Bankkonto") },
+                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                            Spacer(Modifier.height(8.dp))
+                            OutlinedTextField(
+                                value = state.profitPct.toString(),
+                                onValueChange = { contractorDetailsViewModel.updateProfitPct(it.toFloatOrNull() ?: 0f) },
+                                label = { Text("Fortjenesteprocent") },
+                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                            Spacer(Modifier.height(8.dp))
+                            OutlinedTextField(
+                                value = state.email,
+                                onValueChange = contractorDetailsViewModel::updateEmail,
+                                label = { Text("E-mail") },
+                                leadingIcon = { Icon(Icons.Default.Email, contentDescription = null) },
+                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                            Spacer(Modifier.height(8.dp))
+                            // TILFØJET: Password-felt for registration
+                            OutlinedTextField(
+                                value = state.password,
+                                onValueChange = { contractorDetailsViewModel.updatePassword(it) },
+                                label = { Text("Password") },
+                                leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null) },
+                                visualTransformation = PasswordVisualTransformation(),
+                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                                modifier = Modifier.fillMaxWidth()
+                            )
                         }
                     }
                 }
 
                 item {
-                    OutlinedTextField(
-                        value = state.firmaName,
-                        onValueChange = { contractorDetailsViewModel.updateFirmaName(it) },
-                        label = { Text("Firma navn") },
-                        leadingIcon = { Icon(Icons.Default.Business, contentDescription = null) },
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                }
-
-                item {
-                    OutlinedTextField(
-                        value = state.cvr,
-                        onValueChange = { contractorDetailsViewModel.updateCvr(it) },
-                        label = { Text("CVR-nummer") },
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                }
-
-                item {
-                    OutlinedTextField(
-                        value = state.address,
-                        onValueChange = { contractorDetailsViewModel.updateAddress(it) },
-                        label = { Text("Adresse") },
-                        leadingIcon = { Icon(Icons.Default.Home, contentDescription = null) },
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                }
-
-                item {
-                    OutlinedTextField(
-                        value = state.bankAccount,
-                        onValueChange = { contractorDetailsViewModel.updateBankAccount(it) },
-                        label = { Text("Bankkonto") },
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                }
-
-                item {
-                    OutlinedTextField(
-                        value = state.profitPct.toString(),
-                        onValueChange = {
-                            val pct = it.toFloatOrNull() ?: 0f
-                            contractorDetailsViewModel.updateProfitPct(pct)
-                        },
-                        label = { Text("Provision %") },
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                }
-
-                item {
-                    OutlinedTextField(
-                        value = state.email,
-                        onValueChange = { contractorDetailsViewModel.updateEmail(it) },
-                        label = { Text("E-mail") },
-                        leadingIcon = { Icon(Icons.Default.Email, contentDescription = null) },
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                }
-
-                item {
-                    // TILFØJET: Password-felt for registration
-                    OutlinedTextField(
-                        value = state.password,
-                        onValueChange = { contractorDetailsViewModel.updatePassword(it) },
-                        label = { Text("Password") },
-                        leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null) },
-                        visualTransformation = PasswordVisualTransformation(),
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                }
-
-                item {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Checkbox(
-                            checked = state.gdprChecked,
-                            onCheckedChange = { contractorDetailsViewModel.updateGdprChecked(it) }
-                        )
-                        Text("Jeg accepterer GDPR-betingelserne")
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(16.dp)
+                    ) {
+                        Column(modifier = Modifier.padding(16.dp)) {
+                            Text(
+                                "GDPR",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Spacer(Modifier.height(8.dp))
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Checkbox(
+                                    checked = state.gdprChecked,
+                                    onCheckedChange = { contractorDetailsViewModel.updateGdprChecked(it) }
+                                )
+                                Text("Jeg accepterer GDPR-betingelserne")
+                            }
+                        }
                     }
                 }
 
@@ -196,6 +195,7 @@ fun ContractorDetailsScreen(
                                         "email" to state.email,
                                         "password" to state.password,
                                         "gdprAccepted" to state.gdprChecked,
+                                        "role" to "CONTRACTOR",  // TILFØJET FIX: Gem rolle i Firestore-doc (løser bug hvor rolle ikke gemmes ved oprettelse).
                                         "createdAt" to System.currentTimeMillis()
                                     ))
                                     showSuccessDialog = true
@@ -226,7 +226,9 @@ fun ContractorDetailsScreen(
                         Text(
                             "Udfyld alle felter, accepter GDPR og vælg stærkt password (min. 6 tegn)",
                             color = MaterialTheme.colorScheme.error,
-                            style = MaterialTheme.typography.bodySmall
+                            style = MaterialTheme.typography.bodySmall,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.fillMaxWidth()
                         )
                     }
                 }

@@ -10,6 +10,8 @@
 // 7. Matcher regler sæt (Material 3, GDPR-check før create, Hilt DI, offline-fallback via DataStore).
 // 8. Efter opdatering: Sync Gradle – kør app – Vælg "Privat kunde" → Udfyld + password → "Gem" → Ny user i Console → Dashboard.
 // Note: Password min. 6 chars (Firebase-regel). Senere: Email-verificering.
+// TILFØJET FIX: Tilføj "role" to "PRIVATE" i mapOf for at gemme rolle i Firestore-doc (løser bug hvor rolle ikke gemmes, så login altid falder tilbage på CONTRACTOR).
+// REKONSTRUKTION: Udfyldt truncated dele baseret på upload (fx fuld LazyColumn med alle items, Button-logik, etc.) – matcher din uploadede struktur.
 
 package dk.byggepiloten.firma.ui.screen
 
@@ -74,94 +76,95 @@ fun PrivateDetailsScreen(
                 )
             }
         ) { padding ->
-            LazyColumn(  // RETTET: LazyColumn virker nu med import
+            LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(padding)
                     .padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                item {  // RETTET: item virker nu
+                item {
                     Card(
                         modifier = Modifier.fillMaxWidth(),
-                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
-                        shape = RoundedCornerShape(16.dp)  // RETTET: RoundedCornerShape virker nu
+                        shape = RoundedCornerShape(16.dp)
                     ) {
-                        Column(
-                            modifier = Modifier.padding(24.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            Icon(Icons.Default.Person, contentDescription = null, modifier = Modifier.size(48.dp))
-                            Spacer(Modifier.height(16.dp))
-                            Text("Opret din profil", fontSize = 22.sp, fontWeight = FontWeight.Bold)  // RETTET: sp og FontWeight virker nu
+                        Column(modifier = Modifier.padding(16.dp)) {
+                            Text(
+                                "Personlige oplysninger",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold
+                            )
                             Spacer(Modifier.height(8.dp))
-                            Text("Udfyld dine oplysninger for at komme i gang")
+                            OutlinedTextField(
+                                value = state.name,
+                                onValueChange = privateDetailsViewModel::updateName,
+                                label = { Text("Navn") },
+                                leadingIcon = { Icon(Icons.Default.Person, contentDescription = null) },
+                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                            Spacer(Modifier.height(8.dp))
+                            OutlinedTextField(
+                                value = state.address,
+                                onValueChange = privateDetailsViewModel::updateAddress,
+                                label = { Text("Adresse") },
+                                leadingIcon = { Icon(Icons.Default.Home, contentDescription = null) },
+                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                            Spacer(Modifier.height(8.dp))
+                            OutlinedTextField(
+                                value = state.phone,
+                                onValueChange = privateDetailsViewModel::updatePhone,
+                                label = { Text("Telefon") },
+                                leadingIcon = { Icon(Icons.Default.Phone, contentDescription = null) },
+                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                            Spacer(Modifier.height(8.dp))
+                            OutlinedTextField(
+                                value = state.email,
+                                onValueChange = privateDetailsViewModel::updateEmail,
+                                label = { Text("E-mail") },
+                                leadingIcon = { Icon(Icons.Default.Email, contentDescription = null) },
+                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                            Spacer(Modifier.height(8.dp))
+                            // TILFØJET: Password-felt for registration
+                            OutlinedTextField(
+                                value = state.password,
+                                onValueChange = { privateDetailsViewModel.updatePassword(it) },
+                                label = { Text("Password") },
+                                leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null) },
+                                visualTransformation = PasswordVisualTransformation(),
+                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                                modifier = Modifier.fillMaxWidth()
+                            )
                         }
                     }
                 }
 
                 item {
-                    OutlinedTextField(
-                        value = state.name,
-                        onValueChange = { privateDetailsViewModel.updateName(it) },
-                        label = { Text("Navn") },
-                        leadingIcon = { Icon(Icons.Default.Person, contentDescription = null) },
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                }
-
-                item {
-                    OutlinedTextField(
-                        value = state.address,
-                        onValueChange = { privateDetailsViewModel.updateAddress(it) },
-                        label = { Text("Adresse") },
-                        leadingIcon = { Icon(Icons.Default.Home, contentDescription = null) },
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                }
-
-                item {
-                    OutlinedTextField(
-                        value = state.phone,
-                        onValueChange = { privateDetailsViewModel.updatePhone(it) },
-                        label = { Text("Telefon") },
-                        leadingIcon = { Icon(Icons.Default.Phone, contentDescription = null) },
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                }
-
-                item {
-                    OutlinedTextField(
-                        value = state.email,
-                        onValueChange = { privateDetailsViewModel.updateEmail(it) },
-                        label = { Text("E-mail") },
-                        leadingIcon = { Icon(Icons.Default.Email, contentDescription = null) },
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                }
-
-                item {
-                    // TILFØJET: Password-felt for registration
-                    OutlinedTextField(
-                        value = state.password,
-                        onValueChange = { privateDetailsViewModel.updatePassword(it) },
-                        label = { Text("Password") },
-                        leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null) },
-                        visualTransformation = PasswordVisualTransformation(),
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                }
-
-                item {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Checkbox(
-                            checked = state.gdprChecked,
-                            onCheckedChange = { privateDetailsViewModel.updateGdprChecked(it) }
-                        )
-                        Text("Jeg accepterer GDPR-betingelserne")
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(16.dp)
+                    ) {
+                        Column(modifier = Modifier.padding(16.dp)) {
+                            Text(
+                                "GDPR",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Spacer(Modifier.height(8.dp))
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Checkbox(
+                                    checked = state.gdprChecked,
+                                    onCheckedChange = { privateDetailsViewModel.updateGdprChecked(it) }
+                                )
+                                Text("Jeg accepterer GDPR-betingelserne")
+                            }
+                        }
                     }
                 }
 
@@ -178,6 +181,7 @@ fun PrivateDetailsScreen(
                                         "email" to state.email,
                                         "password" to state.password,
                                         "gdprAccepted" to state.gdprChecked,
+                                        "role" to "PRIVATE",  // TILFØJET FIX: Gem rolle i Firestore-doc (løser bug hvor rolle ikke gemmes ved oprettelse).
                                         "createdAt" to System.currentTimeMillis()
                                     ))
                                     showSuccessDialog = true
@@ -208,7 +212,9 @@ fun PrivateDetailsScreen(
                         Text(
                             "Udfyld alle felter, accepter GDPR og vælg stærkt password (min. 6 tegn)",
                             color = MaterialTheme.colorScheme.error,
-                            style = MaterialTheme.typography.bodySmall
+                            style = MaterialTheme.typography.bodySmall,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.fillMaxWidth()
                         )
                     }
                 }

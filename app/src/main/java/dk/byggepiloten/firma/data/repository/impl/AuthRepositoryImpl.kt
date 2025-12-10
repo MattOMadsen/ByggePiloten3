@@ -16,6 +16,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.firestore.FirebaseFirestore
 import dagger.hilt.android.qualifiers.ApplicationContext
+import dk.byggepiloten.firma.BuildConfig  // TILFØJET: Import af BuildConfig for at løse unresolved reference (genereret af Gradle for debug/release-check).
 import dk.byggepiloten.firma.data.repository.AuthRepository
 import dk.byggepiloten.firma.di.UserDataStore
 import kotlinx.coroutines.Dispatchers
@@ -42,6 +43,12 @@ class AuthRepositoryImpl @Inject constructor(
     }
 
     // TILFØJET: Init App Check (suspend – kaldes i login for sikkerhed)
+    // Trin-for-trin forklaring:
+    // 1. Initialiser FirebaseApp hvis ikke allerede gjort (sikrer alt Firebase virker).
+    // 2. Hent AppCheck-instans.
+    // 3. Tjek BuildConfig.DEBUG (nu importeret) for at vælge provider: Debug til udvikling (undgår Play Integrity-fejl i emulator), Play Integrity til produktion (sikrer app-integritet mod tampering).
+    // 4. Log succes/failure med Timber (matcher logging-krav).
+    // 5. Kører på IO-dispatcher for asynkronitet uden at blokere UI (Coroutines + WorkManager-kompatibelt).
     private suspend fun initAppCheck() = withContext(Dispatchers.IO) {
         try {
             FirebaseApp.initializeApp(context)  // Sikrer Firebase init
@@ -70,6 +77,21 @@ class AuthRepositoryImpl @Inject constructor(
         try {
             val result = firebaseAuth.signInWithEmailAndPassword(email, password).await()
             if (result.user != null) {
+                val uid = result.user!!.uid
+                // TILFØJET FIX: Efter succesfuld login, hent user-doc fra Firestore, udtræk rolle, og gem i DataStore (løser bug hvor rolle ikke opdateres ved login for eksisterende brugere).
+                // Trin-for-trin:
+                // 1. Hent doc (await for suspend).
+                // 2. Get "role" (fallback til "UNKNOWN" hvis mangler – log fejl).
+                // 3. Kall saveRole for at opdatere lokal session.
+                // Matcher offline-first: Hvis offline, firestore.get() fejler – fallback til getSavedRole (hvis tidligere gemt).
+                try {
+                    val doc = firestore.collection("users").document(uid).get().await()
+                    val role = doc.getString("role") ?: "UNKNOWN"
+                    if (role == "UNKNOWN") Timber.e("Role mangler i Firestore for uid: $uid")
+                    saveRole(role)
+                } catch (e: Exception) {
+                    Timber.e(e, "Fejl ved hentning af rolle fra Firestore – brug cached hvis tilgængelig")
+                }
                 Timber.d("Login success: $email")
                 true
             } else {
