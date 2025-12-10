@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">ByggePiloten</string>
+
+    <!-- Onboarding / Welcome -->
+    <string name="welcome_title">Velkommen til ByggePiloten</string>
+    <string name="welcome_subtitle">Vælg hvordan du vil komme i gang</string>
+    <string name="login_card">Har du en profil? Log ind</string>
+    <string name="private_card">Opret dig som privat person</string>
+    <string name="seeking_card">Firma der søger underentreprenør</string>
+    <string name="contractor_card">Firma der tilbyder arbejde</string>
+    <string name="guest_card">Prøv som gæst (demo)</string>
+    <string name="guest_subtitle">Se appen uden at oprette profil – ingen real handlinger</string>
+
+    <!-- Firma Registration / Søgende Firma -->
+    <string name="firma_title">Opret firma</string>
+    <string name="firma_name_label">Firma-navn</string>
+    <string name="firma_name_error">Firma-navn er påkrævet</string>
+    <string name="cvr_label">CVR</string>
+    <string name="cvr_error">Ugyldigt CVR (skal være 8 cifre)</string>
+    <string name="address_label">Adresse</string>
+    <string name="address_error">Adresse er påkrævet</string>
+    <string name="email_label">E-mail</string>
+    <string name="email_error">Ugyldig e-mail</string>
+    <string name="phone_label">Telefon</string>
+    <string name="phone_error">Ugyldigt telefonnummer</string>
+    <string name="bank_account_label">Bankkonto</string>
+    <string name="bank_account_error">Bankkonto er påkrævet (f.eks. 1234 5678 90)</string>
+    <string name="profit_pct_label">Global profit %% (standard 20%% – tilpasses pr. materiale senere)</string>
+    <string name="opmuring_price_label">Opmuring pris (kr/m²)</string>
+    <string name="badeværelse_price_label">Badeværelse pris (kr/m²)</string>
+    <string name="gdpr_checkbox">Jeg accepterer GDPR-betingelser (data slettes efter 24 timer)</string>
+    <string name="gdpr_accept">Acceptér GDPR og betingelser *</string>
+    <string name="register_button">Opret firma</string>
+    <string name="save_continue">Gem og fortsæt</string>
+    <string name="back_button">Tilbage</string>
+    <string name="loading_sending">Sender e-mail...</string>
+    <string name="email_sent">E-mail sendt! Tjek din indbakke.</string>
+    <string name="email_failed">E-mail fejlede – fortsæt alligevel</string>
+
+    <!-- Private Details -->
+    <string name="private_title">Dine oplysninger</string>
+    <string name="name_label">Navn *</string>
+    <string name="name_error">Navn er påkrævet</string>
+
+    <!-- Contractor Details (Firma der tilbyder) -->
+    <string name="contractor_title">Firma der tilbyder tjenester</string>
+    <string name="contractor_name_label">Firma-navn</string>
+    <string name="contractor_cvr_label">CVR</string>
+    <string name="contractor_address_label">Adresse</string>
+    <string name="contractor_email_label">E-mail</string>
+    <string name="contractor_phone_label">Telefon</string>
+    <string name="contractor_bank_label">Bankkonto</string>
+    <string name="contractor_profit_label">Global profit %%</string>
+    <string name="contractor_gdpr">Acceptér GDPR</string>
+
+    <!-- Firma Seeking Details (Søgende Firma) -->
+    <string name="contact_email_label">Kontakt e-mail</string>
+
+    <!-- Errors/Generelt -->
+    <string name="validation_error">Udfyld de krævede felter korrekt</string>
+    <string name="profit_note">Profit%% sættes senere i indstillinger (default 0%%)</string>
+    <string name="saving">Gemmer...</string>
+    <string name="onboarding_title">Velkommen til ByggePiloten</string>
+    <string name="onboarding_subtitle">Vælg din rolle for at komme i gang</string>
+    <string name="email_welcome_subject">Velkommen til ByggePiloten</string>
+    <string name="email_welcome_body_private">Velkommen som privat person! Du kan nu oprette opgaver og få tilbud.</string>
+    <string name="email_welcome_body_seeker">Velkommen som firma-søger! Find underentreprenører nemt.</string>
+    <string name="email_welcome_body_provider">Velkommen som tilbyder! Husk 2%% provision på opgaver.</string>
+
+    <!-- ConfirmScreen strings -->
+    <string name="confirm_success">Bekræftet – velkommen til ByggePiloten!</string>
+    <string name="confirm_error">Ugyldigt link – prøv igen eller kontakt support.</string>
+    <string name="confirm_title_success">Succes!</string>
+    <string name="confirm_title_error">Fejl</string>
+    <string name="confirm_loading">Validerer link...</string>
+
+    <!-- Password Setup strings -->
+    <string name="password_setup_title">Opret kodeord</string>
+    <string name="password_setup_subtitle">Opret dit kodeord for at logge ind</string>
+    <string name="password_label">Kodeord (mindst 6 tegn)</string>
+    <string name="confirm_password_label">Bekræft kodeord</string>
+    <string name="password_setup_button">Opret kodeord</string>
+
+    <!-- Login strings -->
+    <string name="login_password_label">Password</string>
+
+    <!-- Dashboard strings -->
+    <string name="dashboard_title">Dashboard</string>
+    <string name="no_requests">Ingen requests – swipe for at refresh</string>
+    <string name="error_requests">Fejl ved indlæsning af requests</string>
+    <string name="refresh">Opdater</string>
+</resources>

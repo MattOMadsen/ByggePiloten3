@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "333835967149",
+    "project_id": "byg-piloten",
+    "storage_bucket": "byg-piloten.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:333835967149:android:48e6f90cff5150326a8424",
+        "android_client_info": {
+          "package_name": "dk.byggepiloten.firma"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAWsPXmyghQQqJYRIsixslWwYtl8OAKwIA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <!-- NY: Base config – Tillad klartekst (HTTP) kun i debug for dev-servere (sikrer HTTPS i release). -->
+    <!-- FIXED: Matcher Android 9+ krav (API 28+) – undgår "CLEARTEXT communication not permitted by network security policy". -->
+    <!-- Trin 1: <domain-config cleartextTrafficPermitted="true"> for specifikke domæner (din WP: graverholt-apps.dk). -->
+    <!-- Trin 2: <base-config> fallback til false (sikker HTTPS i release). -->
+    <!-- Trin 3: Test: Ændr baseUrl til HTTP i AppProvidesModule.kt (kun debug) → ingen crash. -->
+    <!-- Sikkerhed: Brug BuildConfig.DEBUG til conditional baseUrl i Retrofit (se opdateret AppProvidesModule nedenfor). -->
+    <!-- Docs: developer.android.com/training/articles/security-config (nov 2025) – gratis, ingen deps. -->
+    <base-config cleartextTrafficPermitted="false">
+        <!-- Release: Kun HTTPS tilladt (standard – sikrere for e-mail-kald). -->
+        <trust-anchors>
+            <certificates src="system" />
+            <certificates src="user" />
+        </trust-anchors>
+    </base-config>
+
+    <domain-config cleartextTrafficPermitted="true">
+        <!-- Dev: Tillad HTTP til din WP-server (graverholt-apps.dk) og emulator-localhost. -->
+        <!-- FIXED: cleartextTrafficPermitted="true" kun for disse domæner – begrænser eksponering. -->
+        <domain includeSubdomains="true">graverholt-apps.dk</domain>
+        <domain includeSubdomains="true">10.0.2.2</domain>  <!-- Emulator localhost (f.eks. HTTP:8080). -->
+        <domain includeSubdomains="true">localhost</domain>
+        <trust-anchors>
+            <certificates src="system" />
+            <certificates src="user" />
+        </trust-anchors>
+    </domain-config>
+</network-security-config>

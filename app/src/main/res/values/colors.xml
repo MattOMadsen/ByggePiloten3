@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!-- File: app/src/main/res/values/colors.xml -->
+<!-- Fuld opdateret kode: Tilføjet friskere farver for moderne design (blå-grøn for bygge-tema), flere for kontrast i dark mode. -->
+<!-- Trin 1: Opdater base-farver til at matche nye palettes i ByggePilotenTheme.kt (primær blå, sekundær grøn). -->
+<!-- Trin 2: Tilføj on-farver og error for fuld Material 3 (sikrer ingen reference-fejl). -->
+<!-- Trin 3: Sikre WCAG-kontrast (f.eks. white on dark primaries). -->
+<!-- Trin 4: Tilføj gradient-farver som refs for Compose. -->
+<!-- Ændringer: Matcher themes.xml; tilføjet green_500 for frisk prust. -->
+<!-- Test: Byg – ingen farve-reference fejl; dark mode kontrast bedre. -->
+
+<resources>
+    <color name="blue_200">#FFBBDEFB</color>  <!-- Tilføjet for light gradient. -->
+    <color name="blue_500">#FF1976D2</color>  <!-- Frisk primær blå. -->
+    <color name="blue_700">#FF1E88E5</color>
+    <color name="green_200">#FFDCEDC8</color>  <!-- Frisk sekundær grøn. -->
+    <color name="green_500">#FF388E3C</color>
+    <color name="green_700">#FF43A047</color>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+
+    <!-- Error og surface for Material 3. -->
+    <color name="red_500">#FFD32F2F</color>  <!-- Error i light. -->
+    <color name="red_700">#FFEF5350</color>  <!-- Error i dark. -->
+    <color name="gray_500">#FF9E9E9E</color>  <!-- Disabled. -->
+    <color name="surface_dark">#FF1E1E1E</color>  <!-- Dark surface. -->
+    <color name="surface_light">#FFFFFFFF</color>  <!-- Light surface. -->
+</resources>

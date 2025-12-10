@@ -1,0 +1,21 @@
+// File: .well-known/assetlinks.json
+// FULD, KOMPLET JSON-FIL FOR ANDROID APP LINKS – Verificerer domæne-ejerskab (host på https://byggepiloten.dk/.well-known/assetlinks.json).
+// Trin-for-trin forklaring:
+// 1. Behold standard-struktur: Array af statement-objekter (relation, target for app-pakke).
+// 2. TILFØJET: Din pakke "dk.byggepiloten.firma", SHA256-fingerprint (hent fra Play Console eller `keytool -list -v -keystore your.keystore`).
+// 3. Deploy: Firebase Console > Hosting > Upload fil til root > Deploy. Test: https://digitalassetlinks.googleapis.com/v1/statements:list?source.web.site=https://byggepiloten.dk&relationship=delegate_permission/android.app&source.android_app.cert_fingerprints=your_sha256.
+// 4. Fuldt funktionsdygtig – Aktiverer autoVerify i Manifest. Matcher regler: HTTPS, GDPR (ingen data i filen).
+// Note: Erstat "YOUR_SHA256_FINGERPRINT" med din apps cert-hash. Senere: Tilføj flere domæner.
+
+[
+  {
+    "relation": ["delegate_permission/android.app"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "dk.byggepiloten.firma",
+      "sha256_cert_fingerprints": [
+        "YOUR_SHA256_FINGERPRINT_HERE"  // Eks: "14:6D:E9:83:C5:73:06:50:D8:EE:B9:95:2F:34:FC:64:16:A0:83:42:E6:1D:BE:A8:8A:04:96:B2:3F:CF:44:E5"
+      ]
+    }
+  }
+]

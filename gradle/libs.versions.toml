@@ -1,0 +1,170 @@
+[versions]
+agp = "8.13.0"
+kotlin = "2.0.20"
+coreKtx = "1.12.0"
+junit = "4.13.2"
+junitVersion = "1.2.1"
+espressoCore = "3.6.1"
+espressoIntents = "3.6.1"
+lifecycleRuntimeKtx = "2.10.0"
+activityCompose = "1.9.3"
+composeBom = "2025.12.00"
+compose-tooling = "1.6.8"
+compose-compiler = "1.5.8"
+composeUi = "1.10.0"
+material3-window-size = "1.0.1"
+hilt = "2.57.2"
+kapt = "1.10.2"
+ksp = "2.0.20-1.0.25"
+room = "2.6.1"
+firebaseBom = "34.6.0"  # OPDATERET: Nyeste BOM pr. November 2025 fra Firebase release notes (bekræftet via web-søgning; KTX stoppede i juli 2025 fra BOM v34.0.0 – brug non-KTX for alle deps).
+navigation = "2.8.3"
+benchmark = "1.3.1"
+baselineprofile = "1.3.0"
+paparazzi = "1.3.4"
+coil = "2.7.0"
+mockitoCore = "5.16.1"
+mockitoKotlin = "6.1.0"
+googleServices = "4.4.2"
+retrofit = "2.11.0"
+okhttp = "4.12.0"
+gson = "2.10.1"
+timber = "5.0.1"
+work = "2.9.1"
+mlkit = "16.1.0"
+genaiPrompt = "1.0.0-alpha1"
+playServicesTasks = "18.4.0"
+datastore = "1.2.0"
+hiltWork = "1.2.0"
+firebaseStorage = "20.3.0"
+firebaseCrashlytics = "3.0.1"
+firebasePerf = "2.0.2"  # OPDATERET: Nyeste Firebase Perf plugin-version pr. November 2025.
+
+[libraries]
+# Core Android
+core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activityCompose" }
+appcompat = { group = "androidx.appcompat", name = "appcompat" }
+material = { group = "com.google.android.material", name = "material", version = "1.12.0" }
+material3 = { group = "androidx.compose.material3", name = "material3", version = "1.2.1" }
+
+# Compose BOM
+androidx-compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "composeBom" }
+compose-ui = { group = "androidx.compose.ui", name = "ui" }
+compose-ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling" }
+compose-ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-tooling-preview" }
+compose-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4" }
+compose-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-manifest" }
+compose-foundation = { group = "androidx.compose.foundation", name = "foundation" }
+compose-material-icons-extended = { group = "androidx.compose.material", name = "material-icons-extended" }
+compose-material3 = { group = "androidx.compose.material3", name = "material3" }
+compose-animation = { group = "androidx.compose.animation", name = "animation" }
+compose-runtime = { group = "androidx.compose.runtime", name = "runtime" }
+compose-runtime-livedata = { group = "androidx.compose.runtime", name = "runtime-livedata" }
+
+# Lifecycle + ViewModel
+lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycleRuntimeKtx" }
+lifecycle-viewmodel-compose = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-compose", version.ref = "lifecycleRuntimeKtx" }
+lifecycle-viewmodel = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-ktx", version.ref = "lifecycleRuntimeKtx" }
+
+# Navigation
+navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigation" }
+
+# Hilt
+hilt-android = { group = "com.google.dagger", name = "hilt-android", version.ref = "hilt" }
+hilt-compiler = { group = "com.google.dagger", name = "hilt-compiler", version.ref = "hilt" }
+hilt-navigation-compose = { group = "androidx.hilt", name = "hilt-navigation-compose", version = "1.2.0" }
+hilt-work = { group = "androidx.hilt", name = "hilt-work", version.ref = "hiltWork" }
+hilt-work-compiler = { group = "androidx.hilt", name = "hilt-compiler", version.ref = "hiltWork" }
+
+# Firebase BOM
+firebase-bom = { group = "com.google.firebase", name = "firebase-bom", version.ref = "firebaseBom" }
+firebase-auth = { group = "com.google.firebase", name = "firebase-auth" }
+firebase-auth-ktx = { group = "com.google.firebase", name = "firebase-auth-ktx" }
+firebase-firestore = { group = "com.google.firebase", name = "firebase-firestore" }
+firebase-crashlytics = { group = "com.google.firebase", name = "firebase-crashlytics" }
+firebase-appcheck-debug = { group = "com.google.firebase", name = "firebase-appcheck-debug" }
+firebase-appcheck-playintegrity = { group = "com.google.firebase", name = "firebase-appcheck-playintegrity" }
+firebase-storage = { group = "com.google.firebase", name = "firebase-storage", version.ref = "firebaseStorage" }  # OPDATERET: Skiftet til non-KTX (da KTX fjernet i BOM 34.0.0+).
+firebase-perf = { group = "com.google.firebase", name = "firebase-perf" }  # OPDATERET: Skiftet til non-KTX (da KTX fjernet i BOM 34.0.0+); BOM håndterer version.
+
+# Room
+room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room" }
+room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
+room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
+
+# DataStore
+datastore-preferences = { group = "androidx.datastore", name = "datastore-preferences", version.ref = "datastore" }
+
+# Play Services
+play-services-tasks = { group = "com.google.android.gms", name = "play-services-tasks", version = "18.4.0" }
+
+# Testing
+junit = { group = "junit", name = "junit", version.ref = "junit" }
+androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
+espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
+espresso-intents = { group = "androidx.test.espresso", name = "espresso-intents", version.ref = "espressoIntents" }
+
+# Hilt Testing
+dagger-hilt-android-testing = { group = "com.google.dagger", name = "hilt-android-testing", version.ref = "hilt" }
+dagger-hilt-android-compiler-test = { group = "com.google.dagger", name = "hilt-compiler", version.ref = "hilt" }
+
+# Mockito
+mockito-core = { group = "org.mockito", name = "mockito-core", version.ref = "mockitoCore" }
+mockito-android = { group = "org.mockito", name = "mockito-android", version.ref = "mockitoCore" }
+mockito-kotlin = { group = "org.mockito.kotlin", name = "mockito-kotlin", version.ref = "mockitoKotlin" }
+
+# WorkManager
+work-runtime-ktx = { group = "androidx.work", name = "work-runtime-ktx", version.ref = "work" }
+
+# Retrofit + OkHttp
+retrofit = { group = "com.squareup.retrofit2", name = "retrofit", version.ref = "retrofit" }
+retrofit-converter-gson = { group = "com.squareup.retrofit2", name = "converter-gson", version.ref = "retrofit" }
+okhttp-logging-interceptor = { group = "com.squareup.okhttp3", name = "logging-interceptor", version.ref = "okhttp" }
+
+# Timber
+timber = { group = "com.jakewharton.timber", name = "timber", version.ref = "timber" }
+
+# Gson
+gson = { group = "com.google.code.gson", name = "gson", version.ref = "gson" }
+
+# Coil (Image Loading)
+coil-compose = { group = "io.coil-kt", name = "coil-compose", version.ref = "coil" }
+
+# ML Kit / Gemini Nano (Offline AI)
+mlkit-vision = { group = "com.google.mlkit.vision.common", name = "vision-common", version.ref = "mlkit" }
+genai-prompt = { group = "com.google.mlkit.genai", name = "genai-prompt", version.ref = "genaiPrompt" }
+
+# Benchmark for Baseline Profiles
+benchmark-macro-junit4 = { group = "androidx.benchmark", name = "benchmark-macro-junit4", version.ref = "benchmark" }
+benchmark-annotation = { group = "androidx.benchmark", name = "benchmark-annotation", version.ref = "benchmark" }
+
+[bundles]
+compose = [
+    "androidx-compose-bom",
+    "compose-ui",
+    "compose-ui-tooling-preview",
+    "compose-foundation",
+    "compose-material3",
+    "compose-material-icons-extended",
+    "compose-animation",
+    "compose-runtime",
+    "compose-runtime-livedata",
+    "navigation-compose",
+    "hilt-navigation-compose",
+    "lifecycle-viewmodel-compose",
+    "activity-compose",
+    "coil-compose"
+]
+
+[plugins]
+android-application = { id = "com.android.application", version.ref = "agp" }
+kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+dagger-hilt = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
+ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
+google-services = { id = "com.google.gms.google-services", version.ref = "googleServices" }
+benchmark = { id = "androidx.benchmark", version.ref = "benchmark" }
+androidx-baselineprofile = { id = "androidx.baselineprofile", version.ref = "baselineprofile" }
+firebase-crashlytics = { id = "com.google.firebase.crashlytics", version.ref = "firebaseCrashlytics" }
+firebase-perf = { id = "com.google.firebase.firebase-perf", version.ref = "firebasePerf" }
