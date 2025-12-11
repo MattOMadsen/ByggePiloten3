@@ -1,64 +1,38 @@
 # ByggePiloten
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Kotlin](https://img.shields.io/badge/Kotlin-1.9.10-blue.svg)](https://kotlinlang.org/)
 [![Android](https://img.shields.io/badge/Android-14-green.svg)](https://developer.android.com/)
-[![Jetpack Compose](https://img.shields.io/badge/Jetpack_Compose-1.5.4-orange.svg)](https://developer.android.com/jetpack/compose)
 
-**ByggePiloten** er en Android-app til private kunder og håndværkerfirmaer, der forenkler murer- og renoveringsopgaver. Kunder får hurtige tilbud på arbejde, mens firmaer byder på opgaver i real-time. Appen er offline-first, GDPR-kompatibel og bruger Firebase for sikkerhed og sync.
+**ByggePiloten** er en Android-app, der forbinder private kunder med håndværkerfirmaer for renoveringsopgaver. Kunder får hurtige tilbud, firmaer finder jobs – simpelt og sikkert.
 
 ## 🎯 Formål
-- **Kunder**: Få gratis tilbud på murerarbejde (ingen gebyr – firmaet betaler 2% provision).
-- **Firmaer**: Se nye opgaver, byd og håndter projekter.
-- **Fokus**: Nemt, hurtigt og sikkert – med AI-prisestimater og billed-upload.
-
-Appen er stadig i udvikling (pr. 11. december 2025: 72% færdig – kerne-flows virker).
+- Nem måde at få tilbud på arbejde i hjemmet.
+- Appen er i udvikling (Android-only, pr. 11. dec. 2025).
 
 ## 🚀 Features
-### Færdige (Igang – testet på Android)
-- **Onboarding & Rollevalg**: Velkommen med animationer, valg mellem privat kunde/firma.
-- **Privat Kunde-Flow**: Detaljer → login → dashboard → ny opgave-wizard (12+ fag, vægmåling, billeder, AI-estimat).
-- **Firma-Flow**: Profil → prissætning (CSV-import) → dashboard med real-time opgaver → byd på tilbud.
-- **Dashboard**: Adaptive views, historik, søgning.
-- **Login & Sikkerhed**: Firebase Auth (magic link, passwordless), App Check, GDPR-auto-sletning.
-- **Offline-First**: Room DB + Firestore-sync via WorkManager.
-- **UI/UX**: Material3, dark mode, blå tema (#2196F3), animationer.
-- **AI-Integration**: Gemini Nano for pris-estimater (lokal).
+- Onboarding og login.
+- Dashboard for kunder og firmaer.
+- Real-time opgaver og tilbud.
+- Offline-support og GDPR-kompatibel.
 
-### Planlagte (Ikke startet)
-- Faktura-PDF, chat (Firebase Realtime), push-notifikationer (FCM).
-- Engelsk support, rating-system, admin-panel.
-- CVR-godkendelse, afstandsberegning (Google Maps).
-
-Se fuld plan i [BYGGE PILOTEN – FULD PLAN OVER HELE APPEN.txt](https://github.com/MattOMadsen/ByggePiloten3/blob/master/BYGGE%20PILOTEN%20%E2%80%93%20FULD%20PLAN%20OVER%20HELE%20APPEN.txt).
+Se plan i [PLAN.txt](PLAN.txt).
 
 ## 📱 Screenshots
-*(Tilføj her – f.eks. WelcomeScreen, Dashboard, Wizard)*  
-![Welcome Screen](screenshots/welcome.png)  
-![Dashboard](screenshots/dashboard.png)
+*(Tilføj billeder her)*
 
-## 🛠️ Teknisk Stack
-| Område | Teknologi |
-|--------|-----------|
-| **Sprog** | Kotlin 1.9.10 |
-| **UI** | Jetpack Compose 1.5.4 + Material3 |
-| **Arkitektur** | MVVM + Hilt DI |
-| **Database** | Room (lokal) + Firestore (sync) |
-| **Auth** | Firebase Auth (Free Tier) |
-| **AI** | Gemini Nano (on-device) |
-| **Netværk** | Retrofit + Coroutines |
-| **Baggrund** | WorkManager |
-| **Tests** | JUnit, Espresso, Compose UI |
-| **Sikkerhed** | ProGuard/R8, App Check, GDPR-compliance |
+## 🛠️ Setup
+1. Klon: `git clone https://github.com/MattOMadsen/ByggePiloten3.git`
+2. Åbn i Android Studio.
+3. Tilføj Firebase (google-services.json).
+4. Byg: `./gradlew build`
 
-## 🔧 Installation & Setup
-### Krav
-- Android Studio Giraffe (eller nyere).
-- Android SDK 34 (API 34).
-- Emulator: Pixel 6 (API 34) eller fysisk device.
+## 🤝 Bidrag
+Fork, branch, PR. Følg plan.txt.
 
-### Trin-for-trin
-1. **Klon repo'et**:
-   ```bash
-   git clone https://github.com/MattOMadsen/ByggePiloten3.git
-   cd ByggePiloten3
+## 📄 Licens
+MIT.
+
+## 👨‍💻 Kontakt
+Matt Madsen – matt@byggepiloten.dk
+
+*Opdateret: 11. december 2025.*
