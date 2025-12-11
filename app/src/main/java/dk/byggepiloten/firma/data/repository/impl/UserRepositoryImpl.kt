@@ -232,6 +232,7 @@ class UserRepositoryImpl @Inject constructor(
                 name = it.name ?: "",
                 email = it.email ?: "",
                 phone = it.phone ?: "",
+                address = it.address ?: "",
                 darkMode = dataStore.data.map { prefs -> prefs[Keys.DARK_MODE_KEY] ?: false }.first(),
                 gdprAccepted = it.gdprAccepted
             )
@@ -244,10 +245,10 @@ class UserRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun saveProfile(name: String, email: String, phone: String, gdprAccepted: Boolean, isDarkMode: Boolean) {
+    override suspend fun saveProfile(name: String, email: String, phone: String, address: String, gdprAccepted: Boolean, isDarkMode: Boolean) {
         val uid = firebaseAuth.currentUser?.uid ?: return
         val role = getSavedRole() ?: return
-        val updatedUser = FirmaUser(id = uid, name = name, email = email, phone = phone, gdprAccepted = gdprAccepted, role = role)
+        val updatedUser = FirmaUser(id = uid, name = name, email = email, phone = phone, address = address, gdprAccepted = gdprAccepted, role = role)
         firestore.collection("users").document(uid).set(updatedUser).await()
         db.userDao().updateUser(updatedUser)
         saveDarkModePreference(isDarkMode)

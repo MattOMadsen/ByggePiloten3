@@ -1,0 +1,294 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 3,
+    "identityHash": "6bf0016f3ac5386e02f189c0acc7c77e",
+    "entities": [
+      {
+        "tableName": "users",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `name` TEXT, `companyName` TEXT, `email` TEXT, `phone` TEXT, `address` TEXT, `cvr` TEXT, `bankAccount` TEXT, `material_profit_pct_global` REAL DEFAULT NULL, `role` TEXT NOT NULL, `gdprAccepted` INTEGER NOT NULL, `created_at` INTEGER DEFAULT NULL, PRIMARY KEY(`id`))",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "name",
+            "columnName": "name",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "companyName",
+            "columnName": "companyName",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "email",
+            "columnName": "email",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "phone",
+            "columnName": "phone",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "address",
+            "columnName": "address",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "cvr",
+            "columnName": "cvr",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "bankAccount",
+            "columnName": "bankAccount",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "materialProfitPctGlobal",
+            "columnName": "material_profit_pct_global",
+            "affinity": "REAL",
+            "notNull": false,
+            "defaultValue": "NULL"
+          },
+          {
+            "fieldPath": "role",
+            "columnName": "role",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "gdprAccepted",
+            "columnName": "gdprAccepted",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "created_at",
+            "columnName": "created_at",
+            "affinity": "INTEGER",
+            "notNull": false,
+            "defaultValue": "NULL"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [],
+        "foreignKeys": []
+      },
+      {
+        "tableName": "requests",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `userId` TEXT NOT NULL, `role` TEXT NOT NULL, `fag` TEXT NOT NULL, `category` TEXT NOT NULL, `areaM2` REAL NOT NULL, `roomType` TEXT NOT NULL, `requiresMembrane` INTEGER NOT NULL, `aiPrice` REAL NOT NULL, `images` TEXT NOT NULL, `sentAt` INTEGER NOT NULL, `createdAt` INTEGER NOT NULL, `description` TEXT, `status` TEXT, `bids` TEXT NOT NULL, PRIMARY KEY(`id`))",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "userId",
+            "columnName": "userId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "role",
+            "columnName": "role",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "fag",
+            "columnName": "fag",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "category",
+            "columnName": "category",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "areaM2",
+            "columnName": "areaM2",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "roomType",
+            "columnName": "roomType",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "requiresMembrane",
+            "columnName": "requiresMembrane",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "aiPrice",
+            "columnName": "aiPrice",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "images",
+            "columnName": "images",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sentAt",
+            "columnName": "sentAt",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "createdAt",
+            "columnName": "createdAt",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "description",
+            "columnName": "description",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "status",
+            "columnName": "status",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "bids",
+            "columnName": "bids",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [],
+        "foreignKeys": []
+      },
+      {
+        "tableName": "firma_materials",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`material` TEXT NOT NULL, `customPrice` REAL NOT NULL, `unit` TEXT NOT NULL, `profitPct` REAL NOT NULL, PRIMARY KEY(`material`))",
+        "fields": [
+          {
+            "fieldPath": "material",
+            "columnName": "material",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "customPrice",
+            "columnName": "customPrice",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "unit",
+            "columnName": "unit",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "profitPct",
+            "columnName": "profitPct",
+            "affinity": "REAL",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "material"
+          ]
+        },
+        "indices": [],
+        "foreignKeys": []
+      },
+      {
+        "tableName": "backups",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, `firmaId` INTEGER NOT NULL, `version` TEXT NOT NULL, `backupTimestamp` TEXT NOT NULL, `retentionDays` INTEGER NOT NULL, `prices` TEXT NOT NULL, PRIMARY KEY(`id`))",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "firmaId",
+            "columnName": "firmaId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "version",
+            "columnName": "version",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "backupTimestamp",
+            "columnName": "backupTimestamp",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "retentionDays",
+            "columnName": "retentionDays",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "prices",
+            "columnName": "prices",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [],
+        "foreignKeys": []
+      }
+    ],
+    "views": [],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '6bf0016f3ac5386e02f189c0acc7c77e')"
+    ]
+  }
+}

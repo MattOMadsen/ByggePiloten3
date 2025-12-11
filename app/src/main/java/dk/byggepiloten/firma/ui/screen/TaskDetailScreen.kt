@@ -24,12 +24,12 @@ import javax.inject.Inject
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TaskDetailScreen(navController: NavController) {
+fun TaskDetailScreen(navController: NavController, taskId: String) {
     val viewModel: TaskDetailViewModel = hiltViewModel()
     val task by viewModel.task.collectAsStateWithLifecycle()
 
-    LaunchedEffect(Unit) {
-        viewModel.loadTask("placeholder_task_id")
+    LaunchedEffect(taskId) {
+        viewModel.loadTask(taskId)
     }
 
     Scaffold(

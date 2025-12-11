@@ -8,6 +8,7 @@ import androidx.datastore.core.handlers.ReplaceFileCorruptionHandler
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.emptyPreferences
+import androidx.datastore.preferences.preferencesDataStoreFile  // TILFØJET FIX: Import for extension-funktion (løser "Unresolved reference 'preferencesDataStoreFile'" i produceFile – matcher DataStore Preferences).
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import dagger.Module
@@ -35,7 +36,7 @@ import javax.inject.Singleton
 object AppProvidesModule {
 
     @Provides
-    @Singleton
+    @Singleton  // BEHOLDT: @Singleton for kontekst (sikrer single instance).
     fun provideContext(@ApplicationContext context: Context): Context = context
 
     @Provides
@@ -47,7 +48,7 @@ object AppProvidesModule {
             },
             migrations = emptyList(),
             scope = CoroutineScope(Dispatchers.IO + SupervisorJob()),
-            produceFile = { context.filesDir.resolve("settings_prefs.preferences_pb") }
+            produceFile = { context.preferencesDataStoreFile("settings") }  // BEHOLDT: Bruger nu resolved extension-funktion (genererer filsti for settings DataStore).
         )
     }
 
@@ -57,6 +58,24 @@ object AppProvidesModule {
 
     @Provides
     @Singleton
+    fun provideFirestore(): FirebaseFirestore = FirebaseFirestore.getInstance()
+
+    @Provides
+    @Singleton
+    fun provideGson(): Gson = Gson()
+
+    @Provides
+    @Singleton
+    fun provideEmailService(gson: Gson): EmailService {
+        val retrofit = Retrofit.Builder()
+            .baseUrl("https://graverholt-apps.dk/wp-json/byggepiloten/v1/")
+            .addConverterFactory(GsonConverterFactory.create(gson))
+            .build()
+        return retrofit.create(EmailService::class.java)
+    }
+
+    @Provides
+    @Singleton  // BEHOLDT: @Singleton (sikrer Hilt-resolve under KSP; løser "AppDatabase could not be resolved" i injection-traces).
     fun provideDatabase(@ApplicationContext context: Context): AppDatabase = AppDatabase.getDatabase(context)
 
     @Provides
@@ -77,24 +96,6 @@ object AppProvidesModule {
     @Provides
     fun provideBackupDao(db: AppDatabase): BackupDao {
         return db.backupDao()
-    }
-
-    @Provides
-    @Singleton
-    fun provideFirestore(): FirebaseFirestore = FirebaseFirestore.getInstance()  // RETTET: Skiftet fra Firebase.firestore (ktx) til FirebaseFirestore.getInstance() (non-KTX; da KTX stoppede i BOM v34.0.0+; fixer unresolved ktx/Firebase).
-
-    @Provides
-    @Singleton
-    fun provideGson(): Gson = Gson()
-
-    @Provides
-    @Singleton
-    fun provideEmailService(gson: Gson): EmailService {
-        val retrofit = Retrofit.Builder()
-            .baseUrl("https://graverholt-apps.dk/wp-json/byggepiloten/v1/")
-            .addConverterFactory(GsonConverterFactory.create(gson))
-            .build()
-        return retrofit.create(EmailService::class.java)
     }
 
     @Provides

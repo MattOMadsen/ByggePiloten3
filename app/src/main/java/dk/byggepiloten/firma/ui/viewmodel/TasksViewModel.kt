@@ -40,9 +40,13 @@ class TasksViewModel @Inject constructor(
                     isLoading = false
                 )
                 Timber.d("Tasks: Loader ${requests.size} requests")
-            } catch (e: Exception) {
+            } catch (e: Exception) {  // RETTET FIX: Udvidet try-catch for Room IllegalStateException (schema-mismatch) – sæt error, vis emptyList, undgå crash.
                 Timber.e(e, "Load tasks fejl")
-                _state.value = _state.value.copy(isLoading = false, error = "Hentning mislykkedes")
+                val errorMsg = when {
+                    e.message?.contains("Room cannot verify") == true -> "Database-fejl – genstart appen"
+                    else -> "Hentning mislykkedes"
+                }
+                _state.value = _state.value.copy(isLoading = false, error = errorMsg, requests = emptyList())  // Fallback: Vis tom liste.
             }
         }
     }
@@ -73,7 +77,7 @@ class TasksViewModel @Inject constructor(
     }
 
     fun refreshTasks() {
-        viewModelScope.launch {  // NY: Wrap i launch for coroutine – matcher loadTasks
+        viewModelScope.launch {  // BEHOLDT: Wrap i launch for coroutine – matcher loadTasks
             loadTasks()
         }
     }

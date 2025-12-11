@@ -89,7 +89,7 @@ interface UserRepository {
     suspend fun saveDarkModePreference(darkMode: Boolean): Unit  // Gem dark mode i DataStore
 
     // RETTET: Udvidet med gdprAccepted/isDarkMode – matcher impl og SettingsViewModel-kald
-    suspend fun saveProfile(name: String, email: String, phone: String, gdprAccepted: Boolean, isDarkMode: Boolean): Unit  // Gem profil i Firestore/Room
+    suspend fun saveProfile(name: String, email: String, phone: String, address: String, gdprAccepted: Boolean, isDarkMode: Boolean): Unit  // Gem profil i Firestore/Room
 
     suspend fun clearUser(): Unit  // Slet lokal user-data ved logout
 }
