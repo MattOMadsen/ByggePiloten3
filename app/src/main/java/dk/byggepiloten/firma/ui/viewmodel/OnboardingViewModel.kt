@@ -1,13 +1,5 @@
-// File: app/src/main/java/dk/byggepiloten/firma/ui/viewmodel/OnboardingViewModel.kt
-// FULD, KOMPLET, 100% VIRKENDE VERSION – 3. december 2025
-// Trin-for-trin forklaring:
-// 1. Beholdt alt originalt: _selectedRole, _detailsComplete, _isOnboardingComplete, selectRole(), completeDetails(), completeOnboarding() – ingen ændringer.
-// 2. Beholdt init { viewModelScope.launch { val savedRole = authRepository.getSavedRole(); _selectedRole.value = savedRole; Timber.d("...") } } – loader gemt rolle automatisk.
-// 3. Beholdt refreshRole() – tømmer DataStore og loader igen (kald fra Dashboard for force-reload).
-// 4. TILFØJET: fun completeRegistration(role: String, details: Map<String, Any>) – kalder authRepository.createUser + saveRole + sendEmailVerification (for registration i details-screens).
-// 5. Fuldt funktionsdygtig – kopier ind, og onboarding opretter ny Firebase-user + Firestore-doc + verification-email ved "Gem og fortsæt".
-// 6. Matcher MVVM: Flows for reaktiv state, suspend calls til repo. Hilt-injektion bevaret.
-// Note: Test: Vælg rolle → Udfyld details → completeRegistration → Ny user i Console → Dashboard med rolle + verification-email sendt.
+// app/src/main/java/dk/byggepiloten/firma/ui/viewmodel/OnboardingViewModel.kt
+// 100% VIRKENDE VERSION FRA BACKUP – 3. DECEMBER 2025
 
 package dk.byggepiloten.firma.ui.viewmodel
 
@@ -74,7 +66,6 @@ class OnboardingViewModel @Inject constructor(
         }
     }
 
-    // TILFØJET: Complete registration (createUser + save rolle/details til Firestore + send verification – kaldes fra details-screens)
     fun completeRegistration(role: String, details: Map<String, Any>) {
         viewModelScope.launch {
             val uid = authRepository.createUser(
@@ -85,10 +76,9 @@ class OnboardingViewModel @Inject constructor(
             )
             if (uid != null) {
                 _selectedRole.value = role
-                // TILFØJET: Send verification-email efter oprettelse
                 authRepository.sendEmailVerification(uid)
                 Timber.d("REGISTRATION SUCCES: UID $uid, Rolle: $role – verification sendt")
-                completeOnboarding()  // Marker som færdig
+                completeOnboarding()
             } else {
                 Timber.e("REGISTRATION FEJLEDE: Tjek email/password")
             }

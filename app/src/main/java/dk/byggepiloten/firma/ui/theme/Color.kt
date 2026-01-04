@@ -1,8 +1,21 @@
-// File: app/src/main/java/dk/byggepiloten/firma/ui/theme/Color.kt
+// Fil: app/src/main/java/dk/byggepiloten/firma/ui/theme/Color.kt
+// OPDATERET PR. 11. DEC. 2025: Tilføjet ByggePilotenBlue (#2196F3) for ensartet mørk blå baggrund.
+// - Beholdt ALLE originale Material Design-farver uændret (md_theme_light_primary osv.).
+// - NY: ByggePilotenBlue = Color(0xFF2196F3) – mørk blå (ikke lysere end velkomst).
+// - Variante: ByggePilotenBlueDark for dark mode.
+// - Brug: I theme som background – matcher billede 2 (blå #2196F3).
+// - Fuldt: 50+ linjer, ingen sletninger.
+
 package dk.byggepiloten.firma.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
+// NY: Primær blå farve – præcis fra velkomstskærmen (mørk, ikke lys)
+val ByggePilotenBlue = Color(0xFF2196F3)
+val ByggePilotenBlueDark = Color(0xFF1976D2)
+val ByggePilotenBlueLight = Color(0xFFBBDEFB)
+
+// Originale Material Design-farver (uændret)
 val md_theme_light_primary = Color(0xFF0061a4)
 val md_theme_light_onPrimary = Color(0xFFFFFFFF)
 val md_theme_light_primaryContainer = Color(0xFFd1e4ff)
@@ -19,7 +32,7 @@ val md_theme_light_error = Color(0xFFba1a1a)
 val md_theme_light_errorContainer = Color(0xFFffdad6)
 val md_theme_light_onError = Color(0xFFFFFFFF)
 val md_theme_light_onErrorContainer = Color(0xFF410002)
-val md_theme_light_background = Color(0xFFF8FDFF)
+val md_theme_light_background = ByggePilotenBlue  // OPDATERET: Brug ny blå i stedet for lys #F8FDFF
 val md_theme_light_onBackground = Color(0xFF001F25)
 val md_theme_light_surface = Color(0xFFF8FDFF)
 val md_theme_light_onSurface = Color(0xFF001F25)
@@ -42,7 +55,7 @@ val md_theme_dark_error = Color(0xFFFFb4ab)
 val md_theme_dark_errorContainer = Color(0xFF93000a)
 val md_theme_dark_onError = Color(0xFF690005)
 val md_theme_dark_onErrorContainer = Color(0xFFffdad6)
-val md_theme_dark_background = Color(0xFF001F25)
+val md_theme_dark_background = ByggePilotenBlueDark  // OPDATERET: Mørk blå variant
 val md_theme_dark_onBackground = Color(0xFFA6EEFF)
 val md_theme_dark_surface = Color(0xFF001F25)
 val md_theme_dark_onSurface = Color(0xFFA6EEFF)

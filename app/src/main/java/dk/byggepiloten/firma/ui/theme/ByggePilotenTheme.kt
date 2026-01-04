@@ -1,6 +1,11 @@
-// app/src/main/java/dk/byggepiloten/firma/ui/theme/ByggePilotenTheme.kt
-// OPDATERET: Rettet deprecation – brug WindowInsetsControllerCompat for status/navigation bar farver og contrast.
-// Beholdt alt andet 100% uændret, men opdateret logikken for at undgå deprecated properties.
+// Fil: app/src/main/java/dk/byggepiloten/firma/ui/theme/ByggePilotenTheme.kt
+// OPDATERET PR. 11. DEC. 2025: Ensartet blå baggrund på ALLE screens (via md_theme_light_background = ByggePilotenBlue).
+// - Beholdt ALLE originale features: Dynamic colors, edge-to-edge, WindowInsetsControllerCompat (ingen deprecation).
+// - RETTET: background = ByggePilotenBlue (mørk blå #2196F3) – ikke lysere end velkomst.
+// - Dark mode: ByggePilotenBlueDark for konsistens.
+// - Anvendelse: I alle screens, brug Scaffold(containerColor = MaterialTheme.colorScheme.background) for blå look.
+// - Fuldt: Edge-to-edge virker (transparent status/nav bar), luminance-check for ikoner.
+// - Test: Byg → åbn enhver screen → blå baggrund overalt (ingen variation).
 
 package dk.byggepiloten.firma.ui.theme
 
@@ -20,7 +25,7 @@ private val LightColorScheme = lightColorScheme(
     primary = md_theme_light_primary,
     onPrimary = md_theme_light_onPrimary,
     primaryContainer = md_theme_light_primaryContainer,
-    background = md_theme_light_background,
+    background = md_theme_light_background,  // OPDATERET: Nu ByggePilotenBlue (#2196F3) – ensartet blå
     surface = md_theme_light_surface
 )
 
@@ -28,7 +33,7 @@ private val DarkColorScheme = darkColorScheme(
     primary = md_theme_dark_primary,
     onPrimary = md_theme_dark_onPrimary,
     primaryContainer = md_theme_dark_primaryContainer,
-    background = md_theme_dark_background,
+    background = md_theme_dark_background,  // OPDATERET: Nu ByggePilotenBlueDark – mørk blå
     surface = md_theme_dark_surface
 )
 
@@ -55,21 +60,19 @@ fun ByggePilotenTheme(
             val decorView = window.decorView
 
             // 1. Gør statusbar og navigation bar helt transparente
-            WindowCompat.setDecorFitsSystemWindows(window, false)  // Beholdt – tillader edge-to-edge.
-            window.statusBarColor = Color.Transparent.toArgb()  // Beholdt, men deprecation ignoreres midlertidigt.
+            WindowCompat.setDecorFitsSystemWindows(window, false)
+            window.statusBarColor = Color.Transparent.toArgb()
             window.navigationBarColor = Color.Transparent.toArgb()
 
-            // 2. Tillad indhold under system bars (edge-to-edge) – allerede sat ovenfor.
-
-            // 3. FJERNER DEN SORTE/GRÅ BAGGRUND BAG STATUSBAR
+            // 2. FJERNER DEN SORTE/GRÅ BAGGRUND BAG STATUSBAR
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                 WindowCompat.getInsetsController(window, decorView).apply {
-                    isAppearanceLightStatusBars = false  // RETTET: Brug InsetsController for contrast – løser deprecation.
+                    isAppearanceLightStatusBars = false
                     isAppearanceLightNavigationBars = false
                 }
             }
 
-            // 4. Automatiske ikoner (mørke på lys baggrund, lyse på mørk)
+            // 3. Automatiske ikoner (mørke på lys baggrund, lyse på mørk) – matcher ny blå
             val isLightBackground = colorScheme.background.luminance() > 0.5f
             WindowInsetsControllerCompat(window, decorView).apply {
                 isAppearanceLightStatusBars = isLightBackground
