@@ -1,10 +1,9 @@
 // Fil: app/src/main/java/dk/byggepiloten/firma/ui/screen/FacadePudsningScreen.kt
 // FULD FIL – OPdateret version (kompilerer 100% i Material3)
 // Ændringer:
-// - Rettet fejl: Helper-funktionerne flyttet udenfor @Composable og gjort til top-level private fun
-// - Fjernet separat "Farve (slutpuds)"
-// - Farvevalg kun for valgt hæftemørtel-type (DuraPuds eller Skalcem)
-// - Swatch viser approximate farver
+// - Fjernet "Træ" fra vægtype-valg
+// - Fjernet Vandskur helt (variabel + UI + opsummering)
+// - Beholdt 7 steps (isolering som step 3, armeringsnet, farvevalg med swatch/link, hvid-kant, "Anden" tekstfelt)
 
 package dk.byggepiloten.firma.ui.screen
 
@@ -24,8 +23,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -44,18 +45,27 @@ fun FacadePudsningScreen(navController: NavController) {
     var stilladsAdgang by remember { mutableStateOf<String?>(null) }
     var stilladsTrapper by remember { mutableStateOf<String?>(null) }
 
+    var armeringsnet by remember { mutableStateOf<String?>(null) }
+
+    var isolering by remember { mutableStateOf<String?>(null) }
+    var isoleringType by remember { mutableStateOf<String?>(null) }
+
     var underlagRevner by remember { mutableStateOf<String?>(null) }
     var underlagFugt by remember { mutableStateOf<String?>(null) }
     var underlagGammelPuds by remember { mutableStateOf<String?>(null) }
 
     var vejretidspunkt by remember { mutableStateOf<String?>(null) }
-    var vandskur by remember { mutableStateOf<String?>(null) }
     var haeftemoertelType by remember { mutableStateOf<String?>(null) }
+    var andenHaeftemoertel by remember { mutableStateOf("") }
     var durapudsFarve by remember { mutableStateOf<String?>(null) }
     var skalcemFarve by remember { mutableStateOf<String?>(null) }
 
     var currentStep by remember { mutableStateOf(1) }
-    val totalSteps = 6
+    val totalSteps = 7
+
+    LaunchedEffect(vaegtype) {
+        armeringsnet = if (vaegtype == "Mursten") "Ja" else null
+    }
 
     val textFieldColors = TextFieldDefaults.colors(
         focusedContainerColor = Color.White,
@@ -81,6 +91,8 @@ fun FacadePudsningScreen(navController: NavController) {
         disabledPlaceholderColor = Color.Gray.copy(alpha = 0.4f),
         errorPlaceholderColor = Color.Gray
     )
+
+    val uriHandler = LocalUriHandler.current
 
     Box(
         modifier = Modifier
@@ -141,7 +153,7 @@ fun FacadePudsningScreen(navController: NavController) {
                         Spacer(Modifier.height(32.dp))
 
                         Text("Vægtype (påvirker mørtel)", color = Color.White, fontSize = 16.sp)
-                        val vaegtyper = listOf("Mursten", "Puds", "Træ", "Lega", "Beton", "Anden")
+                        val vaegtyper = listOf("Mursten", "Puds", "Lega", "Beton", "Anden")
                         FlowRow(
                             horizontalArrangement = Arrangement.spacedBy(12.dp),
                             verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -193,7 +205,7 @@ fun FacadePudsningScreen(navController: NavController) {
                         )
                     }
                     2 -> {
-                        Text("Adgang og stillads", color = Color.White, fontWeight = FontWeight.Medium, fontSize = 18.sp)
+                        Text("Adgang, stillads og armeringsnet", color = Color.White, fontWeight = FontWeight.Medium, fontSize = 18.sp)
                         Spacer(Modifier.height(24.dp))
 
                         Text("Er stillads nødvendigt?", color = Color.White, fontSize = 16.sp)
@@ -277,8 +289,116 @@ fun FacadePudsningScreen(navController: NavController) {
                                 }
                             }
                         }
+
+                        Spacer(Modifier.height(40.dp))
+                        Text("Ønskes armeringsnet i pudsen?", color = Color.White, fontSize = 16.sp)
+                        Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                            Box(
+                                modifier = Modifier
+                                    .clickable { armeringsnet = "Ja" }
+                                    .background(
+                                        if (armeringsnet == "Ja") ByggePilotenBlue else Color.White,
+                                        shape = RoundedCornerShape(8.dp)
+                                    )
+                                    .padding(horizontal = 24.dp, vertical = 12.dp)
+                            ) {
+                                Text("Ja", color = if (armeringsnet == "Ja") Color.White else Color.Black)
+                            }
+                            Box(
+                                modifier = Modifier
+                                    .clickable { armeringsnet = "Nej" }
+                                    .background(
+                                        if (armeringsnet == "Nej") ByggePilotenBlue else Color.White,
+                                        shape = RoundedCornerShape(8.dp)
+                                    )
+                                    .padding(horizontal = 24.dp, vertical = 12.dp)
+                            ) {
+                                Text("Nej", color = if (armeringsnet == "Nej") Color.White else Color.Black)
+                            }
+                        }
+
+                        val armeringsInfo = when (vaegtype) {
+                            "Mursten" -> "Stærkt anbefalet – standard for at undgå revner på rå mursten."
+                            "Puds" -> "Anbefalet ved renovering – giver ekstra holdbarhed."
+                            else -> "Valgfrit, men anbefales for sikkerhed."
+                        }
+                        Spacer(Modifier.height(12.dp))
+                        Text(armeringsInfo, color = Color.White.copy(alpha = 0.9f), fontSize = 14.sp)
+
+                        if (armeringsnet == "Nej" && vaegtype == "Mursten") {
+                            Spacer(Modifier.height(8.dp))
+                            Text("Advarsel: Uden net er der højere risiko for revner på mursten.", color = Color(0xFFFFA500), fontSize = 14.sp)
+                        }
                     }
                     3 -> {
+                        Text("Facadeisolering", color = Color.White, fontWeight = FontWeight.Medium, fontSize = 18.sp)
+                        Spacer(Modifier.height(24.dp))
+
+                        Text("Ønskes udvendig facadeisolering (ETICS)?", color = Color.White, fontSize = 16.sp)
+                        Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                            Box(
+                                modifier = Modifier
+                                    .clickable {
+                                        isolering = "Ja"
+                                        isoleringType = null
+                                    }
+                                    .background(
+                                        if (isolering == "Ja") ByggePilotenBlue else Color.White,
+                                        shape = RoundedCornerShape(8.dp)
+                                    )
+                                    .padding(horizontal = 24.dp, vertical = 12.dp)
+                            ) {
+                                Text("Ja", color = if (isolering == "Ja") Color.White else Color.Black)
+                            }
+                            Box(
+                                modifier = Modifier
+                                    .clickable { isolering = "Nej"; isoleringType = null }
+                                    .background(
+                                        if (isolering == "Nej") ByggePilotenBlue else Color.White,
+                                        shape = RoundedCornerShape(8.dp)
+                                    )
+                                    .padding(horizontal = 24.dp, vertical = 12.dp)
+                            ) {
+                                Text("Nej", color = if (isolering == "Nej") Color.White else Color.Black)
+                            }
+                        }
+
+                        if (isolering == "Ja") {
+                            Spacer(Modifier.height(32.dp))
+                            Text("Vælg isoleringstype", color = Color.White, fontSize = 16.sp)
+                            val isoleringTyper = listOf(
+                                "Mineraluld (anbefales – bedst åndbarhed)",
+                                "EPS (billigere, højere fugtrisiko)"
+                            )
+                            FlowRow(
+                                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                                verticalArrangement = Arrangement.spacedBy(8.dp),
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                isoleringTyper.forEach { type ->
+                                    Box(
+                                        modifier = Modifier
+                                            .clickable { isoleringType = type }
+                                            .background(
+                                                if (isoleringType == type) ByggePilotenBlue else Color.White,
+                                                shape = RoundedCornerShape(8.dp)
+                                            )
+                                            .padding(horizontal = 16.dp, vertical = 12.dp)
+                                    ) {
+                                        Text(
+                                            text = type,
+                                            color = if (isoleringType == type) Color.White else Color.Black,
+                                            fontSize = 16.sp
+                                        )
+                                    }
+                                }
+                            }
+
+                            Spacer(Modifier.height(16.dp))
+                            Text("Advarsel: Kræver certificeret udførelse – risiko for fugtproblemer hvis fejl (kilde: Bolius).", color = Color(0xFFFFA500), fontSize = 14.sp)
+                        }
+                    }
+                    4 -> {
                         Text("Underlagstilstand", color = Color.White, fontWeight = FontWeight.Medium, fontSize = 18.sp)
                         Spacer(Modifier.height(24.dp))
 
@@ -318,7 +438,7 @@ fun FacadePudsningScreen(navController: NavController) {
                             Spacer(Modifier.height(32.dp))
                         }
                     }
-                    4 -> {
+                    5 -> {
                         Text("Vejrforhold", color = Color.White, fontWeight = FontWeight.Medium, fontSize = 18.sp)
                         Spacer(Modifier.height(24.dp))
 
@@ -349,37 +469,10 @@ fun FacadePudsningScreen(navController: NavController) {
                             }
                         }
                     }
-                    5 -> {
+                    6 -> {
                         Text("Øvrige detaljer", color = Color.White, fontWeight = FontWeight.Medium, fontSize = 18.sp)
                         Spacer(Modifier.height(24.dp))
 
-                        Text("Vandskur (tyndpudsning/filtsning – vandafvisende)", color = Color.White, fontSize = 16.sp)
-                        Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                            Box(
-                                modifier = Modifier
-                                    .clickable { vandskur = "Ja" }
-                                    .background(
-                                        if (vandskur == "Ja") ByggePilotenBlue else Color.White,
-                                        shape = RoundedCornerShape(8.dp)
-                                    )
-                                    .padding(horizontal = 24.dp, vertical = 12.dp)
-                            ) {
-                                Text("Ja", color = if (vandskur == "Ja") Color.White else Color.Black)
-                            }
-                            Box(
-                                modifier = Modifier
-                                    .clickable { vandskur = "Nej" }
-                                    .background(
-                                        if (vandskur == "Nej") ByggePilotenBlue else Color.White,
-                                        shape = RoundedCornerShape(8.dp)
-                                    )
-                                    .padding(horizontal = 24.dp, vertical = 12.dp)
-                            ) {
-                                Text("Nej", color = if (vandskur == "Nej") Color.White else Color.Black)
-                            }
-                        }
-
-                        Spacer(Modifier.height(40.dp))
                         Text("Hæftemørtel-type", color = Color.White, fontSize = 16.sp)
                         Spacer(Modifier.height(16.dp))
                         val haefteOptions = listOf("DuraPuds 615 (vandafvisende)", "Skalcem S2000 (indfarvet)", "Anden")
@@ -395,6 +488,7 @@ fun FacadePudsningScreen(navController: NavController) {
                                             haeftemoertelType = option
                                             durapudsFarve = null
                                             skalcemFarve = null
+                                            if (option != "Anden") andenHaeftemoertel = ""
                                         }
                                         .background(
                                             if (haeftemoertelType == option) ByggePilotenBlue else Color.White,
@@ -411,6 +505,17 @@ fun FacadePudsningScreen(navController: NavController) {
                             }
                         }
 
+                        if (haeftemoertelType == "Anden") {
+                            Spacer(Modifier.height(16.dp))
+                            OutlinedTextField(
+                                value = andenHaeftemoertel,
+                                onValueChange = { andenHaeftemoertel = it },
+                                placeholder = { Text("Beskriv ønsket hæftemørtel") },
+                                modifier = Modifier.fillMaxWidth(),
+                                colors = textFieldColors
+                            )
+                        }
+
                         if (haeftemoertelType == "DuraPuds 615 (vandafvisende)") {
                             Spacer(Modifier.height(40.dp))
                             Text("Vælg farve til DuraPuds 615", color = Color.White, fontSize = 16.sp)
@@ -422,6 +527,7 @@ fun FacadePudsningScreen(navController: NavController) {
                                 modifier = Modifier.fillMaxWidth()
                             ) {
                                 durapudsFarver.forEach { farveOption ->
+                                    val isWhite = farveOption == "Hvid"
                                     Box(
                                         modifier = Modifier
                                             .clickable { durapudsFarve = farveOption }
@@ -438,6 +544,7 @@ fun FacadePudsningScreen(navController: NavController) {
                                                 modifier = Modifier
                                                     .size(40.dp)
                                                     .background(getDurapudsSwatchColor(farveOption), shape = RoundedCornerShape(4.dp))
+                                                    .let { if (isWhite) it.border(1.dp, Color.LightGray, RoundedCornerShape(4.dp)) else it }
                                             )
                                             Spacer(Modifier.width(12.dp))
                                             Text(
@@ -469,6 +576,7 @@ fun FacadePudsningScreen(navController: NavController) {
                                 modifier = Modifier.fillMaxWidth()
                             ) {
                                 skalcemFarver.forEach { farveOption ->
+                                    val isWhite = farveOption == "Hvid"
                                     Box(
                                         modifier = Modifier
                                             .clickable { skalcemFarve = farveOption }
@@ -485,6 +593,7 @@ fun FacadePudsningScreen(navController: NavController) {
                                                 modifier = Modifier
                                                     .size(40.dp)
                                                     .background(getSkalcemSwatchColor(farveOption), shape = RoundedCornerShape(4.dp))
+                                                    .let { if (isWhite) it.border(1.dp, Color.LightGray, RoundedCornerShape(4.dp)) else it }
                                             )
                                             Spacer(Modifier.width(12.dp))
                                             Text(
@@ -496,9 +605,20 @@ fun FacadePudsningScreen(navController: NavController) {
                                     }
                                 }
                             }
+
+                            Spacer(Modifier.height(16.dp))
+                            Text(
+                                text = "Se fuldt farvekort på Nordisk NHL's hjemmeside",
+                                color = ByggePilotenBlue,
+                                fontSize = 14.sp,
+                                textDecoration = TextDecoration.Underline,
+                                modifier = Modifier.clickable {
+                                    uriHandler.openUri("https://www.nordisknhl.dk/naturlige-kalkprodukter/indfarvet-mortel/farvekort-indfarvet-mortel")
+                                }
+                            )
                         }
                     }
-                    6 -> {
+                    7 -> {
                         Text("Opsummering", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 20.sp)
                         Spacer(Modifier.height(24.dp))
 
@@ -515,12 +635,16 @@ fun FacadePudsningScreen(navController: NavController) {
                                     Text("Adgang til stillads: ${stilladsAdgang ?: "Ikke valgt"}", color = Color.Black, fontSize = 16.sp)
                                     Text("Bæres op ad trapper: ${stilladsTrapper ?: "Ikke valgt"}", color = Color.Black, fontSize = 16.sp)
                                 }
+                                Text("Armeringsnet: ${armeringsnet ?: "Ikke valgt"}", color = Color.Black, fontSize = 16.sp)
+                                Text("Facadeisolering: ${isolering ?: "Ikke valgt"}", color = Color.Black, fontSize = 16.sp)
+                                if (isolering == "Ja") {
+                                    Text("Isoleringstype: ${isoleringType ?: "Ikke valgt"}", color = Color.Black, fontSize = 16.sp)
+                                }
                                 Text("Revner i underlag: ${underlagRevner ?: "Ikke valgt"}", color = Color.Black, fontSize = 16.sp)
                                 Text("Fugt i underlag: ${underlagFugt ?: "Ikke valgt"}", color = Color.Black, fontSize = 16.sp)
                                 Text("Gammel puds fjernes: ${underlagGammelPuds ?: "Ikke valgt"}", color = Color.Black, fontSize = 16.sp)
                                 Text("Vejretidspunkt: ${vejretidspunkt ?: "Ikke valgt"}", color = Color.Black, fontSize = 16.sp)
-                                Text("Vandskur: ${vandskur ?: "Ikke valgt"}", color = Color.Black, fontSize = 16.sp)
-                                Text("Hæftemørtel-type: ${haeftemoertelType ?: "Ikke valgt"}", color = Color.Black, fontSize = 16.sp)
+                                Text("Hæftemørtel-type: ${if (haeftemoertelType == "Anden") "$haeftemoertelType ($andenHaeftemoertel)" else haeftemoertelType ?: "Ikke valgt"}", color = Color.Black, fontSize = 16.sp)
                                 if (haeftemoertelType == "DuraPuds 615 (vandafvisende)") {
                                     Text("DuraPuds farve: ${durapudsFarve ?: "Ikke valgt"}", color = Color.Black, fontSize = 16.sp)
                                 }
