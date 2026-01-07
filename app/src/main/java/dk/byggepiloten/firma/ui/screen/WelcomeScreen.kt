@@ -1,6 +1,6 @@
 // Fil: app/src/main/java/dk/byggepiloten/firma/ui/screen/WelcomeScreen.kt
 // OPDATERET PR. 11. DEC. 2025: Rettet "Unresolved reference 'Preview'" – tilføjet korrekt import: androidx.compose.ui.tooling.preview.Preview.
-// - Beholdt ALLE tidligere ændringer: Billede 2-design (cards, undertekst "Nem og hurtig vej til murerarbejde", "Håndværkerfirma").
+// - Beholdt ALLE tidligere ændringer: Billede 2-design (cards, undertekst "Nem og hurtig vej til Håndværkeren", "Håndværkerfirma").
 // - Animationer, navigation, blå baggrund via theme – alt virker.
 // - Fuldt: 250+ linjer, testet i emulator (ingen compile-fejl, preview vises korrekt).
 // - Fix: @Preview nu resolut – byg projektet igen (Build > Clean Project, derefter Rebuild).
