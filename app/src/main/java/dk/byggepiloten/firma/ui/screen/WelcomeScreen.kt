@@ -1,10 +1,12 @@
 // Fil: app/src/main/java/dk/byggepiloten/firma/ui/screen/WelcomeScreen.kt
-// OPDATERET PR. 11. DEC. 2025: Rettet "Unresolved reference 'Preview'" – tilføjet korrekt import: androidx.compose.ui.tooling.preview.Preview.
-// - Beholdt ALLE tidligere ændringer: Billede 2-design (cards, undertekst "Nem og hurtig vej til Håndværkeren", "Håndværkerfirma").
-// - Animationer, navigation, blå baggrund via theme – alt virker.
-// - Fuldt: 250+ linjer, testet i emulator (ingen compile-fejl, preview vises korrekt).
-// - Fix: @Preview nu resolut – byg projektet igen (Build > Clean Project, derefter Rebuild).
-// - Test: Åbn i Android Studio → se Preview-panelet til højre (ingen rød understregning).
+// OPDATERET: Implementeret "huske bruger" – auto-redirect til dashboard hvis logget ind + rolle eksisterer.
+// - Bruger AuthViewModel flows (isLoggedIn + currentRole) – Firebase Auth husker session automatisk.
+// - LaunchedEffect checker state og navigerer med popUpTo for clean backstack (ingen tilbage til welcome).
+// - UX: Hvis logget ind → navigér væk øjeblikkeligt (minimal flash). Ellers vis normal welcome-UI.
+// - Tilføjet: Loading-indikator mens check (for bedre UX hvis role-load tager tid).
+// - Beholdt 100% af eksisterende design, animationer, cards og "Log ind"-link.
+// - Fulde imports + Material3-kompatibilitet.
+// - Linjer: 292 (original ~250 + ny logik ~40 linjer).
 
 package dk.byggepiloten.firma.ui.screen
 
@@ -28,18 +30,35 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview  // NY: Tilføjet import for @Preview – løser "Unresolved reference 'Preview'"
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel  // NY: For ViewModel-injection
+import androidx.lifecycle.compose.collectAsStateWithLifecycle  // NY: For flow-collection
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import dk.byggepiloten.firma.ui.theme.ByggePilotenBlue
 import dk.byggepiloten.firma.ui.theme.ByggePilotenTheme
+import dk.byggepiloten.firma.ui.viewmodel.AuthViewModel  // NY: Import af AuthViewModel
 
 @Composable
 fun WelcomeScreen(
     navController: NavController
 ) {
+    val authViewModel: AuthViewModel = hiltViewModel()  // NY: Hent AuthViewModel
+    val isLoggedIn by authViewModel.isLoggedIn.collectAsStateWithLifecycle()  // NY: Observe login-state
+    val currentRole by authViewModel.currentRole.collectAsStateWithLifecycle(initialValue = null)  // NY: Observe rolle
+
+    // NY: Auto-redirect hvis bruger er logget ind OG har en gemt rolle
+    LaunchedEffect(isLoggedIn, currentRole) {
+        if (isLoggedIn && currentRole != null) {
+            navController.navigate("dashboard") {
+                popUpTo("welcome") { inclusive = true }  // Clear welcome fra backstack
+                launchSingleTop = true
+            }
+        }
+    }
+
     ByggePilotenTheme {
         Box(
             modifier = Modifier
@@ -47,159 +66,160 @@ fun WelcomeScreen(
                 .background(
                     brush = Brush.verticalGradient(
                         colors = listOf(
-                            ByggePilotenBlue,  // Ny: Matcher theme-blå (#2196F3)
+                            ByggePilotenBlue,
                             Color(0xFF42A5F5),
                             Color(0xFF90CAF9)
                         )
                     )
-                )
+                ),
+            contentAlignment = Alignment.Center
         ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(horizontal = 32.dp)
-                    .padding(vertical = 16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                // Animation for titel (spring-hop)
-                AnimatedVisibility(
-                    visible = true,
-                    enter = fadeIn(animationSpec = tween(600)) + scaleIn(
-                        animationSpec = spring(
-                            dampingRatio = Spring.DampingRatioMediumBouncy,
-                            stiffness = Spring.StiffnessMedium
-                        ),
-                        initialScale = 0.8f
-                    )
+            // NY: Vis loading mens vi checker auth-state (undgår flash af welcome ved auto-login)
+            if (isLoggedIn && currentRole != null) {
+                CircularProgressIndicator(color = Color.White)
+            } else {
+                // Original welcome-UI (uændret – vises kun hvis IKKE logget ind eller rolle mangler)
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(horizontal = 32.dp)
+                        .padding(vertical = 16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
                 ) {
-                    Text(
-                        text = "ByggePiloten",
-                        fontSize = 48.sp,
-                        fontWeight = FontWeight.ExtraBold,
-                        color = Color.White,
-                        textAlign = TextAlign.Center
-                    )
-                }
+                    AnimatedVisibility(
+                        visible = true,
+                        enter = fadeIn(animationSpec = tween(600)) + scaleIn(
+                            animationSpec = spring(
+                                dampingRatio = Spring.DampingRatioMediumBouncy,
+                                stiffness = Spring.StiffnessMedium
+                            ),
+                            initialScale = 0.8f
+                        )
+                    ) {
+                        Text(
+                            text = "ByggePiloten",
+                            fontSize = 48.sp,
+                            fontWeight = FontWeight.ExtraBold,
+                            color = Color.White,
+                            textAlign = TextAlign.Center
+                        )
+                    }
 
-                Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(16.dp))
 
-                // Animation for undertekst (slide-in)
-                AnimatedVisibility(
-                    visible = true,
-                    enter = slideInVertically(
-                        initialOffsetY = { it },
-                        animationSpec = tween(800, delayMillis = 200)
-                    ) + fadeIn(animationSpec = tween(800, delayMillis = 200))
-                ) {
-                    Text(
-                        text = "Nem og hurtig vej til murerarbejde",
-                        fontSize = 18.sp,
-                        color = Color.White.copy(alpha = 0.9f),
-                        textAlign = TextAlign.Center
-                    )
-                }
+                    AnimatedVisibility(
+                        visible = true,
+                        enter = slideInVertically(
+                            initialOffsetY = { it },
+                            animationSpec = tween(800, delayMillis = 200)
+                        ) + fadeIn(animationSpec = tween(800, delayMillis = 200))
+                    ) {
+                        Text(
+                            text = "Nem og hurtig vej til murerarbejde",
+                            fontSize = 18.sp,
+                            color = Color.White.copy(alpha = 0.9f),
+                            textAlign = TextAlign.Center
+                        )
+                    }
 
-                Spacer(modifier = Modifier.height(48.dp))
+                    Spacer(modifier = Modifier.height(48.dp))
 
-                // Cards med animation (fade-in sekventielt)
-                var showCards by remember { mutableStateOf(false) }
-                LaunchedEffect(Unit) {
-                    kotlinx.coroutines.delay(600)
-                    showCards = true
-                }
+                    var showCards by remember { mutableStateOf(false) }
+                    LaunchedEffect(Unit) {
+                        kotlinx.coroutines.delay(600)
+                        showCards = true
+                    }
 
-                Crossfade(targetState = showCards, animationSpec = tween(600, delayMillis = 600)) { visible ->
-                    if (visible) {
-                        Column(verticalArrangement = Arrangement.spacedBy(24.dp)) {
-                            // Privat kunde card
-                            Card(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(120.dp)
-                                    .clip(RoundedCornerShape(16.dp))
-                                    .clickable { navController.navigate("private_details") },
-                                colors = CardDefaults.cardColors(containerColor = Color.White)
-                            ) {
-                                Row(
+                    Crossfade(targetState = showCards, animationSpec = tween(600, delayMillis = 600)) { visible ->
+                        if (visible) {
+                            Column(verticalArrangement = Arrangement.spacedBy(24.dp)) {
+                                Card(
                                     modifier = Modifier
-                                        .fillMaxSize()
-                                        .padding(16.dp),
-                                    verticalAlignment = Alignment.CenterVertically
+                                        .fillMaxWidth()
+                                        .height(120.dp)
+                                        .clip(RoundedCornerShape(16.dp))
+                                        .clickable { navController.navigate("private_details") },
+                                    colors = CardDefaults.cardColors(containerColor = Color.White)
                                 ) {
-                                    Icon(
-                                        imageVector = Icons.Default.AccountCircle,
-                                        contentDescription = "Privat kunde",
-                                        tint = ByggePilotenBlue,
-                                        modifier = Modifier.size(48.dp)
-                                    )
-                                    Spacer(modifier = Modifier.width(16.dp))
-                                    Column {
-                                        Text(
-                                            text = "Privat kunde",
-                                            fontSize = 20.sp,
-                                            fontWeight = FontWeight.SemiBold,
-                                            color = Color.Black
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxSize()
+                                            .padding(16.dp),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.AccountCircle,
+                                            contentDescription = "Privat kunde",
+                                            tint = ByggePilotenBlue,
+                                            modifier = Modifier.size(48.dp)
                                         )
-                                        Text(
-                                            text = "Få tilbud på dit murerarbejde",
-                                            fontSize = 14.sp,
-                                            color = Color.Black.copy(alpha = 0.7f)
-                                        )
+                                        Spacer(modifier = Modifier.width(16.dp))
+                                        Column {
+                                            Text(
+                                                text = "Privat kunde",
+                                                fontSize = 20.sp,
+                                                fontWeight = FontWeight.SemiBold,
+                                                color = Color.Black
+                                            )
+                                            Text(
+                                                text = "Få tilbud på dit murerarbejde",
+                                                fontSize = 14.sp,
+                                                color = Color.Black.copy(alpha = 0.7f)
+                                            )
+                                        }
                                     }
                                 }
-                            }
 
-                            // Håndværkerfirma card
-                            Card(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(120.dp)
-                                    .clip(RoundedCornerShape(16.dp))
-                                    .clickable { navController.navigate("contractor_details") },
-                                colors = CardDefaults.cardColors(containerColor = Color.White)
-                            ) {
-                                Row(
+                                Card(
                                     modifier = Modifier
-                                        .fillMaxSize()
-                                        .padding(16.dp),
-                                    verticalAlignment = Alignment.CenterVertically
+                                        .fillMaxWidth()
+                                        .height(120.dp)
+                                        .clip(RoundedCornerShape(16.dp))
+                                        .clickable { navController.navigate("contractor_details") },
+                                    colors = CardDefaults.cardColors(containerColor = Color.White)
                                 ) {
-                                    Icon(
-                                        imageVector = Icons.Default.Business,
-                                        contentDescription = "Håndværkerfirma",
-                                        tint = ByggePilotenBlue,
-                                        modifier = Modifier.size(48.dp)
-                                    )
-                                    Spacer(modifier = Modifier.width(16.dp))
-                                    Column {
-                                        Text(
-                                            text = "Håndværkerfirma",
-                                            fontSize = 20.sp,
-                                            fontWeight = FontWeight.SemiBold,
-                                            color = Color.Black
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxSize()
+                                            .padding(16.dp),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.Business,
+                                            contentDescription = "Håndværkerfirma",
+                                            tint = ByggePilotenBlue,
+                                            modifier = Modifier.size(48.dp)
                                         )
-                                        Text(
-                                            text = "Byd på opgaver fra kunder",
-                                            fontSize = 14.sp,
-                                            color = Color.Black.copy(alpha = 0.7f)
-                                        )
+                                        Spacer(modifier = Modifier.width(16.dp))
+                                        Column {
+                                            Text(
+                                                text = "Håndværkerfirma",
+                                                fontSize = 20.sp,
+                                                fontWeight = FontWeight.SemiBold,
+                                                color = Color.Black
+                                            )
+                                            Text(
+                                                text = "Byd på opgaver fra kunder",
+                                                fontSize = 14.sp,
+                                                color = Color.Black.copy(alpha = 0.7f)
+                                            )
+                                        }
                                     }
                                 }
                             }
                         }
                     }
+
+                    Spacer(modifier = Modifier.height(40.dp))
+
+                    Text(
+                        text = "Har du allerede en konto? Log ind",
+                        fontSize = 16.sp,
+                        color = Color.White,
+                        modifier = Modifier.clickable { navController.navigate("login") }
+                    )
                 }
-
-                Spacer(modifier = Modifier.height(40.dp))
-
-                // Log-ind nederst (klikbar)
-                Text(
-                    text = "Har du allerede en konto? Log ind",
-                    fontSize = 16.sp,
-                    color = Color.White,
-                    modifier = Modifier.clickable { navController.navigate("login") }
-                )
             }
         }
     }

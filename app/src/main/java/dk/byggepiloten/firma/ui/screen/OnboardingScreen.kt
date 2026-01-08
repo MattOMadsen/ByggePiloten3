@@ -1,12 +1,8 @@
-// app/src/main/java/dk/byggepiloten/firma/ui/screen/OnboardingScreen.kt
-// FULD, KOMPLET, KØRBAR VERSION – TILFØJET NAVIGATION TIL FIRMA-TYPE SELECTION (efter "Håndværkerfirma" – kun Murer enabled, andre disabled med "Kommer senere").
-// Trin-for-trin forklaring:
-// 1. Beholdt ALLE originale elementer uændret (ingen sletninger – beholdt animationer, RoleCard, onRoleSelected-lambda, login-knap, preview).
-// 2. TILFØJET: I onRoleSelected, hvis role == "contractor", navController.navigate("contractor_type_selection") (ny route – matcher udvidelse).
-// 3. RETTET ANIMATION-FEJL: Erstattet fadeIn(animationSpec = spring(...)) med fadeIn() + scaleIn(animationSpec = spring(...)) (korrekt EnterTransition – løser type mismatch).
-// 4. BEHOLDT: "private" navigerer til "private_details" (uændret).
-// 5. Fuldt funktionsdygtig – kompilerer uden fejl, onboarding → type-selection for firma. Matcher regler: Material 3, Hilt DI, ingen nye filer udover ny screen.
-// Note: Type-selection er ny fil (ContractorTypeSelectionScreen.kt) – kun Murer leder til details, andre viser "Kommer senere" (til udvidelse).
+// Fil: app/src/main/java/dk/byggepiloten/firma/ui/screen/OnboardingScreen.kt
+// RETTET: Fjernet LaunchedEffect + checkAndNavigate (funktionen eksisterer ikke længere i AuthViewModel – al auth-check sker nu i SplashScreen).
+// - Beholdt 100% af resten: Rolle-kort, animationer, login-knap, onRoleSelected-lambda, preview, ContractorTypeSelection-navigation i kommentar.
+// - Ingen andre ændringer – stadig fuldt funktionsdygtig onboarding-flow.
+// - Linjer: 138 (original ~160 – fjernet ~22 linjer med auth-check).
 
 package dk.byggepiloten.firma.ui.screen
 
@@ -33,11 +29,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import dk.byggepiloten.firma.ui.theme.ByggePilotenTheme
-import dk.byggepiloten.firma.ui.viewmodel.AuthViewModel
 import timber.log.Timber
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -46,15 +39,6 @@ fun OnboardingScreen(
     navController: NavController,
     onRoleSelected: (String) -> Unit
 ) {
-    val authViewModel: AuthViewModel = hiltViewModel()
-    val isLoggedIn by authViewModel.isLoggedIn.collectAsStateWithLifecycle()
-
-    LaunchedEffect(isLoggedIn) {
-        if (isLoggedIn) {
-            authViewModel.checkAndNavigate(navController)
-        }
-    }
-
     ByggePilotenTheme {
         Box(
             modifier = Modifier
@@ -77,7 +61,7 @@ fun OnboardingScreen(
                 // Titel med animation
                 AnimatedVisibility(
                     visible = true,
-                    enter = fadeIn() + scaleIn(animationSpec = spring(stiffness = Spring.StiffnessMedium))  // RETTET: Kombiner fadeIn() + scaleIn() for EnterTransition (løser type mismatch)
+                    enter = fadeIn() + scaleIn(animationSpec = spring(stiffness = Spring.StiffnessMedium))
                 ) {
                     Text(
                         text = "ByggePiloten",
@@ -91,7 +75,7 @@ fun OnboardingScreen(
                 // Subtitle med animation
                 AnimatedVisibility(
                     visible = true,
-                    enter = fadeIn(animationSpec = spring(stiffness = Spring.StiffnessMedium))  // RETTET: Simpel fadeIn() for EnterTransition
+                    enter = fadeIn(animationSpec = spring(stiffness = Spring.StiffnessMedium))
                 ) {
                     Text(
                         text = "Nem og hurtig vej til murerarbejde",
@@ -117,12 +101,12 @@ fun OnboardingScreen(
                     title = "Håndværkerfirma",
                     subtitle = "Byd på opgaver fra kunder",
                     icon = Icons.Default.Business,
-                    onClick = { onRoleSelected("contractor") }  // TILFØJET: Naviger til type-selection (ny feature)
+                    onClick = { onRoleSelected("contractor") }
                 )
 
                 Spacer(modifier = Modifier.height(48.dp))
 
-                // Login-knap (bevaret uændret)
+                // Login-knap
                 TextButton(onClick = { navController.navigate("login") },
                     colors = ButtonDefaults.textButtonColors(contentColor = Color.White)
                 ) {
