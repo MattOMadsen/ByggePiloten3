@@ -133,6 +133,8 @@ dependencies {
     implementation("com.google.mlkit:vision-common:${libs.versions.mlkit.get()}")
     implementation("com.google.mlkit:genai-prompt:${libs.versions.genaiPrompt.get()}")
 
+    implementation("com.google.ai.client.generativeai:generativeai:0.9.0") // Latest pr. jan 2026 – tjek Maven for nyere hvis nødvendigt
+
     // Hilt WorkManager
     implementation(libs.hilt.work)
     ksp(libs.hilt.work.compiler)
