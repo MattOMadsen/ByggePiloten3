@@ -1,18 +1,21 @@
-// File: app/src/main/java/dk/byggepiloten/firma/data/model/Bid.kt
-// NY FIL: Data class for Bid (manglende fra BidDetailScreen.kt – løser unresolved Bid, copy(), etc.).
-// Trin-for-trin forklaring:
-// 1. Baseret på planen: Buddetaljer (pris, timer, materialer, kommentar, status fra contractor flow).
-// 2. TILFØJET: Felder matcher BidDetailScreen.kt (id, price, hours, materials, comment, status).
-// 3. Fuldt funktionsdygtig – data class med copy() for immutable updates.
-// Note: Integrer med Firestore (toObject<Bid> i repo). Tilføj flere felder hvis nødvendigt (f.eks. requestId, userId).
+// Fil: app/src/main/java/dk/byggepiloten/firma/data/model/Bid.kt
+// OPDATERET: Tilføjet contractorId, contractorName, timestamp og status med defaults.
+// Trin-for-trin kommentarer:
+// 1. Originale felter beholdt 100%.
+// 2. Nye felter gør det muligt at vise firma-navn, tidspunkt og status i BidsScreen.
+// 3. Defaults sikrer ingen null-fejl ved Firestore/Room deserialization.
+// 4. Senere: Når bid sendes (i BidViewModel.sendBid), sæt contractorName fra current user (f.eks. via Auth).
 
 package dk.byggepiloten.firma.data.model
 
 data class Bid(
-    val id: String,
-    val price: Float,
-    val hours: Int,
-    val materials: String,
-    val comment: String,
-    val status: String
+    val id: String = "",
+    val contractorId: String = "",
+    val contractorName: String = "",
+    val price: Float = 0f,
+    val hours: Int = 0,
+    val materials: String = "",
+    val comment: String = "",
+    val timestamp: Long = System.currentTimeMillis(),
+    val status: String = "pending"
 )
