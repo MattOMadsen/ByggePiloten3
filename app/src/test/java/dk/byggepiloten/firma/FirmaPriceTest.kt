@@ -9,7 +9,7 @@ import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.navigation.NavHostController
 import dagger.hilt.android.testing.HiltAndroidRule  // NYT: Import for HiltAndroidRule
 import dagger.hilt.android.testing.HiltAndroidTest  // NYT: Import for HiltAndroidTest
-import dk.byggepiloten.firma.ui.screen.FirmaPriceSetupScreen
+import dk.byggepiloten.firma.ui.screen.dashboard.firma.FirmaPriceSetupScreen
 import dk.byggepiloten.firma.ui.theme.ByggePilotenTheme
 import io.mockk.mockk
 import org.junit.Before

@@ -15,6 +15,7 @@ import app.cash.paparazzi.Paparazzi
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.navigation.NavController
 import com.android.ide.common.rendering.api.SessionParams
+import dk.byggepiloten.firma.ui.screen.auth.LoginScreen
 import io.mockk.mockk
 import org.junit.Rule
 import org.junit.Test

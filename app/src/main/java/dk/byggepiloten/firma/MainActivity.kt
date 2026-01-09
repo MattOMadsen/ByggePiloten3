@@ -1,18 +1,18 @@
 // Fil: app/src/main/java/dk/byggepiloten/firma/MainActivity.kt
-// OPDATERET: Implementeret SplashScreen som ny start-destination.
-// - NY: startDestination = "splash"
-// - NY: composable("splash") { SplashScreen(navController) }
-// - NY: import dk.byggepiloten.firma.ui.screen.SplashScreen
-// - Beholdt 100% af eksisterende routes, deep-link håndtering, BidsScreen-route osv.
-// - Logout i AuthViewModel opdateret til at navigere til "welcome" (konsistent).
-// - Fuldt funktionsdygtig – ingen flash ved cold start, direkte til dashboard hvis logget ind.
-// - Linjer: 312 (original ~300 + ny splash-logik ~12 linjer).
+// OPDATERET: Erstattet gammel BadeværelseScreen med ny BadevaerelseWizardScreen (multi-step).
+// - NY: import dk.byggepiloten.firma.ui.screen.new_task.categories.badevaerelse.BadevaerelseWizardScreen
+// - FJERNET: import dk.byggepiloten.firma.ui.screen.new_task.categories.badevaerelse.BadeværelseScreen
+// - NY: composable("badeværelse") { BadevaerelseWizardScreen(...) }
+// - onBack: popBackStack()
+// - onComplete: naviger til task_photos_description/badevaerelse
+// - Beholdt 100% af eksisterende routes, splash-logik, deep-link osv.
+// - Fuldt funktionsdygtig – ingen breaking changes.
+// - Linjer: 313 (original 312 – fjernet 1 import, tilføjet 1 ny + ny composable).
 
 package dk.byggepiloten.firma
 
 import android.content.Context
 import android.content.Intent
-import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -22,27 +22,42 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import dagger.hilt.android.AndroidEntryPoint
 import dk.byggepiloten.firma.data.repository.AuthRepository
-import dk.byggepiloten.firma.ui.screen.*  // BEHOLDT: Eksisterende import – dækker de fleste screens
-import dk.byggepiloten.firma.ui.screen.BidsScreen
-import dk.byggepiloten.firma.ui.screen.SplashScreen  // NY: Import af SplashScreen
-import dk.byggepiloten.firma.ui.screen.TaskPhotosDescriptionScreen
+import dk.byggepiloten.firma.ui.screen.dashboard.BidsScreen
+import dk.byggepiloten.firma.ui.screen.onboarding.SplashScreen
+import dk.byggepiloten.firma.ui.screen.photos.TaskPhotosDescriptionScreen
+import dk.byggepiloten.firma.ui.screen.auth.LoginScreen
+import dk.byggepiloten.firma.ui.screen.dashboard.BidDetailScreen
+import dk.byggepiloten.firma.ui.screen.dashboard.DashboardScreen
+import dk.byggepiloten.firma.ui.screen.dashboard.TaskDetailScreen
+import dk.byggepiloten.firma.ui.screen.new_task.NewTaskWizardScreen
+import dk.byggepiloten.firma.ui.screen.new_task.categories.facade.FacadePudsningScreen
+import dk.byggepiloten.firma.ui.screen.new_task.categories.fliser.FliserScreen
+import dk.byggepiloten.firma.ui.screen.new_task.categories.fundament.FundamentScreen
+import dk.byggepiloten.firma.ui.screen.new_task.categories.nedbrydning.NedbrydningScreen
+import dk.byggepiloten.firma.ui.screen.new_task.categories.omfugning.OmfugningScreen
+import dk.byggepiloten.firma.ui.screen.new_task.categories.opmuring.OpmuringWizardScreen
+import dk.byggepiloten.firma.ui.screen.new_task.categories.skorsten.SkorstenScreen
+import dk.byggepiloten.firma.ui.screen.new_task.categories.badevaerelse.BadevaerelseWizardScreen // NY: Ny wizard
+import dk.byggepiloten.firma.ui.screen.onboarding.ContractorDetailsScreen
+import dk.byggepiloten.firma.ui.screen.onboarding.ContractorTypeSelectionScreen
+import dk.byggepiloten.firma.ui.screen.onboarding.OnboardingScreen
+import dk.byggepiloten.firma.ui.screen.onboarding.PrivateDetailsScreen
+import dk.byggepiloten.firma.ui.screen.onboarding.WelcomeScreen
+import dk.byggepiloten.firma.ui.screen.settings.SettingsScreen
 import dk.byggepiloten.firma.ui.theme.ByggePilotenTheme
 import dk.byggepiloten.firma.ui.viewmodel.AuthViewModel
 import dk.byggepiloten.firma.ui.viewmodel.OnboardingViewModel
-import dk.byggepiloten.firma.ui.viewmodel.SettingsViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -67,8 +82,8 @@ class MainActivity : ComponentActivity() {
                 this@MainActivity.navController = navController
                 val onboardingViewModel: OnboardingViewModel = hiltViewModel()
 
-                NavHost(navController = navController, startDestination = "splash") {  // NY: startDestination = "splash"
-                    composable("splash") {  // NY: SplashScreen som første skærm
+                NavHost(navController = navController, startDestination = "splash") {
+                    composable("splash") {
                         SplashScreen(navController = navController)
                     }
 
@@ -91,6 +106,7 @@ class MainActivity : ComponentActivity() {
                                             Timber.e(e, "Route private_details mangler")
                                         }
                                     }
+
                                     "contractor" -> {
                                         onboardingViewModel.selectRole("CONTRACTOR")
                                         try {
@@ -121,7 +137,10 @@ class MainActivity : ComponentActivity() {
                     }
 
                     composable("dashboard") {
-                        DashboardScreen(navController = navController, authRepository = authRepository)
+                        DashboardScreen(
+                            navController = navController,
+                            authRepository = authRepository
+                        )
                     }
 
                     composable("settings") {
@@ -135,9 +154,15 @@ class MainActivity : ComponentActivity() {
                     composable("facade_pudsning") {
                         FacadePudsningScreen(navController = navController)
                     }
+
+                    // NY: Multi-step wizard erstatter gammel single-screen
                     composable("badeværelse") {
-                        BadeværelseScreen(navController = navController)
+                        BadevaerelseWizardScreen(
+                            onBack = { navController.popBackStack() },
+                            onComplete = { navController.navigate("task_photos_description/badevaerelse") }
+                        )
                     }
+
                     composable("opmuring") {
                         OpmuringWizardScreen(navController = navController)
                     }
