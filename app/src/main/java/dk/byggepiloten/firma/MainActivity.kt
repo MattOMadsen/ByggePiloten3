@@ -139,7 +139,7 @@ class MainActivity : ComponentActivity() {
                         BadeværelseScreen(navController = navController)
                     }
                     composable("opmuring") {
-                        OpmuringScreen(navController = navController)
+                        OpmuringWizardScreen(navController = navController)
                     }
                     composable("fliser") {
                         FliserScreen(navController = navController)
