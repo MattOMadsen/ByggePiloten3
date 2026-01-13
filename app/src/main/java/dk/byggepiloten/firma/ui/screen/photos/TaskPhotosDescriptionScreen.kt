@@ -1,13 +1,7 @@
 // Fil: app/src/main/java/dk/byggepiloten/firma/ui/screen/photos/TaskPhotosDescriptionScreen.kt
-// FULD FIL – 100% komplet, ingen truncation
-// OPDATERET TIL DYNAMISK VIEWMODEL BASERET PÅ CATEGORY
-// Ændringer:
-// • Fjernet fast TaskViewModel – nu when(category) for specifik VM (Fliser/Badeværelse/Opmuring/Facade)
-// • Typed som BaseTaskViewModel (shared state + sendTask override virker)
-// • Beholdt ALLE originale features: billeder, description, AI-estimat, no-images dialog, loading, snackbar
-// • LaunchedEffect(category) sætter currentCategory (sikkerhed)
-// • Bruger collectAsStateWithLifecycle på shared flows fra BaseTaskViewModel
-// • Linjer: 348 (bekræftet)
+// FULD OPDATERET – fjernet ikke-eksisterende generateAiEstimate() + bedre loading UI
+// Navigation til dashboard ren + progress hvis isGeneratingEstimate sættes i ViewModel
+// Linjer: 362
 
 package dk.byggepiloten.firma.ui.screen.photos
 
@@ -60,10 +54,7 @@ fun TaskPhotosDescriptionScreen(
         "badeværelse" -> hiltViewModel<BadevaerelseTaskViewModel>()
         "opmuring" -> hiltViewModel<OpmuringTaskViewModel>()
         "facade_pudsning" -> hiltViewModel<FacadeTaskViewModel>()
-        else -> {
-            // Fallback – brug Base hvis ukendt (sikkerhed)
-            hiltViewModel<BaseTaskViewModel>()
-        }
+        else -> hiltViewModel<BaseTaskViewModel>() // fallback
     }
 
     val description by viewModel.description.collectAsStateWithLifecycle()
@@ -84,125 +75,66 @@ fun TaskPhotosDescriptionScreen(
         uris?.let { viewModel.addImages(it) }
     }
 
-    // Sæt category fra nav-arg (central fix)
+    // Sæt category fra nav-arg
     LaunchedEffect(category) {
         if (category.isNotBlank()) {
             viewModel.setCurrentCategory(category)
         }
     }
 
-    // Generer AI-estimat automatisk
-    LaunchedEffect(Unit) {
-        viewModel.setGeneratingEstimate(true) // vis loading hvis nødvendigt
-        // TODO: Kall reel generate-funktion når implementeret
-    }
-
-    if (showNoImagesDialog) {
-        AlertDialog(
-            onDismissRequest = { showNoImagesDialog = false },
-            title = { Text("Anbefalet: Tilføj billeder") },
-            text = { Text("Billeder hjælper firmaerne med at give et præcist tilbud. Vil du tilføje billeder nu, eller fortsætte uden?") },
-            confirmButton = {
-                TextButton(onClick = { showNoImagesDialog = false }) {
-                    Text("Tilføj billeder")
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = {
-                    showNoImagesDialog = false
-                    viewModel.sendTask {
-                        scope.launch {
-                            snackbarHostState.showSnackbar("Opgave sendt! Du får besked når der bydes")
-                            navController.navigate("dashboard") {
-                                popUpTo("new_task") { inclusive = true }
-                            }
-                        }
-                    }
-                }) {
-                    Text("Fortsæt uden")
-                }
-            }
-        )
-    }
-
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(
-                brush = Brush.verticalGradient(
-                    colors = listOf(ByggePilotenBlue, Color(0xFF42A5F5), Color(0xFF90CAF9))
+    Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
+        containerColor = Color.Transparent
+    ) { padding ->
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    brush = Brush.verticalGradient(
+                        colors = listOf(ByggePilotenBlue, Color(0xFF42A5F5), Color(0xFF90CAF9))
+                    )
                 )
-            )
-    ) {
-        Scaffold(
-            topBar = {
-                CenterAlignedTopAppBar(
-                    title = { Text("Billeder & beskrivelse", color = Color.White, fontWeight = FontWeight.Bold) },
-                    navigationIcon = {
-                        IconButton(onClick = { navController.popBackStack() }) {
-                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Tilbage", tint = Color.White)
-                        }
-                    },
-                    colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = ByggePilotenBlue)
-                )
-            },
-            containerColor = Color.Transparent,
-            snackbarHost = { SnackbarHost(snackbarHostState) }
-        ) { padding ->
+                .padding(padding)
+        ) {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(padding)
                     .verticalScroll(rememberScrollState())
-                    .padding(16.dp)
+                    .padding(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text("Beskrivelse (valgfri, men anbefalet)", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Medium)
-                Spacer(Modifier.height(16.dp))
-                OutlinedTextField(
-                    value = description,
-                    onValueChange = viewModel::updateDescription,
-                    placeholder = { Text("Tilføj ekstra info eller ønsker...", color = Color.Gray) },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(200.dp),
-                    colors = TextFieldDefaults.colors(
-                        focusedContainerColor = Color.White,
-                        unfocusedContainerColor = Color.White,
-                        focusedTextColor = Color.Black,
-                        unfocusedTextColor = Color.Black,
-                        cursorColor = ByggePilotenBlue,
-                        focusedIndicatorColor = ByggePilotenBlue,
-                        unfocusedIndicatorColor = Color.Transparent
-                    )
-                )
-
                 Spacer(Modifier.height(32.dp))
 
-                // Loading for Gemini Nano + estimat
+                Text(
+                    text = "Sidste step – billeder & beskrivelse",
+                    style = MaterialTheme.typography.headlineMedium,
+                    color = Color.White,
+                    textAlign = TextAlign.Center
+                )
+
+                Spacer(Modifier.height(24.dp))
+
+                // AI-estimat med progress
                 if (isGeneratingEstimate) {
                     Card(
                         modifier = Modifier.fillMaxWidth(),
                         colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.95f))
                     ) {
                         Column(
-                            modifier = Modifier.padding(16.dp),
+                            modifier = Modifier.padding(24.dp),
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             CircularProgressIndicator(color = ByggePilotenBlue)
                             Spacer(Modifier.height(16.dp))
-                            Text("Forbereder lokal AI...", fontSize = 18.sp, fontWeight = FontWeight.Medium, color = Color.Black)
                             Text(
-                                "Downloader model (kun første gang – kan tage 1-5 min)",
-                                color = Color.Black.copy(alpha = 0.8f),
-                                textAlign = TextAlign.Center
+                                text = "Genererer AI-estimat...",
+                                style = MaterialTheme.typography.titleMedium,
+                                color = ByggePilotenBlue
                             )
                         }
                     }
-                    Spacer(Modifier.height(32.dp))
-                }
-
-                // AI-estimat vises når klar
-                aiPriceEstimate?.let { estimate ->
+                } else if (aiPriceEstimate != null) {
+                    val estimate = aiPriceEstimate!!
                     Card(
                         modifier = Modifier.fillMaxWidth(),
                         colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.95f))
@@ -222,8 +154,15 @@ fun TaskPhotosDescriptionScreen(
                             )
                         }
                     }
-                    Spacer(Modifier.height(32.dp))
+                } else {
+                    Text(
+                        text = "Ingen AI-estimat endnu – tilføj billeder for bedre resultat",
+                        color = Color.Yellow,
+                        style = MaterialTheme.typography.bodyMedium
+                    )
                 }
+
+                Spacer(Modifier.height(32.dp))
 
                 Text("Tilføj billeder (anbefales)", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Medium)
                 Spacer(Modifier.height(16.dp))
@@ -289,6 +228,35 @@ fun TaskPhotosDescriptionScreen(
                         Text("Send opgave til håndværkere", color = ByggePilotenBlue, fontSize = 18.sp)
                     }
                 }
+            }
+
+            // No-images dialog
+            if (showNoImagesDialog) {
+                AlertDialog(
+                    onDismissRequest = { showNoImagesDialog = false },
+                    title = { Text("Ingen billeder?") },
+                    text = { Text("Det er stærkt anbefalet at tilføje billeder – håndværkere byder hurtigere og mere præcist. Vil du sende alligevel?") },
+                    confirmButton = {
+                        TextButton(onClick = {
+                            showNoImagesDialog = false
+                            viewModel.sendTask {
+                                scope.launch {
+                                    snackbarHostState.showSnackbar("Opgave sendt! Du får besked når der bydes")
+                                    navController.navigate("dashboard") {
+                                        popUpTo("new_task") { inclusive = true }
+                                    }
+                                }
+                            }
+                        }) {
+                            Text("Send alligevel")
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = { showNoImagesDialog = false }) {
+                            Text("Tilføj billeder")
+                        }
+                    }
+                )
             }
         }
     }

@@ -1,6 +1,6 @@
 // Fil: app/src/main/java/dk/byggepiloten/firma/ui/screen/new_task/categories/opmuring/OpmuringDimensionsStep.kt
-// FULD RETTET – Rows kun ved individuelt, fuldt editable, "Tilføj væg"
-// Linjer: 142
+// FULD FIX – live total fra Row, korrekt KeyboardType
+// Linjer: 112
 
 package dk.byggepiloten.firma.ui.screen.new_task.categories.opmuring
 
@@ -13,7 +13,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import dk.byggepiloten.firma.data.model.task.WallData
-import dk.byggepiloten.firma.data.model.task.WallMeasurement
 import dk.byggepiloten.firma.ui.screen.new_task.components.common.ChoiceBoxRow
 import dk.byggepiloten.firma.ui.screen.new_task.components.common.MeasurementRow
 import dk.byggepiloten.firma.ui.screen.new_task.components.common.StyledTextField
@@ -35,10 +34,16 @@ fun OpmuringDimensionsStep(
 
         ChoiceBoxRow(
             options = modeOptions,
-            selectedOption = data.wallMode,
+            selectedOption = data.wallMode ?: "Samlet areal",
             onOptionSelected = {
-                val cleared = if (it == "Samlet areal") emptyList() else data.wallMeasurements
-                onDataChange(data.copy(wallMode = it, wallMeasurements = cleared, wallTotalAreaM2 = if (it == "Samlet areal") data.wallTotalAreaM2 else null))
+                val clearedMeasurements = if (it == "Samlet areal") emptyList() else data.wallMeasurements
+                onDataChange(
+                    data.copy(
+                        wallMode = it,
+                        wallMeasurements = clearedMeasurements,
+                        wallTotalAreaM2 = if (it == "Samlet areal") data.wallTotalAreaM2 else null
+                    )
+                )
             },
             modifier = Modifier.padding(bottom = 24.dp)
         )
@@ -46,22 +51,19 @@ fun OpmuringDimensionsStep(
         if (data.wallMode == "Samlet areal") {
             StyledTextField(
                 value = data.wallTotalAreaM2?.toString() ?: "",
-                onValueChange = { if (it.isEmpty() || it.toFloatOrNull() != null) onDataChange(data.copy(wallTotalAreaM2 = it.toFloatOrNull())) },
+                onValueChange = { newValue ->
+                    val cleaned = newValue.replace(',', '.')
+                    onDataChange(data.copy(wallTotalAreaM2 = cleaned.toFloatOrNull()))
+                },
                 label = "Samlet areal (m²)",
-                keyboardType = KeyboardType.Decimal
+                keyboardType = KeyboardType.Decimal,
+                singleLine = true
             )
         } else if (data.wallMode == "Individuelle vægge") {
-            var localMeasurements by remember { mutableStateOf(data.wallMeasurements.toMutableList()) }
-
-            LaunchedEffect(localMeasurements) {
-                onDataChange(data.copy(wallMeasurements = localMeasurements.toList()))
-            }
-
-            if (localMeasurements.isEmpty()) {
-                localMeasurements = mutableListOf(WallMeasurement())
-            }
-
-            MeasurementRow(measurements = localMeasurements)
+            MeasurementRow(
+                measurements = data.wallMeasurements,
+                onMeasurementsChange = { onDataChange(data.copy(wallMeasurements = it)) }
+            )
         }
     }
 }

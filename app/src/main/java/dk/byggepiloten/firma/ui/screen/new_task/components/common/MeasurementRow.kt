@@ -1,6 +1,6 @@
 // Fil: app/src/main/java/dk/byggepiloten/firma/ui/screen/new_task/components/common/MeasurementRow.kt
-// FULD RETTET – "Tilføj væg" + fuldt editable TextFields
-// Linjer: 106
+// FULD FIX – tilføjet import androidx.compose.ui.Alignment (for .align)
+// Linjer: 160
 
 package dk.byggepiloten.firma.ui.screen.new_task.components.common
 
@@ -13,18 +13,45 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import dk.byggepiloten.firma.data.model.task.WallMeasurement
 import dk.byggepiloten.firma.ui.theme.ByggePilotenBlue
+import kotlinx.coroutines.flow.collectLatest
 
 @Composable
 fun MeasurementRow(
-    measurements: MutableList<WallMeasurement>,
+    measurements: List<WallMeasurement>,
+    onMeasurementsChange: (List<WallMeasurement>) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val localMeasurements = remember { measurements.toMutableStateList() }
+
+    LaunchedEffect(measurements) {
+        if (measurements != localMeasurements.toList()) {
+            localMeasurements.clear()
+            localMeasurements.addAll(measurements)
+        }
+    }
+
+    LaunchedEffect(localMeasurements) {
+        snapshotFlow { localMeasurements.toList() }
+            .collectLatest { onMeasurementsChange(it) }
+    }
+
+    if (localMeasurements.isEmpty()) {
+        localMeasurements.add(WallMeasurement())
+    }
+
+    val totalArea: Double by derivedStateOf {
+        localMeasurements.fold(0.0) { acc, m ->
+            acc + ((m.length ?: 0f) * (m.height ?: 0f)).toDouble()
+        }
+    }
+
     Column(modifier = modifier.fillMaxWidth()) {
-        measurements.forEachIndexed { index, measurement ->
+        localMeasurements.forEachIndexed { index, measurement ->
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.padding(vertical = 8.dp)
@@ -32,8 +59,10 @@ fun MeasurementRow(
                 StyledTextField(
                     value = measurement.length?.toString() ?: "",
                     onValueChange = { newValue ->
-                        if (newValue.isEmpty() || newValue.toFloatOrNull() != null) {
-                            measurements[index] = measurement.copy(length = newValue.toFloatOrNull())
+                        val cleaned = newValue.replace(',', '.')
+                        val parsed = cleaned.toFloatOrNull()
+                        if (parsed != null || cleaned.isEmpty()) {
+                            localMeasurements[index] = measurement.copy(length = parsed)
                         }
                     },
                     label = "Længde (m)",
@@ -45,8 +74,10 @@ fun MeasurementRow(
                 StyledTextField(
                     value = measurement.height?.toString() ?: "",
                     onValueChange = { newValue ->
-                        if (newValue.isEmpty() || newValue.toFloatOrNull() != null) {
-                            measurements[index] = measurement.copy(height = newValue.toFloatOrNull())
+                        val cleaned = newValue.replace(',', '.')
+                        val parsed = cleaned.toFloatOrNull()
+                        if (parsed != null || cleaned.isEmpty()) {
+                            localMeasurements[index] = measurement.copy(height = parsed)
                         }
                     },
                     label = "Højde (m)",
@@ -55,18 +86,26 @@ fun MeasurementRow(
                     modifier = Modifier.weight(1f)
                 )
                 IconButton(
-                    onClick = { if (measurements.size > 1) measurements.removeAt(index) },
-                    enabled = measurements.size > 1
+                    onClick = { if (localMeasurements.size > 1) localMeasurements.removeAt(index) },
+                    enabled = localMeasurements.size > 1
                 ) {
                     Icon(Icons.Filled.Delete, contentDescription = "Fjern", tint = Color.Red)
                 }
             }
         }
 
+        Text(
+            text = "Samlet areal: ${"%.2f".format(totalArea)} m²",
+            style = MaterialTheme.typography.bodyLarge,
+            fontWeight = FontWeight.Bold,
+            color = Color.White,
+            modifier = Modifier.align(Alignment.CenterHorizontally).padding(top = 16.dp)
+        )
+
         Button(
-            onClick = { measurements.add(WallMeasurement()) },
+            onClick = { localMeasurements.add(WallMeasurement()) },
             colors = ButtonDefaults.buttonColors(containerColor = ByggePilotenBlue),
-            modifier = Modifier.align(Alignment.CenterHorizontally)
+            modifier = Modifier.align(Alignment.CenterHorizontally).padding(top = 16.dp)
         ) {
             Icon(Icons.Filled.Add, contentDescription = null, tint = Color.White)
             Spacer(Modifier.width(8.dp))

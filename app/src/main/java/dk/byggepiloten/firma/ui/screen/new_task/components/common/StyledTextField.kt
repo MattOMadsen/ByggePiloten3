@@ -1,6 +1,6 @@
 // Fil: app/src/main/java/dk/byggepiloten/firma/ui/screen/new_task/components/common/StyledTextField.kt
-// FULD RETTET – MED FILLMAXWIDTH IMPORT + KORREKT KEYBOARDTYPE
-// Linjer: 56
+// FULD FIX – minimerer blå paste-firkant (autoCorrect = false + imeAction = Next)
+// Linjer: 68
 
 package dk.byggepiloten.firma.ui.screen.new_task.components.common
 
@@ -10,6 +10,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import dk.byggepiloten.firma.ui.theme.ByggePilotenBlue
 
@@ -32,12 +33,21 @@ fun StyledTextField(
         colors = OutlinedTextFieldDefaults.colors(
             focusedContainerColor = Color.White,
             unfocusedContainerColor = Color.White,
+            disabledContainerColor = Color.White,
             focusedBorderColor = ByggePilotenBlue,
             unfocusedBorderColor = Color.LightGray,
             cursorColor = ByggePilotenBlue,
-            focusedLabelColor = ByggePilotenBlue
+            focusedLabelColor = ByggePilotenBlue,
+            unfocusedLabelColor = ByggePilotenBlue,
+            focusedTextColor = Color.Black,
+            unfocusedTextColor = Color.Black,
+            disabledTextColor = Color.Black
         ),
-        keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
+        keyboardOptions = KeyboardOptions(
+            keyboardType = keyboardType,
+            imeAction = ImeAction.Next,
+            autoCorrect = false
+        ),
         shape = MaterialTheme.shapes.medium
     )
 }

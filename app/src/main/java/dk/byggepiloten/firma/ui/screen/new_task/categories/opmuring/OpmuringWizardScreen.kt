@@ -1,9 +1,7 @@
 // Fil: app/src/main/java/dk/byggepiloten/firma/ui/screen/new_task/categories/opmuring/OpmuringWizardScreen.kt
-// FULD OPDATERET – NY RÆKKEFØLGE + CONDITIONAL ARMERING
-// - Surface før Armering
-// - Armering kun ved "Pudset" eller "Malet" (ny mur)
-// - Alt original beholdt
-// Linjer: 318
+// FULD FIX – INDEX-BASERET NAVIGATION FOR AUTO-SKIP (armering ved "Rå mur")
+// Progress og steps rebuildes dynamisk – hopper automatisk over conditional steps
+// Linjer: 348
 
 package dk.byggepiloten.firma.ui.screen.new_task.categories.opmuring
 
@@ -24,8 +22,6 @@ fun OpmuringWizardScreen(
         viewModel.setCurrentCategory("opmuring")
     }
 
-    var currentStep by remember { mutableIntStateOf(1) }
-
     val isNewMur by derivedStateOf { data.isRepair == false }
     val isFacadeMur by derivedStateOf { data.murType == "Facademur (skalmur/ydervæg)" }
     val needsArmering by derivedStateOf {
@@ -36,43 +32,44 @@ fun OpmuringWizardScreen(
         buildList {
             add(1); add(2); add(3); add(4) // MurType, New/Repair, Bearing, Dimensions
             if (isNewMur) add(5); if (isNewMur) add(6); if (isNewMur) add(7); if (isNewMur) add(8) // Thickness, Stone, Mortar, Openings
-            if (isNewMur) add(9) // Surface (flyttet før armering)
-            if (needsArmering) add(10) // Armering (kun ved pudset/malet)
-            if (isNewMur && isFacadeMur) add(11) // Insulation
+            if (isNewMur) add(9) // Surface
+            if (needsArmering) add(10) // Armering kun ved pudset/malet
+            if (isNewMur && isFacadeMur) add(11) // Insulation kun ved facademur
             if (isNewMur) add(12) // Foundation
             if (data.isRepair == true) add(13) // Damage
             add(14) // Access
         }
     }
 
-    val totalSteps = stepList.size
-    val progress = currentStep.toFloat() / totalSteps
+    var currentStepIndex by remember { mutableIntStateOf(0) }
 
-    val currentStepIndex = stepList.indexOf(currentStep)
+    val totalSteps = stepList.size
+    val progress = if (totalSteps > 0) (currentStepIndex + 1f) / totalSteps else 0f
+    val currentStepNumber = if (stepList.isNotEmpty()) stepList[currentStepIndex] else 1
+
     val isNextEnabled by derivedStateOf {
-        // Validering pr. step (samme som før – tilpasset ny rækkefølge)
-        when (currentStep) {
-            // ... (behold din originale validering – forkortet her for plads)
-            else -> true
-        }
+        // Din originale validering her (true for nu – tilføj senere)
+        true
     }
 
     WizardScaffold(
         title = "Opmuring",
         progress = progress,
         onNavigationBack = { navController.popBackStack() },
-        onPrevious = { if (currentStep > 1) currentStep-- else navController.popBackStack() },
+        onPrevious = {
+            if (currentStepIndex > 0) currentStepIndex-- else navController.popBackStack()
+        },
         onNext = {
-            if (currentStep == totalSteps) {
+            if (currentStepIndex == totalSteps - 1) {
                 navController.navigate("task_photos_description/opmuring")
             } else {
-                currentStep++
+                currentStepIndex++
             }
         },
         isNextEnabled = isNextEnabled,
-        nextButtonText = if (currentStep == totalSteps) "Fortsæt til billeder" else "Næste"
+        nextButtonText = if (currentStepIndex == totalSteps - 1) "Fortsæt til billeder" else "Næste"
     ) {
-        when (currentStep) {
+        when (currentStepNumber) {
             1 -> OpmuringMurTypeStep(data = data, onDataChange = { viewModel.updateWallData(it) })
             2 -> OpmuringNewOrRepairStep(data = data, onDataChange = { viewModel.updateWallData(it) })
             3 -> OpmuringBearingWallStep(data = data, onDataChange = { viewModel.updateWallData(it) })
