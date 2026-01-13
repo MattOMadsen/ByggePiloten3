@@ -35,10 +35,10 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
-import dk.byggepiloten.firma.data.model.Request
+import dk.byggepiloten.firma.data.model.task.Request
 import dk.byggepiloten.firma.data.repository.AuthRepository
 import dk.byggepiloten.firma.ui.theme.ByggePilotenBlue
-import dk.byggepiloten.firma.ui.viewmodel.DashboardViewModel
+import dk.byggepiloten.firma.ui.viewmodel.dashboard.DashboardViewModel
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.text.SimpleDateFormat

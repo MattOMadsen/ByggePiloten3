@@ -1,3 +1,7 @@
+// Fil: app/src/main/java/dk/byggepiloten/firma/ui/screen/dashboard/ContractorDashboardScreen.kt
+// OPDATERET – 112 linjer (kun rettet navigation til ny route)
+// Ændring: "Mine tilbud"-knappen navigerer nu til "my_bids" (ny screen).
+
 package dk.byggepiloten.firma.ui.screen.dashboard
 
 import android.util.Log
@@ -27,7 +31,7 @@ import androidx.navigation.NavController
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ContractorDashboardScreen(
-    navController: NavController, // FIXED: Fjernet valgfri ? for at sikre navigation
+    navController: NavController,
     onBack: () -> Unit = {
         navController.popBackStack("role_selection", inclusive = false)
         Log.d("ContractorDashboard", "Back kaldet – popper til rolle")
@@ -73,26 +77,16 @@ fun ContractorDashboardScreen(
                     Log.d("ContractorDashboard", "Se nye opgaver klikket – navigerer til bid_pool")
                     navController.navigate("bid_pool")
                 },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable { // FIXED: Tilføjet clickable for ekstra feedback
-                        Log.d("ContractorDashboard", "Se nye opgaver clickable trigget")
-                        navController.navigate("bid_pool")
-                    }
+                modifier = Modifier.fillMaxWidth()
             ) {
                 Text("Se nye opgaver")
             }
             Button(
                 onClick = {
-                    Log.d("ContractorDashboard", "Mine tilbud klikket – navigerer til mine_tilbud")
-                    navController.navigate("mine_tilbud")
+                    Log.d("ContractorDashboard", "Mine tilbud klikket – navigerer til my_bids")
+                    navController.navigate("my_bids")
                 },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable { // FIXED: Tilføjet clickable for ekstra feedback
-                        Log.d("ContractorDashboard", "Mine tilbud clickable trigget")
-                        navController.navigate("mine_tilbud")
-                    }
+                modifier = Modifier.fillMaxWidth()
             ) {
                 Text("Mine tilbud")
             }

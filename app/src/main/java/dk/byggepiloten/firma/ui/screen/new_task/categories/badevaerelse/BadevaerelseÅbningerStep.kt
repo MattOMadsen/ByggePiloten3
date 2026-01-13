@@ -1,5 +1,9 @@
 // Fil: app/src/main/java/dk/byggepiloten/firma/ui/screen/new_task/categories/badevaerelse/BadevaerelseÅbningerStep.kt
-// RETTET: Ny OutlinedTextFieldDefaults.colors() signatur.
+// FULD RETTET VERSION
+// - Tilføjet manglende import for clickable
+// - Live netto vægareal beholdt
+// - Bokse under hinanden for montering
+// - Linjer: 132
 
 package dk.byggepiloten.firma.ui.screen.new_task.categories.badevaerelse
 
@@ -16,13 +20,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import dk.byggepiloten.firma.data.model.BadevaerelseData
+import dk.byggepiloten.firma.data.model.task.BadevaerelseData
 
-/**
- * Step 10: Åbninger og detaljer.
- * Manuel fradrag m² for vinduer/døre + toilet/vask montering.
- * Live visning af netto vægareal (brutto væg - fradrag).
- */
 @Composable
 fun BadevaerelseÅbningerStep(
     data: BadevaerelseData,
@@ -32,7 +31,6 @@ fun BadevaerelseÅbningerStep(
 
     val deduction = deductionText.toFloatOrNull() ?: 0f
 
-    // Beregn brutto vægareal (fra step 3)
     val perimeter = if (data.floorLength != null && data.floorWidth != null) {
         (data.floorLength!! * 2) + (data.floorWidth!! * 2)
     } else 0f
@@ -61,34 +59,32 @@ fun BadevaerelseÅbningerStep(
         Spacer(Modifier.height(32.dp))
 
         Text("Fradrag i vægareal (m²)", color = Color.White, style = MaterialTheme.typography.titleMedium)
+        Spacer(Modifier.height(8.dp))
         OutlinedTextField(
             value = deductionText,
             onValueChange = { deductionText = it },
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
             singleLine = true,
             colors = OutlinedTextFieldDefaults.colors(
-                focusedTextColor = Color.White,
-                unfocusedTextColor = Color.White,
-                focusedLabelColor = Color.White,
-                unfocusedLabelColor = Color.White,
-                cursorColor = Color.White,
-                focusedBorderColor = Color.White,
-                unfocusedBorderColor = Color.White.copy(alpha = 0.5f)
-            )
+                focusedContainerColor = Color.White,
+                unfocusedContainerColor = Color.White,
+                cursorColor = MaterialTheme.colorScheme.primary
+            ),
+            modifier = Modifier.fillMaxWidth(0.8f)
         )
 
-        Spacer(Modifier.height(24.dp))
+        Spacer(Modifier.height(32.dp))
         if (bruttoVaegAreal > 0f) {
             Card(colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.2f))) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(
-                        "Brutto vægareal: $bruttoVaegAreal m²",
+                        "Brutto vægareal: ${"%.2f".format(bruttoVaegAreal)} m²",
                         style = MaterialTheme.typography.titleLarge,
                         color = Color.White,
                         fontWeight = FontWeight.Bold
                     )
                     Text(
-                        "Netto vægareal: $nettoVaegAreal m²",
+                        "Netto vægareal: ${"%.2f".format(nettoVaegAreal)} m²",
                         style = MaterialTheme.typography.titleLarge,
                         color = Color.White,
                         fontWeight = FontWeight.Bold
@@ -99,25 +95,28 @@ fun BadevaerelseÅbningerStep(
 
         Spacer(Modifier.height(32.dp))
         Text("Montering af toilet og vask?", color = Color.White, style = MaterialTheme.typography.titleMedium)
-        Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-            listOf("Ja", "Nej").forEach { option ->
-                val selected = if (option == "Ja") data.installToiletSink == true else data.installToiletSink == false
-                Box(
-                    modifier = Modifier
-                        .clickable { onDataChange(data.copy(installToiletSink = option == "Ja")) }
-                        .background(
-                            color = if (selected) MaterialTheme.colorScheme.primary else Color.White,
-                            shape = RoundedCornerShape(12.dp)
-                        )
-                        .padding(16.dp)
-                ) {
-                    Text(
-                        option,
-                        color = if (selected) Color.White else Color.Black,
-                        style = MaterialTheme.typography.titleMedium
+        Spacer(Modifier.height(16.dp))
+        val installOptions = listOf("Ja" to true, "Nej" to false)
+        installOptions.forEach { (optionLabel, optionValue) ->
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth(0.8f)
+                    .background(
+                        if (data.installToiletSink == optionValue) MaterialTheme.colorScheme.primary else Color.White,
+                        RoundedCornerShape(16.dp)
                     )
-                }
+                    .clickable { onDataChange(data.copy(installToiletSink = optionValue)) }
+                    .padding(vertical = 24.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    optionLabel,
+                    color = if (data.installToiletSink == optionValue) Color.White else Color.Black,
+                    style = MaterialTheme.typography.titleMedium
+                )
             }
+
+            Spacer(Modifier.height(16.dp))
         }
     }
 }

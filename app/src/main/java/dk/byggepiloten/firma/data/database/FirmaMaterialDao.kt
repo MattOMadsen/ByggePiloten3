@@ -10,7 +10,7 @@
 package dk.byggepiloten.firma.data.database
 
 import androidx.room.*
-import dk.byggepiloten.firma.data.model.FirmaMaterialPrice
+import dk.byggepiloten.firma.data.model.price.FirmaMaterialPrice
 
 /**
  * FirmaMaterialDao: Room DAO for firma_materials.

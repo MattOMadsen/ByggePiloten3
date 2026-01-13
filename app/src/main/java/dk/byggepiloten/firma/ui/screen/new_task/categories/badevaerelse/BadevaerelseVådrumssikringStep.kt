@@ -1,4 +1,6 @@
-// Fil: app/src/main/java/dk/byggepiloten/firma/ui/screen/new_task/categories/badevaerelse/BadevaerelseVådrumssikringStep.kt
+// app/src/main/java/dk/byggepiloten/firma/ui/screen/new_task/categories/badevaerelse/BadevaerelseVådrumssikringStep.kt
+// RETTET: Fjernet header-kommentar før package
+
 package dk.byggepiloten.firma.ui.screen.new_task.categories.badevaerelse
 
 import androidx.compose.foundation.background
@@ -12,12 +14,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import dk.byggepiloten.firma.data.model.BadevaerelseData
+import dk.byggepiloten.firma.data.model.task.BadevaerelseData
 
-/**
- * Step 9: Vådrumssikring.
- * Membran (med rød advarsel hvis nej) + ventilation.
- */
 @Composable
 fun BadevaerelseVådrumssikringStep(
     data: BadevaerelseData,
@@ -43,54 +41,59 @@ fun BadevaerelseVådrumssikringStep(
         if (data.hasMembrane == false) {
             Text(
                 "Advarsel: Vådrumsmembran er obligatorisk i Danmark!",
-                color = Color.Red,
+                color = Color(0xFFFF4444),
                 style = MaterialTheme.typography.bodyMedium,
                 fontWeight = FontWeight.Bold
             )
             Spacer(Modifier.height(16.dp))
         }
-        Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-            listOf("Ja", "Nej").forEach { option ->
-                val selected = if (option == "Ja") data.hasMembrane == true else data.hasMembrane == false
-                Box(
-                    modifier = Modifier
-                        .clickable { onDataChange(data.copy(hasMembrane = option == "Ja")) }
-                        .background(
-                            color = if (selected) MaterialTheme.colorScheme.primary else Color.White,
-                            shape = RoundedCornerShape(12.dp)
-                        )
-                        .padding(16.dp)
-                ) {
-                    Text(
-                        option,
-                        color = if (selected) Color.White else Color.Black,
-                        style = MaterialTheme.typography.titleMedium
+        val membraneOptions = listOf("Ja", "Nej")
+        membraneOptions.forEach { option ->
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth(0.8f)
+                    .background(
+                        if ((option == "Ja" && data.hasMembrane == true) || (option == "Nej" && data.hasMembrane == false)) MaterialTheme.colorScheme.primary else Color.White,
+                        RoundedCornerShape(16.dp)
                     )
-                }
+                    .clickable { onDataChange(data.copy(hasMembrane = option == "Ja")) }
+                    .padding(vertical = 24.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    option,
+                    color = if ((option == "Ja" && data.hasMembrane == true) || (option == "Nej" && data.hasMembrane == false)) Color.White else Color.Black,
+                    style = MaterialTheme.typography.titleMedium
+                )
             }
+
+            Spacer(Modifier.height(16.dp))
         }
 
         Spacer(Modifier.height(32.dp))
         Text("Ventilation?", color = Color.White, style = MaterialTheme.typography.titleMedium)
-        Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-            listOf("Ja", "Nej").forEach { option ->
-                val selected = if (option == "Ja") data.hasVentilation == true else data.hasVentilation == false
-                Box(
-                    modifier = Modifier
-                        .clickable { onDataChange(data.copy(hasVentilation = option == "Ja")) }
-                        .background(
-                            color = if (selected) MaterialTheme.colorScheme.primary else Color.White,
-                            shape = RoundedCornerShape(12.dp)
-                        )
-                        .padding(16.dp)
-                ) {
-                    Text(
-                        option,
-                        color = if (selected) Color.White else Color.Black,
-                        style = MaterialTheme.typography.titleMedium
+        Spacer(Modifier.height(16.dp))
+        val ventOptions = listOf("Ja", "Nej")
+        ventOptions.forEach { option ->
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth(0.8f)
+                    .background(
+                        if ((option == "Ja" && data.hasVentilation == true) || (option == "Nej" && data.hasVentilation == false)) MaterialTheme.colorScheme.primary else Color.White,
+                        RoundedCornerShape(16.dp)
                     )
-                }
+                    .clickable { onDataChange(data.copy(hasVentilation = option == "Ja")) }
+                    .padding(vertical = 24.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    option,
+                    color = if ((option == "Ja" && data.hasVentilation == true) || (option == "Nej" && data.hasVentilation == false)) Color.White else Color.Black,
+                    style = MaterialTheme.typography.titleMedium
+                )
             }
+
+            Spacer(Modifier.height(16.dp))
         }
     }
 }

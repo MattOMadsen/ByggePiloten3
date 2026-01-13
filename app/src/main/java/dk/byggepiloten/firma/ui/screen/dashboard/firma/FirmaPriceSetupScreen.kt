@@ -21,10 +21,10 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
-import dk.byggepiloten.firma.data.model.ImportMode
-import dk.byggepiloten.firma.data.model.PriceCategories
-import dk.byggepiloten.firma.ui.viewmodel.FirmaPriceViewModel
-import dk.byggepiloten.firma.ui.viewmodel.PriceSource
+import dk.byggepiloten.firma.data.misc.ImportMode
+import dk.byggepiloten.firma.data.model.price.PriceCategories
+import dk.byggepiloten.firma.ui.viewmodel.firma.FirmaPriceViewModel
+import dk.byggepiloten.firma.ui.viewmodel.firma.PriceSource
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

@@ -8,7 +8,7 @@
 
 package dk.byggepiloten.firma.data.repository
 
-import dk.byggepiloten.firma.data.model.Request
+import dk.byggepiloten.firma.data.model.task.Request
 import kotlinx.coroutines.flow.Flow
 
 interface RequestRepository {

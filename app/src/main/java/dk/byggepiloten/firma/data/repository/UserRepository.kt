@@ -4,8 +4,8 @@
 package dk.byggepiloten.firma.data.repository
 
 import com.google.firebase.auth.FirebaseUser
-import dk.byggepiloten.firma.data.model.FirmaUser
-import dk.byggepiloten.firma.data.model.Profile
+import dk.byggepiloten.firma.data.model.user.FirmaUser
+import dk.byggepiloten.firma.data.model.user.Profile
 import kotlinx.coroutines.flow.Flow
 
 /**

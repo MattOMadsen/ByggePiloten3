@@ -22,7 +22,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import dk.byggepiloten.firma.ui.viewmodel.BidViewModel
+import dk.byggepiloten.firma.ui.viewmodel.dashboard.BidViewModel
 import java.text.NumberFormat
 import java.util.Locale
 

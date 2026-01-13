@@ -33,7 +33,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import dk.byggepiloten.firma.ui.theme.ByggePilotenBlue
-import dk.byggepiloten.firma.ui.viewmodel.LoginViewModel
+import dk.byggepiloten.firma.ui.viewmodel.auth.LoginViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

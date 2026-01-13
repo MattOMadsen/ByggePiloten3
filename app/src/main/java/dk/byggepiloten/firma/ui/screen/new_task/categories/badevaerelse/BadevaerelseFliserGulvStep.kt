@@ -1,5 +1,8 @@
 // Fil: app/src/main/java/dk/byggepiloten/firma/ui/screen/new_task/categories/badevaerelse/BadevaerelseFliserGulvStep.kt
-// RETTET: Tilføjet import androidx.compose.ui.text.style.TextAlign (løser Unresolved reference).
+// FULD OPDATERET: Bokse under hinanden (Column) for størrelse + mønster
+// - Custom felt for "Andet"
+// - onDataChange callback
+// - Linjer: 136
 
 package dk.byggepiloten.firma.ui.screen.new_task.categories.badevaerelse
 
@@ -7,15 +10,15 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign // NY import
 import androidx.compose.ui.unit.dp
-import dk.byggepiloten.firma.data.model.BadevaerelseData
+import dk.byggepiloten.firma.data.model.task.BadevaerelseData
 
 @Composable
 fun BadevaerelseFliserGulvStep(
@@ -42,73 +45,59 @@ fun BadevaerelseFliserGulvStep(
         Text("Flisestørrelse", color = Color.White, style = MaterialTheme.typography.titleMedium)
         Spacer(Modifier.height(16.dp))
         val sizes = listOf("30x60 cm", "60x60 cm", "80x80 cm", "10x10 cm (mosaik)", "Andet")
-        FlowRow(
-            horizontalArrangement = Arrangement.spacedBy(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            sizes.forEach { size ->
-                val selected = data.floorTileSize == size
-                Box(
-                    modifier = Modifier
-                        .weight(1f)
-                        .clickable {
-                            onDataChange(data.copy(floorTileSize = size))
-                        }
-                        .background(
-                            color = if (selected) MaterialTheme.colorScheme.primary else Color.White,
-                            shape = RoundedCornerShape(12.dp)
-                        )
-                        .padding(20.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        size,
-                        color = if (selected) Color.White else Color.Black,
-                        style = MaterialTheme.typography.titleMedium,
-                        textAlign = TextAlign.Center
+        sizes.forEach { size ->
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth(0.8f)
+                    .background(
+                        if (data.floorTileSize == size) MaterialTheme.colorScheme.primary else Color.White,
+                        RoundedCornerShape(16.dp)
                     )
-                }
+                    .clickable { onDataChange(data.copy(floorTileSize = size)) }
+                    .padding(vertical = 24.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    size,
+                    color = if (data.floorTileSize == size) Color.White else Color.Black,
+                    style = MaterialTheme.typography.titleMedium
+                )
             }
+
+            Spacer(Modifier.height(16.dp))
         }
 
         Spacer(Modifier.height(32.dp))
         Text("Mønster", color = Color.White, style = MaterialTheme.typography.titleMedium)
         Spacer(Modifier.height(16.dp))
         val patterns = listOf("Lige forbandt", "Sildeben", "Firkantet forbandt", "Andet")
-        FlowRow(
-            horizontalArrangement = Arrangement.spacedBy(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            patterns.forEach { pattern ->
-                val selected = data.floorTilePattern == pattern || (pattern == "Andet" && data.customFloorPattern != null)
-                Box(
-                    modifier = Modifier
-                        .weight(1f)
-                        .clickable {
-                            if (pattern == "Andet") {
-                                // custom håndteres separat
-                            } else {
-                                onDataChange(data.copy(floorTilePattern = pattern, customFloorPattern = null))
-                                customPattern = ""
-                            }
-                        }
-                        .background(
-                            color = if (selected) MaterialTheme.colorScheme.primary else Color.White,
-                            shape = RoundedCornerShape(12.dp)
-                        )
-                        .padding(20.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        pattern,
-                        color = if (selected) Color.White else Color.Black,
-                        style = MaterialTheme.typography.titleMedium,
-                        textAlign = TextAlign.Center
+        patterns.forEach { pattern ->
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth(0.8f)
+                    .background(
+                        if (data.floorTilePattern == pattern || (pattern == "Andet" && data.customFloorPattern != null)) MaterialTheme.colorScheme.primary else Color.White,
+                        RoundedCornerShape(16.dp)
                     )
-                }
+                    .clickable {
+                        if (pattern == "Andet") {
+                            // håndteres via TextField
+                        } else {
+                            onDataChange(data.copy(floorTilePattern = pattern, customFloorPattern = null))
+                            customPattern = ""
+                        }
+                    }
+                    .padding(vertical = 24.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    pattern,
+                    color = if (data.floorTilePattern == pattern || (pattern == "Andet" && data.customFloorPattern != null)) Color.White else Color.Black,
+                    style = MaterialTheme.typography.titleMedium
+                )
             }
+
+            Spacer(Modifier.height(16.dp))
         }
 
         if (data.floorTilePattern == "Andet" || customPattern.isNotEmpty()) {
@@ -121,15 +110,11 @@ fun BadevaerelseFliserGulvStep(
                 },
                 label = { Text("Beskriv mønster") },
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedTextColor = Color.White,
-                    unfocusedTextColor = Color.White,
-                    focusedLabelColor = Color.White,
-                    unfocusedLabelColor = Color.White,
-                    cursorColor = Color.White,
-                    focusedBorderColor = Color.White,
-                    unfocusedBorderColor = Color.White.copy(alpha = 0.5f)
+                    focusedContainerColor = Color.White,
+                    unfocusedContainerColor = Color.White,
+                    cursorColor = MaterialTheme.colorScheme.primary
                 ),
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(0.8f)
             )
         }
     }

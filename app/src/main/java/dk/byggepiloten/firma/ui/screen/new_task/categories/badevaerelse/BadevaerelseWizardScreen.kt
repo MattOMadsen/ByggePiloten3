@@ -1,6 +1,4 @@
 // Fil: app/src/main/java/dk/byggepiloten/firma/ui/screen/new_task/categories/badevaerelse/BadevaerelseWizardScreen.kt
-// RETTET: floorNumber-reference i validering nu gyldig.
-// - Validering step 12: goodAccess != null && (goodAccess == true || floorNumber != null)
 
 package dk.byggepiloten.firma.ui.screen.new_task.categories.badevaerelse
 
@@ -21,20 +19,21 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import dk.byggepiloten.firma.data.model.BadevaerelseData
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.NavController
 import dk.byggepiloten.firma.ui.theme.ByggePilotenBlue
-import dk.byggepiloten.firma.ui.viewmodel.TaskViewModel
+import dk.byggepiloten.firma.ui.viewmodel.task.TaskViewModel
+import dk.byggepiloten.firma.data.model.task.BadevaerelseData
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BadevaerelseWizardScreen(
-    onBack: () -> Unit,
-    onComplete: () -> Unit
+    navController: NavController,
+    viewModel: TaskViewModel = hiltViewModel()
 ) {
-    val viewModel: TaskViewModel = hiltViewModel()
-    val data by viewModel.badevaerelseData.collectAsState()
+    val data by viewModel.badevaerelseData.collectAsStateWithLifecycle()
 
-    var currentStep by remember { mutableStateOf(1) }
+    var currentStep by remember { mutableIntStateOf(1) }
     val totalSteps = if (data.renovationType == "Fuldt nyt (med nedrivning)") 12 else 11
     val progress = currentStep.toFloat() / totalSteps
 
@@ -43,45 +42,49 @@ fun BadevaerelseWizardScreen(
         2 -> data.floorLength != null && data.floorLength!! > 0f && data.floorWidth != null && data.floorWidth!! > 0f
         3 -> data.wallHeight != null && data.wallHeight!! > 0f
         4 -> data.hasShowerNiche != null && (data.hasShowerNiche == false || (data.showerLength != null && data.showerLength!! > 0f && data.showerWidth != null && data.showerWidth!! > 0f && data.drainType != null))
-        5 -> true
+        5 -> true 
         6 -> data.floorTileSize != null
-        7 -> data.wallTileSize != null && data.tilesToCeiling != null && (data.tilesToCeiling == true || data.wallTileHeightIfNotCeiling != null)
+        7 -> data.wallTileSize != null
         8 -> data.hasFloorHeating != null && (data.hasFloorHeating == false || data.floorHeatingType != null)
         9 -> data.hasMembrane != null && data.hasVentilation != null
         10 -> true
-        11 -> (data.relocatePipes != true || data.pipeDescription?.isNotBlank() == true) && (data.relocateElectrical != true || data.electricalDescription?.isNotBlank() == true)
-        12 -> data.goodAccess != null && (data.goodAccess == true || data.floorNumber != null) // RETTET: floorNumber nu gyldig
+        11 -> data.relocatePipes != null && data.relocateElectrical != null
+        12 -> data.goodAccess != null && (data.goodAccess == true || data.floorNumber != null)
         else -> true
     }
 
-    Scaffold(
-        containerColor = Color.Transparent,
-        topBar = {
-            CenterAlignedTopAppBar(
-                title = { Text("Badeværelse renovering", color = Color.White, fontWeight = FontWeight.Bold) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.Filled.ArrowBack, contentDescription = "Tilbage", tint = Color.White)
-                    }
-                },
-                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = ByggePilotenBlue)
-            )
-        }
-    ) { padding ->
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(
-                    brush = Brush.verticalGradient(
-                        colors = listOf(ByggePilotenBlue, ByggePilotenBlue.copy(alpha = 0.8f))
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(
+                brush = Brush.verticalGradient(
+                    colors = listOf(
+                        ByggePilotenBlue,
+                        Color(0xFF42A5F5),
+                        Color(0xFF90CAF9)
                     )
                 )
-                .padding(padding)
-        ) {
+            )
+    ) {
+        Scaffold(
+            containerColor = Color.Transparent,
+            topBar = {
+                CenterAlignedTopAppBar(
+                    title = { Text("Badeværelse", color = Color.White, fontWeight = FontWeight.Bold) },
+                    navigationIcon = {
+                        IconButton(onClick = { navController.popBackStack() }) {
+                            Icon(Icons.Filled.ArrowBack, contentDescription = "Tilbage", tint = Color.White)
+                        }
+                    },
+                    colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = Color.Transparent)
+                )
+            }
+        ) { padding ->
             Column(
                 modifier = Modifier
                     .fillMaxSize()
                     .verticalScroll(rememberScrollState())
+                    .padding(padding)
                     .padding(16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
@@ -93,6 +96,7 @@ fun BadevaerelseWizardScreen(
                     color = Color.White,
                     trackColor = Color.White.copy(alpha = 0.3f)
                 )
+
                 Spacer(Modifier.height(24.dp))
 
                 when (currentStep) {
@@ -100,7 +104,12 @@ fun BadevaerelseWizardScreen(
                     2 -> BadevaerelseGulvDimensionsStep(data = data, onDataChange = { viewModel.updateBadevaerelseData(it) })
                     3 -> BadevaerelseVaeggeStep(data = data, onDataChange = { viewModel.updateBadevaerelseData(it) })
                     4 -> BadevaerelseBrusenicheStep(data = data, onDataChange = { viewModel.updateBadevaerelseData(it) })
-                    5 -> BadevaerelseNedrivningStep(data = data, onDataChange = { viewModel.updateBadevaerelseData(it) })
+                    5 -> if (data.renovationType == "Fuldt nyt (med nedrivning)") {
+                        BadevaerelseNedrivningStep(data = data, onDataChange = { viewModel.updateBadevaerelseData(it) })
+                    } else {
+                        // Hvis vi er i step 5 men typen er delvis, bør vi teknisk set have skippet det
+                        Text("Indlæser...", color = Color.White)
+                    }
                     6 -> BadevaerelseFliserGulvStep(data = data, onDataChange = { viewModel.updateBadevaerelseData(it) })
                     7 -> BadevaerelseFliserVaeggeStep(data = data, onDataChange = { viewModel.updateBadevaerelseData(it) })
                     8 -> BadevaerelseGulvvarmeStep(data = data, onDataChange = { viewModel.updateBadevaerelseData(it) })
@@ -110,25 +119,47 @@ fun BadevaerelseWizardScreen(
                     12 -> BadevaerelseAdgangStep(data = data, onDataChange = { viewModel.updateBadevaerelseData(it) })
                 }
 
-                Spacer(Modifier.height(32.dp))
+                Spacer(Modifier.height(40.dp))
 
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                    OutlinedButton(onClick = { if (currentStep > 1) currentStep-- else onBack() }, colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White)) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    OutlinedButton(
+                        onClick = { 
+                            if (currentStep == 6 && data.renovationType != "Fuldt nyt (med nedrivning)") {
+                                currentStep = 4
+                            } else if (currentStep > 1) {
+                                currentStep--
+                            } else {
+                                navController.popBackStack()
+                            }
+                        },
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White)
+                    ) {
                         Text("Tilbage")
                     }
+
                     Button(
                         onClick = {
-                            if (currentStep == totalSteps) onComplete() else {
-                                currentStep++
-                                if (currentStep == 5 && data.renovationType != "Fuldt nyt (med nedrivning)") currentStep = 6
+                            if (currentStep == totalSteps) {
+                                navController.navigate("task_photos_description/badeværelse")
+                            } else {
+                                if (currentStep == 4 && data.renovationType != "Fuldt nyt (med nedrivning)") {
+                                    currentStep = 6
+                                } else {
+                                    currentStep++
+                                }
                             }
                         },
                         enabled = isStepValid,
                         colors = ButtonDefaults.buttonColors(containerColor = Color.White, contentColor = ByggePilotenBlue)
                     ) {
-                        Text(if (currentStep == totalSteps) "Fortsæt til billeder" else "Næste")
+                        Text(if (currentStep == totalSteps) "Fortsæt" else "Næste")
                     }
                 }
+
+                Spacer(Modifier.height(16.dp))
             }
         }
     }

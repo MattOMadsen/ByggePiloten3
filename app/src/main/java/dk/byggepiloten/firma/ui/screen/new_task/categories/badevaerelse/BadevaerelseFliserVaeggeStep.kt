@@ -1,5 +1,5 @@
-// Fil: app/src/main/java/dk/byggepiloten/firma/ui/screen/new_task/categories/badevaerelse/BadevaerelseFliserVaeggeStep.kt
-// RETTET: Tilføjet import androidx.compose.ui.text.style.TextAlign.
+// app/src/main/java/dk/byggepiloten/firma/ui/screen/new_task/categories/badevaerelse/BadevaerelseFliserVaeggeStep.kt
+// RETTET: Fjernet header-kommentar før package (årsag til compile-fejl)
 
 package dk.byggepiloten.firma.ui.screen.new_task.categories.badevaerelse
 
@@ -15,9 +15,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.style.TextAlign // NY import
 import androidx.compose.ui.unit.dp
-import dk.byggepiloten.firma.data.model.BadevaerelseData
+import dk.byggepiloten.firma.data.model.task.BadevaerelseData
 
 @Composable
 fun BadevaerelseFliserVaeggeStep(
@@ -48,86 +47,78 @@ fun BadevaerelseFliserVaeggeStep(
         Spacer(Modifier.height(32.dp))
 
         val sizes = listOf("Samme som gulv", "30x60 cm", "60x60 cm", "10x10 cm (mosaik)", "Andet")
-        FlowRow(
-            horizontalArrangement = Arrangement.spacedBy(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            sizes.forEach { size ->
-                val selected = data.wallTileSize == size || (size == "Samme som gulv" && data.wallTileSize == data.floorTileSize)
-                Box(
-                    modifier = Modifier
-                        .weight(1f)
-                        .clickable {
-                            val finalSize = if (size == "Samme som gulv") data.floorTileSize else size
-                            onDataChange(data.copy(wallTileSize = finalSize))
-                        }
-                        .background(
-                            color = if (selected) MaterialTheme.colorScheme.primary else Color.White,
-                            shape = RoundedCornerShape(12.dp)
-                        )
-                        .padding(20.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        size,
-                        color = if (selected) Color.White else Color.Black,
-                        style = MaterialTheme.typography.titleMedium,
-                        textAlign = TextAlign.Center
+        sizes.forEach { size ->
+            val finalSize = if (size == "Samme som gulv") data.floorTileSize else size
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth(0.8f)
+                    .background(
+                        if (data.wallTileSize == finalSize) MaterialTheme.colorScheme.primary else Color.White,
+                        RoundedCornerShape(16.dp)
                     )
-                }
+                    .clickable { onDataChange(data.copy(wallTileSize = finalSize)) }
+                    .padding(vertical = 24.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    size,
+                    color = if (data.wallTileSize == finalSize) Color.White else Color.Black,
+                    style = MaterialTheme.typography.titleMedium
+                )
             }
+
+            Spacer(Modifier.height(16.dp))
         }
 
         Spacer(Modifier.height(32.dp))
         Text("Fliser helt til loft?", color = Color.White, style = MaterialTheme.typography.titleMedium)
-        Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-            listOf("Ja", "Nej").forEach { option ->
-                val selected = if (option == "Ja") data.tilesToCeiling == true else data.tilesToCeiling == false
-                Box(
-                    modifier = Modifier
-                        .clickable {
-                            onDataChange(
-                                data.copy(
-                                    tilesToCeiling = option == "Ja",
-                                    wallTileHeightIfNotCeiling = null
-                                )
-                            )
-                            heightText = ""
-                        }
-                        .background(
-                            color = if (selected) MaterialTheme.colorScheme.primary else Color.White,
-                            shape = RoundedCornerShape(12.dp)
-                        )
-                        .padding(16.dp)
-                ) {
-                    Text(
-                        option,
-                        color = if (selected) Color.White else Color.Black,
-                        style = MaterialTheme.typography.titleMedium
+        Spacer(Modifier.height(16.dp))
+        val ceilingOptions = listOf("Ja", "Nej")
+        ceilingOptions.forEach { option ->
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth(0.8f)
+                    .background(
+                        if ((option == "Ja" && data.tilesToCeiling == true) || (option == "Nej" && data.tilesToCeiling == false)) MaterialTheme.colorScheme.primary else Color.White,
+                        RoundedCornerShape(16.dp)
                     )
-                }
+                    .clickable {
+                        onDataChange(
+                            data.copy(
+                                tilesToCeiling = option == "Ja",
+                                wallTileHeightIfNotCeiling = null
+                            )
+                        )
+                        heightText = ""
+                    }
+                    .padding(vertical = 24.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    option,
+                    color = if ((option == "Ja" && data.tilesToCeiling == true) || (option == "Nej" && data.tilesToCeiling == false)) Color.White else Color.Black,
+                    style = MaterialTheme.typography.titleMedium
+                )
             }
+
+            Spacer(Modifier.height(16.dp))
         }
 
         if (data.tilesToCeiling == false) {
-            Spacer(Modifier.height(24.dp))
+            Spacer(Modifier.height(32.dp))
+            Text("Højde på fliser (m)", color = Color.White, style = MaterialTheme.typography.titleMedium)
+            Spacer(Modifier.height(8.dp))
             OutlinedTextField(
                 value = heightText,
                 onValueChange = { heightText = it },
-                label = { Text("Højde på fliser (m)") },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                 singleLine = true,
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedTextColor = Color.White,
-                    unfocusedTextColor = Color.White,
-                    focusedLabelColor = Color.White,
-                    unfocusedLabelColor = Color.White,
-                    cursorColor = Color.White,
-                    focusedBorderColor = Color.White,
-                    unfocusedBorderColor = Color.White.copy(alpha = 0.5f)
+                    focusedContainerColor = Color.White,
+                    unfocusedContainerColor = Color.White,
+                    cursorColor = MaterialTheme.colorScheme.primary
                 ),
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(0.8f)
             )
         }
     }

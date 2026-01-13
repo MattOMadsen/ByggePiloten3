@@ -3,10 +3,10 @@ package dk.byggepiloten.firma.data.repository.impl
 import com.google.firebase.firestore.FirebaseFirestore
 import dk.byggepiloten.firma.data.database.BackupDao
 import dk.byggepiloten.firma.data.database.FirmaMaterialDao
-import dk.byggepiloten.firma.data.model.BackupInfo
-import dk.byggepiloten.firma.data.model.FirmaMaterialPrice
-import dk.byggepiloten.firma.data.model.ImportMode
-import dk.byggepiloten.firma.data.model.NotificationSettings
+import dk.byggepiloten.firma.data.misc.BackupInfo
+import dk.byggepiloten.firma.data.model.price.FirmaMaterialPrice
+import dk.byggepiloten.firma.data.misc.ImportMode
+import dk.byggepiloten.firma.data.misc.NotificationSettings
 import dk.byggepiloten.firma.data.repository.FirmaPriceRepository
 import kotlinx.coroutines.tasks.await
 import timber.log.Timber

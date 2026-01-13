@@ -11,10 +11,10 @@
 
 package dk.byggepiloten.firma.data.repository
 
-import dk.byggepiloten.firma.data.model.BackupInfo
-import dk.byggepiloten.firma.data.model.FirmaMaterialPrice
-import dk.byggepiloten.firma.data.model.ImportMode
-import dk.byggepiloten.firma.data.model.NotificationSettings  // TILFØJET: Import for NotificationSettings – nødvendigt for prefs-metoder.
+import dk.byggepiloten.firma.data.misc.BackupInfo
+import dk.byggepiloten.firma.data.model.price.FirmaMaterialPrice
+import dk.byggepiloten.firma.data.misc.ImportMode
+import dk.byggepiloten.firma.data.misc.NotificationSettings  // TILFØJET: Import for NotificationSettings – nødvendigt for prefs-metoder.
 
 interface FirmaPriceRepository {
 

@@ -31,8 +31,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import dk.byggepiloten.firma.ui.theme.ByggePilotenTheme
-import dk.byggepiloten.firma.ui.viewmodel.FirmaSeekingDetailsViewModel
-import dk.byggepiloten.firma.ui.viewmodel.OnboardingViewModel
+import dk.byggepiloten.firma.ui.viewmodel.firma.FirmaSeekingDetailsViewModel
+import dk.byggepiloten.firma.ui.viewmodel.onboarding.OnboardingViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

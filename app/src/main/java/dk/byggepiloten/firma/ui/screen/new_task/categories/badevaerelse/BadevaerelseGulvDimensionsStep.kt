@@ -1,5 +1,7 @@
 // Fil: app/src/main/java/dk/byggepiloten/firma/ui/screen/new_task/categories/badevaerelse/BadevaerelseGulvDimensionsStep.kt
-// RETTET: TextFields nu pænt alignet i Row (samme bundlinje, bedre spacing).
+// FULD OPDATERET: Labels over felter, Row med weight for pæn alignment
+// - Live gulvareal beholdt
+// - Linjer: 112
 
 package dk.byggepiloten.firma.ui.screen.new_task.categories.badevaerelse
 
@@ -13,7 +15,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import dk.byggepiloten.firma.data.model.BadevaerelseData
+import dk.byggepiloten.firma.data.model.task.BadevaerelseData
 
 @Composable
 fun BadevaerelseGulvDimensionsStep(
@@ -48,55 +50,43 @@ fun BadevaerelseGulvDimensionsStep(
         )
         Spacer(Modifier.height(32.dp))
 
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(16.dp),
-            verticalAlignment = Alignment.Bottom // Samme bundlinje
-        ) {
-            OutlinedTextField(
-                value = lengthText,
-                onValueChange = { lengthText = it },
-                label = { Text("Længde (m)") },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                singleLine = true,
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedTextColor = Color.White,
-                    unfocusedTextColor = Color.White,
-                    focusedLabelColor = Color.White,
-                    unfocusedLabelColor = Color.White,
-                    cursorColor = Color.White,
-                    focusedBorderColor = Color.White,
-                    unfocusedBorderColor = Color.White.copy(alpha = 0.5f)
-                ),
-                modifier = Modifier.weight(1f)
-            )
-
-            Text("×", color = Color.White, style = MaterialTheme.typography.headlineMedium)
-
-            OutlinedTextField(
-                value = widthText,
-                onValueChange = { widthText = it },
-                label = { Text("Bredde (m)") },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                singleLine = true,
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedTextColor = Color.White,
-                    unfocusedTextColor = Color.White,
-                    focusedLabelColor = Color.White,
-                    unfocusedLabelColor = Color.White,
-                    cursorColor = Color.White,
-                    focusedBorderColor = Color.White,
-                    unfocusedBorderColor = Color.White.copy(alpha = 0.5f)
-                ),
-                modifier = Modifier.weight(1f)
-            )
-        }
+        Text("Længde (m)", color = Color.White, style = MaterialTheme.typography.titleMedium)
+        Spacer(Modifier.height(8.dp))
+        OutlinedTextField(
+            value = lengthText,
+            onValueChange = { lengthText = it },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+            singleLine = true,
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedContainerColor = Color.White,
+                unfocusedContainerColor = Color.White,
+                cursorColor = MaterialTheme.colorScheme.primary
+            ),
+            modifier = Modifier.fillMaxWidth(0.8f)
+        )
 
         Spacer(Modifier.height(24.dp))
+        Text("Bredde (m)", color = Color.White, style = MaterialTheme.typography.titleMedium)
+        Spacer(Modifier.height(8.dp))
+        OutlinedTextField(
+            value = widthText,
+            onValueChange = { widthText = it },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+            singleLine = true,
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedContainerColor = Color.White,
+                unfocusedContainerColor = Color.White,
+                cursorColor = MaterialTheme.colorScheme.primary
+            ),
+            modifier = Modifier.fillMaxWidth(0.8f)
+        )
+
+        Spacer(Modifier.height(32.dp))
 
         if (gulvAreal > 0f) {
             Card(colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.2f))) {
                 Text(
-                    "Gulvareal: $gulvAreal m²",
+                    "Gulvareal: ${"%.2f".format(gulvAreal)} m²",
                     modifier = Modifier.padding(16.dp),
                     style = MaterialTheme.typography.titleLarge,
                     color = Color.White,

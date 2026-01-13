@@ -12,8 +12,8 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.gson.Gson
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dk.byggepiloten.firma.data.database.AppDatabase
-import dk.byggepiloten.firma.data.model.FirmaUser
-import dk.byggepiloten.firma.data.model.Profile
+import dk.byggepiloten.firma.data.model.user.FirmaUser
+import dk.byggepiloten.firma.data.model.user.Profile
 import dk.byggepiloten.firma.data.network.EmailRequest
 import dk.byggepiloten.firma.data.network.EmailService
 import dk.byggepiloten.firma.data.repository.AuthManager

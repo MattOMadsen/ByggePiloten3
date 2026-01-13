@@ -1,5 +1,9 @@
 // Fil: app/src/main/java/dk/byggepiloten/firma/ui/screen/new_task/categories/badevaerelse/BadevaerelseBrusenicheStep.kt
-// RETTET: TextFields nu pænt alignet i Row (samme bundlinje, weight for lige bredde).
+// FULD OPDATERET: Vertikalt layout, labels over felter
+// - Live bruseareal beholdt
+// - Bokse under hinanden for Ja/Nej + glasvægge/afløb
+// - onDataChange callback
+// - Linjer: 168
 
 package dk.byggepiloten.firma.ui.screen.new_task.categories.badevaerelse
 
@@ -16,7 +20,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import dk.byggepiloten.firma.data.model.BadevaerelseData
+import dk.byggepiloten.firma.data.model.task.BadevaerelseData
 
 @Composable
 fun BadevaerelseBrusenicheStep(
@@ -45,92 +49,83 @@ fun BadevaerelseBrusenicheStep(
         )
         Spacer(Modifier.height(16.dp))
 
+        Text("Skal der være bruseniche?", color = Color.White, style = MaterialTheme.typography.bodyLarge)
+        Spacer(Modifier.height(32.dp))
+
         val yesNoOptions = listOf("Ja", "Nej")
-        Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-            yesNoOptions.forEach { option ->
-                val selected = if (option == "Ja") data.hasShowerNiche == true else data.hasShowerNiche == false
-                Box(
-                    modifier = Modifier
-                        .clickable {
-                            onDataChange(
-                                data.copy(
-                                    hasShowerNiche = option == "Ja",
-                                    showerLength = null,
-                                    showerWidth = null,
-                                    hasGlassWalls = null,
-                                    drainType = null
-                                )
-                            )
-                            lengthText = ""
-                            widthText = ""
-                        }
-                        .background(
-                            color = if (selected) MaterialTheme.colorScheme.primary else Color.White,
-                            shape = RoundedCornerShape(12.dp)
-                        )
-                        .padding(16.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        option,
-                        color = if (selected) Color.White else Color.Black,
-                        style = MaterialTheme.typography.titleMedium
+        yesNoOptions.forEach { option ->
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth(0.8f)
+                    .background(
+                        if ((option == "Ja" && data.hasShowerNiche == true) || (option == "Nej" && data.hasShowerNiche == false)) MaterialTheme.colorScheme.primary else Color.White,
+                        RoundedCornerShape(16.dp)
                     )
-                }
+                    .clickable {
+                        onDataChange(
+                            data.copy(
+                                hasShowerNiche = option == "Ja",
+                                showerLength = null,
+                                showerWidth = null,
+                                hasGlassWalls = null,
+                                drainType = null
+                            )
+                        )
+                        lengthText = ""
+                        widthText = ""
+                    }
+                    .padding(vertical = 24.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    option,
+                    color = if ((option == "Ja" && data.hasShowerNiche == true) || (option == "Nej" && data.hasShowerNiche == false)) Color.White else Color.Black,
+                    style = MaterialTheme.typography.titleMedium
+                )
             }
+
+            Spacer(Modifier.height(16.dp))
         }
 
         if (data.hasShowerNiche == true) {
             Spacer(Modifier.height(32.dp))
 
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(16.dp),
-                verticalAlignment = Alignment.Bottom
-            ) {
-                OutlinedTextField(
-                    value = lengthText,
-                    onValueChange = { lengthText = it },
-                    label = { Text("Længde (m)") },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                    singleLine = true,
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedTextColor = Color.White,
-                        unfocusedTextColor = Color.White,
-                        focusedLabelColor = Color.White,
-                        unfocusedLabelColor = Color.White,
-                        cursorColor = Color.White,
-                        focusedBorderColor = Color.White,
-                        unfocusedBorderColor = Color.White.copy(alpha = 0.5f)
-                    ),
-                    modifier = Modifier.weight(1f)
-                )
-
-                Text("×", color = Color.White, style = MaterialTheme.typography.headlineMedium)
-
-                OutlinedTextField(
-                    value = widthText,
-                    onValueChange = { widthText = it },
-                    label = { Text("Bredde (m)") },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                    singleLine = true,
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedTextColor = Color.White,
-                        unfocusedTextColor = Color.White,
-                        focusedLabelColor = Color.White,
-                        unfocusedLabelColor = Color.White,
-                        cursorColor = Color.White,
-                        focusedBorderColor = Color.White,
-                        unfocusedBorderColor = Color.White.copy(alpha = 0.5f)
-                    ),
-                    modifier = Modifier.weight(1f)
-                )
-            }
+            Text("Længde (m)", color = Color.White, style = MaterialTheme.typography.titleMedium)
+            Spacer(Modifier.height(8.dp))
+            OutlinedTextField(
+                value = lengthText,
+                onValueChange = { lengthText = it },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                singleLine = true,
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedContainerColor = Color.White,
+                    unfocusedContainerColor = Color.White,
+                    cursorColor = MaterialTheme.colorScheme.primary
+                ),
+                modifier = Modifier.fillMaxWidth(0.8f)
+            )
 
             Spacer(Modifier.height(24.dp))
+            Text("Bredde (m)", color = Color.White, style = MaterialTheme.typography.titleMedium)
+            Spacer(Modifier.height(8.dp))
+            OutlinedTextField(
+                value = widthText,
+                onValueChange = { widthText = it },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                singleLine = true,
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedContainerColor = Color.White,
+                    unfocusedContainerColor = Color.White,
+                    cursorColor = MaterialTheme.colorScheme.primary
+                ),
+                modifier = Modifier.fillMaxWidth(0.8f)
+            )
+
+            Spacer(Modifier.height(32.dp))
             if (bruseAreal > 0f) {
                 Card(colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.2f))) {
                     Text(
-                        "Bruseareal: $bruseAreal m²",
+                        "Bruseareal: ${"%.2f".format(bruseAreal)} m²",
                         modifier = Modifier.padding(16.dp),
                         style = MaterialTheme.typography.titleLarge,
                         color = Color.White,
@@ -139,7 +134,58 @@ fun BadevaerelseBrusenicheStep(
                 }
             }
 
-            // Glasvægge + afløbstype beholdt uændret (bokse ser fint ud)
+            // Glasvægge + afløbstype beholdt som bokse under hinanden (for bedre overskuelighed)
+            Spacer(Modifier.height(32.dp))
+            Text("Glasvægge?", color = Color.White, style = MaterialTheme.typography.titleMedium)
+            Spacer(Modifier.height(16.dp))
+            val glassOptions = listOf("Ja", "Nej")
+            glassOptions.forEach { option ->
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth(0.8f)
+                        .background(
+                            if ((option == "Ja" && data.hasGlassWalls == true) || (option == "Nej" && data.hasGlassWalls == false)) MaterialTheme.colorScheme.primary else Color.White,
+                            RoundedCornerShape(16.dp)
+                        )
+                        .clickable { onDataChange(data.copy(hasGlassWalls = option == "Ja")) }
+                        .padding(vertical = 24.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        option,
+                        color = if ((option == "Ja" && data.hasGlassWalls == true) || (option == "Nej" && data.hasGlassWalls == false)) Color.White else Color.Black,
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                }
+
+                Spacer(Modifier.height(16.dp))
+            }
+
+            Spacer(Modifier.height(32.dp))
+            Text("Afløbstype", color = Color.White, style = MaterialTheme.typography.titleMedium)
+            Spacer(Modifier.height(16.dp))
+            val drainOptions = listOf("Punkt afløb", "Lineær afløb")
+            drainOptions.forEach { option ->
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth(0.8f)
+                        .background(
+                            if (data.drainType == option) MaterialTheme.colorScheme.primary else Color.White,
+                            RoundedCornerShape(16.dp)
+                        )
+                        .clickable { onDataChange(data.copy(drainType = option)) }
+                        .padding(vertical = 24.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        option,
+                        color = if (data.drainType == option) Color.White else Color.Black,
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                }
+
+                Spacer(Modifier.height(16.dp))
+            }
         }
     }
 }

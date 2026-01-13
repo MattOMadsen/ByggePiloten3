@@ -17,15 +17,10 @@ import androidx.room.TypeConverters
 import android.content.Context
 import androidx.sqlite.db.SupportSQLiteDatabase
 import androidx.room.migration.Migration  // BEHOLDT: Import for Migration-klasse (nødvendig for top-level val MIGRATION_1_2 – løser "Expecting a top level declaration").
-import dk.byggepiloten.firma.data.database.BackupDao
-import dk.byggepiloten.firma.data.database.FirmaMaterialDao
-import dk.byggepiloten.firma.data.database.RequestDao
-import dk.byggepiloten.firma.data.database.UserDao
-import dk.byggepiloten.firma.data.database.Converters  // BEHOLDT: Import for type converters (matcher din upload)
-import dk.byggepiloten.firma.data.model.FirmaUser  // BEHOLDT: Import fra data.model (matcher din upload – brug kun FirmaUser for "users"-table)
-import dk.byggepiloten.firma.data.model.Request  // BEHOLDT: Import fra data.model (matcher struktur – antager @Entity i Request.kt)
-import dk.byggepiloten.firma.data.model.FirmaMaterialPrice  // BEHOLDT: Import fra data.model (matcher struktur – antager @Entity i FirmaMaterialPrice.kt)
-import dk.byggepiloten.firma.data.model.BackupInfo  // BEHOLDT: Import fra data.model (matcher struktur – antager @Entity i BackupInfo.kt)
+import dk.byggepiloten.firma.data.model.user.FirmaUser  // BEHOLDT: Import fra data.model (matcher din upload – brug kun FirmaUser for "users"-table)
+import dk.byggepiloten.firma.data.model.task.Request  // BEHOLDT: Import fra data.model (matcher struktur – antager @Entity i Request.kt)
+import dk.byggepiloten.firma.data.model.price.FirmaMaterialPrice  // BEHOLDT: Import fra data.model (matcher struktur – antager @Entity i FirmaMaterialPrice.kt)
+import dk.byggepiloten.firma.data.misc.BackupInfo  // BEHOLDT: Import fra data.model (matcher struktur – antager @Entity i BackupInfo.kt)
 
 @Database(
     entities = [FirmaUser::class, Request::class, FirmaMaterialPrice::class, BackupInfo::class],  // BEHOLDT: Kun FirmaUser for "users" (løser multiple entities-fejl); behold korrekte modeller fra data.model

@@ -12,7 +12,7 @@ package dk.byggepiloten.firma.data.repository.impl
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import dk.byggepiloten.firma.data.database.RequestDao
-import dk.byggepiloten.firma.data.model.Request
+import dk.byggepiloten.firma.data.model.task.Request
 import dk.byggepiloten.firma.data.repository.RequestRepository
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow

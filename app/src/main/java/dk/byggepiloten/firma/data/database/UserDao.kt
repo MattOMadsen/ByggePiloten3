@@ -13,7 +13,7 @@ package dk.byggepiloten.firma.data.database
 
 import androidx.room.*  // BEHOLDT
 import androidx.room.RewriteQueriesToDropUnusedColumns  // BEHOLDT: Import for annotation (løser cursor-mismatch-varning)
-import dk.byggepiloten.firma.data.model.FirmaUser  // BEHOLDT: Brug FirmaUser som main model (matcher AppDatabase)
+import dk.byggepiloten.firma.data.model.user.FirmaUser  // BEHOLDT: Brug FirmaUser som main model (matcher AppDatabase)
 
 @Dao
 interface UserDao {

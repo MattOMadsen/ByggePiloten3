@@ -39,7 +39,7 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import dk.byggepiloten.firma.ui.theme.ByggePilotenBlue
 import dk.byggepiloten.firma.ui.theme.ByggePilotenTheme
-import dk.byggepiloten.firma.ui.viewmodel.AuthViewModel  // NY: Import af AuthViewModel
+import dk.byggepiloten.firma.ui.viewmodel.auth.AuthViewModel  // NY: Import af AuthViewModel
 import kotlinx.coroutines.delay
 
 @Composable

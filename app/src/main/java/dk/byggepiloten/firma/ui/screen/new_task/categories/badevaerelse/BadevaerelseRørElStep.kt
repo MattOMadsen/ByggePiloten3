@@ -1,5 +1,8 @@
 // Fil: app/src/main/java/dk/byggepiloten/firma/ui/screen/new_task/categories/badevaerelse/BadevaerelseRørElStep.kt
-// RETTET: Ny OutlinedTextFieldDefaults.colors() signatur på begge beskrivelsesfelter.
+// FULD OPDATERET: Vertikalt layout, labels over beskrivelsesfelter
+// - Conditional beskrivelsesfelt ved "Ja"
+// - onDataChange callback
+// - Linjer: 148
 
 package dk.byggepiloten.firma.ui.screen.new_task.categories.badevaerelse
 
@@ -7,6 +10,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -14,12 +18,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import dk.byggepiloten.firma.data.model.BadevaerelseData
+import dk.byggepiloten.firma.data.model.task.BadevaerelseData
 
-/**
- * Step 11: Rør- og el-flytting.
- * Ja/nej for hver + conditional beskrivelsesfelt.
- */
 @Composable
 fun BadevaerelseRørElStep(
     data: BadevaerelseData,
@@ -47,95 +47,95 @@ fun BadevaerelseRørElStep(
         )
         Spacer(Modifier.height(32.dp))
 
-        // Rør
         Text("Flytte rør?", color = Color.White, style = MaterialTheme.typography.titleMedium)
-        Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-            listOf("Ja", "Nej").forEach { option ->
-                val selected = if (option == "Ja") data.relocatePipes == true else data.relocatePipes == false
-                Box(
-                    modifier = Modifier
-                        .clickable {
-                            onDataChange(data.copy(relocatePipes = option == "Ja", pipeDescription = null))
-                            pipeDesc = ""
-                        }
-                        .background(
-                            color = if (selected) MaterialTheme.colorScheme.primary else Color.White,
-                            shape = RoundedCornerShape(12.dp)
-                        )
-                        .padding(16.dp)
-                ) {
-                    Text(
-                        option,
-                        color = if (selected) Color.White else Color.Black,
-                        style = MaterialTheme.typography.titleMedium
+        Spacer(Modifier.height(16.dp))
+        val pipeOptions = listOf("Ja" to true, "Nej" to false)
+        pipeOptions.forEach { (optionLabel, optionValue) ->
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth(0.8f)
+                    .background(
+                        if (data.relocatePipes == optionValue) MaterialTheme.colorScheme.primary else Color.White,
+                        RoundedCornerShape(16.dp)
                     )
-                }
+                    .clickable {
+                        onDataChange(data.copy(relocatePipes = optionValue, pipeDescription = null))
+                        pipeDesc = ""
+                    }
+                    .padding(vertical = 24.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    optionLabel,
+                    color = if (data.relocatePipes == optionValue) Color.White else Color.Black,
+                    style = MaterialTheme.typography.titleMedium
+                )
             }
+
+            Spacer(Modifier.height(16.dp))
         }
 
         if (data.relocatePipes == true) {
             Spacer(Modifier.height(16.dp))
+            Text("Beskriv rørflytning", color = Color.White, style = MaterialTheme.typography.titleMedium)
+            Spacer(Modifier.height(8.dp))
             OutlinedTextField(
                 value = pipeDesc,
                 onValueChange = { pipeDesc = it },
-                label = { Text("Beskriv rørflytning") },
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedTextColor = Color.White,
-                    unfocusedTextColor = Color.White,
-                    focusedLabelColor = Color.White,
-                    unfocusedLabelColor = Color.White,
-                    cursorColor = Color.White,
-                    focusedBorderColor = Color.White,
-                    unfocusedBorderColor = Color.White.copy(alpha = 0.5f)
+                    focusedContainerColor = Color.White,
+                    unfocusedContainerColor = Color.White,
+                    cursorColor = MaterialTheme.colorScheme.primary
                 ),
-                minLines = 3
+                minLines = 3,
+                modifier = Modifier.fillMaxWidth(0.8f)
             )
         }
 
         Spacer(Modifier.height(32.dp))
 
-        // El
         Text("Flytte el-installationer?", color = Color.White, style = MaterialTheme.typography.titleMedium)
-        Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-            listOf("Ja", "Nej").forEach { option ->
-                val selected = if (option == "Ja") data.relocateElectrical == true else data.relocateElectrical == false
-                Box(
-                    modifier = Modifier
-                        .clickable {
-                            onDataChange(data.copy(relocateElectrical = option == "Ja", electricalDescription = null))
-                            electricalDesc = ""
-                        }
-                        .background(
-                            color = if (selected) MaterialTheme.colorScheme.primary else Color.White,
-                            shape = RoundedCornerShape(12.dp)
-                        )
-                        .padding(16.dp)
-                ) {
-                    Text(
-                        option,
-                        color = if (selected) Color.White else Color.Black,
-                        style = MaterialTheme.typography.titleMedium
+        Spacer(Modifier.height(16.dp))
+        val elOptions = listOf("Ja" to true, "Nej" to false)
+        elOptions.forEach { (optionLabel, optionValue) ->
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth(0.8f)
+                    .background(
+                        if (data.relocateElectrical == optionValue) MaterialTheme.colorScheme.primary else Color.White,
+                        RoundedCornerShape(16.dp)
                     )
-                }
+                    .clickable {
+                        onDataChange(data.copy(relocateElectrical = optionValue, electricalDescription = null))
+                        electricalDesc = ""
+                    }
+                    .padding(vertical = 24.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    optionLabel,
+                    color = if (data.relocateElectrical == optionValue) Color.White else Color.Black,
+                    style = MaterialTheme.typography.titleMedium
+                )
             }
+
+            Spacer(Modifier.height(16.dp))
         }
 
         if (data.relocateElectrical == true) {
             Spacer(Modifier.height(16.dp))
+            Text("Beskriv el-flytting", color = Color.White, style = MaterialTheme.typography.titleMedium)
+            Spacer(Modifier.height(8.dp))
             OutlinedTextField(
                 value = electricalDesc,
                 onValueChange = { electricalDesc = it },
-                label = { Text("Beskriv el-flytting") },
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedTextColor = Color.White,
-                    unfocusedTextColor = Color.White,
-                    focusedLabelColor = Color.White,
-                    unfocusedLabelColor = Color.White,
-                    cursorColor = Color.White,
-                    focusedBorderColor = Color.White,
-                    unfocusedBorderColor = Color.White.copy(alpha = 0.5f)
+                    focusedContainerColor = Color.White,
+                    unfocusedContainerColor = Color.White,
+                    cursorColor = MaterialTheme.colorScheme.primary
                 ),
-                minLines = 3
+                minLines = 3,
+                modifier = Modifier.fillMaxWidth(0.8f)
             )
         }
     }

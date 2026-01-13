@@ -11,7 +11,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import dk.byggepiloten.firma.data.model.PriceSource
+import dk.byggepiloten.firma.data.model.price.PriceSource
 
 @Composable
 fun PriceSourceSelection(

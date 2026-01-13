@@ -1,5 +1,5 @@
-// Fil: app/src/main/java/dk/byggepiloten/firma/ui/screen/OpmuringInsulationStep.kt
-// RETTET: Tilføjet import androidx.compose.ui.text.input.KeyboardType
+// Fil: app/src/main/java/dk/byggepiloten/firma/ui/screen/new_task/categories/opmuring/OpmuringInsulationStep.kt
+// FIX: FlowRow → Column (valg under hinanden).
 
 package dk.byggepiloten.firma.ui.screen.new_task.categories.opmuring
 
@@ -7,52 +7,59 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import dk.byggepiloten.firma.data.model.task.WallData
 import dk.byggepiloten.firma.ui.theme.ByggePilotenBlue
 
 @Composable
 fun OpmuringInsulationStep(
-    insulationWanted: Boolean?,
-    onInsulationWantedChange: (Boolean) -> Unit,
-    insulationThickness: String,
-    onInsulationThicknessChange: (String) -> Unit
+    data: WallData,
+    onDataChange: (WallData) -> Unit
 ) {
-    Text("Isolering ønsket?", color = Color.White, fontWeight = FontWeight.Medium, fontSize = 20.sp)
+    Text("Isolering (facademur)", color = Color.White, fontWeight = FontWeight.Medium, fontSize = 20.sp)
+    Spacer(Modifier.height(16.dp))
+    Text("Ønskes isolering i skalmuren?", color = Color.White.copy(alpha = 0.9f))
+
     Spacer(Modifier.height(24.dp))
 
+    val options = listOf("Ja" to true, "Nej" to false)
+
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        listOf("Ja", "Nej").forEach { opt ->
+        options.forEach { (text, value) ->
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clickable { onInsulationWantedChange(opt == "Ja") }
-                    .background(if (insulationWanted == (opt == "Ja")) ByggePilotenBlue else Color.White, RoundedCornerShape(8.dp))
-                    .padding(vertical = 16.dp)
+                    .clickable {
+                        onDataChange(
+                            data.copy(
+                                insulationWanted = value,
+                                insulationThickness = if (value == false) null else data.insulationThickness
+                            )
+                        )
+                    }
+                    .background(if (data.insulationWanted == value) ByggePilotenBlue else Color.White, RoundedCornerShape(8.dp))
+                    .padding(vertical = 20.dp),
+                contentAlignment = Alignment.Center
             ) {
-                Text(
-                    opt,
-                    color = if (insulationWanted == (opt == "Ja")) Color.White else Color.Black,
-                    modifier = Modifier.padding(horizontal = 16.dp)
-                )
+                Text(text, color = if (data.insulationWanted == value) Color.White else Color.Black, fontSize = 16.sp)
             }
         }
     }
 
-    if (insulationWanted == true) {
+    if (data.insulationWanted == true) {
         Spacer(Modifier.height(16.dp))
         OutlinedTextField(
-            value = insulationThickness,
-            onValueChange = { if (it.all { c -> c.isDigit() }) onInsulationThicknessChange(it) },
-            label = { Text("Tykkelse (mm)") },
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            value = data.insulationThickness?.toString() ?: "",
+            onValueChange = { if (it.isEmpty() || it.toFloatOrNull() != null) onDataChange(data.copy(insulationThickness = it.toFloatOrNull())) },
+            label = { Text("Isoleringstykkelse (cm)") },
+            keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Number),
             modifier = Modifier.fillMaxWidth(),
             colors = TextFieldDefaults.colors(
                 focusedContainerColor = Color.White,

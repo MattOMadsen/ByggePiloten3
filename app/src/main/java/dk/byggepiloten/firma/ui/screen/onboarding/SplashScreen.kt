@@ -21,8 +21,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import dk.byggepiloten.firma.ui.theme.ByggePilotenBlue
 import dk.byggepiloten.firma.ui.theme.ByggePilotenTheme
-import dk.byggepiloten.firma.ui.viewmodel.AuthViewModel
-import dk.byggepiloten.firma.ui.viewmodel.AuthUiState
+import dk.byggepiloten.firma.ui.viewmodel.auth.AuthViewModel
+import dk.byggepiloten.firma.ui.viewmodel.auth.AuthUiState
 
 @Composable
 fun SplashScreen(navController: NavController) {

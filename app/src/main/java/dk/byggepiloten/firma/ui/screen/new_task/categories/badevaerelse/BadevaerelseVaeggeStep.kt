@@ -1,5 +1,8 @@
 // Fil: app/src/main/java/dk/byggepiloten/firma/ui/screen/new_task/categories/badevaerelse/BadevaerelseVaeggeStep.kt
-// RETTET: Ny OutlinedTextFieldDefaults.colors() signatur.
+// FULD OPDATERET: Vertikalt layout, labels over felt
+// - Live vægareal beholdt (perimeter × højde)
+// - onDataChange callback
+// - Linjer: 112
 
 package dk.byggepiloten.firma.ui.screen.new_task.categories.badevaerelse
 
@@ -13,12 +16,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import dk.byggepiloten.firma.data.model.BadevaerelseData
+import dk.byggepiloten.firma.data.model.task.BadevaerelseData
 
-/**
- * Step 3: Vægge.
- * En tekstfelt for højde + live vægareal (perimeter fra gulv × højde).
- */
 @Composable
 fun BadevaerelseVaeggeStep(
     data: BadevaerelseData,
@@ -53,31 +52,27 @@ fun BadevaerelseVaeggeStep(
         )
         Spacer(Modifier.height(32.dp))
 
+        Text("Højde (m)", color = Color.White, style = MaterialTheme.typography.titleMedium)
+        Spacer(Modifier.height(8.dp))
         OutlinedTextField(
             value = heightText,
             onValueChange = { heightText = it },
-            label = { Text("Højde (m)") },
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
             singleLine = true,
             colors = OutlinedTextFieldDefaults.colors(
-                focusedTextColor = Color.White,
-                unfocusedTextColor = Color.White,
-                focusedLabelColor = Color.White,
-                unfocusedLabelColor = Color.White,
-                cursorColor = Color.White,
-                focusedBorderColor = Color.White,
-                unfocusedBorderColor = Color.White.copy(alpha = 0.5f)
-            )
+                focusedContainerColor = Color.White,
+                unfocusedContainerColor = Color.White,
+                cursorColor = MaterialTheme.colorScheme.primary
+            ),
+            modifier = Modifier.fillMaxWidth(0.8f)
         )
 
-        Spacer(Modifier.height(24.dp))
+        Spacer(Modifier.height(32.dp))
 
         if (vaegAreal > 0f) {
-            Card(
-                colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.2f))
-            ) {
+            Card(colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.2f))) {
                 Text(
-                    "Vægareal (brutto): $vaegAreal m²",
+                    "Vægareal (brutto): ${"%.2f".format(vaegAreal)} m²",
                     modifier = Modifier.padding(16.dp),
                     style = MaterialTheme.typography.titleLarge,
                     color = Color.White,

@@ -7,7 +7,7 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import dk.byggepiloten.firma.data.database.UserDao
-import dk.byggepiloten.firma.data.model.FirmaUser
+import dk.byggepiloten.firma.data.model.user.FirmaUser
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map

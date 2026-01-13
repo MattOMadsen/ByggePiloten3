@@ -10,8 +10,7 @@ package dk.byggepiloten.firma.data.database
 
 import androidx.room.*
 import androidx.room.TypeConverters
-import dk.byggepiloten.firma.data.database.Converters  // RETTET: Import for type converters (matcher din upload)
-import dk.byggepiloten.firma.data.model.BackupInfo  // BEHOLDT: Brug BackupInfo fra data.model (matcher AppDatabase)
+import dk.byggepiloten.firma.data.misc.BackupInfo  // BEHOLDT: Brug BackupInfo fra data.model (matcher AppDatabase)
 
 @Dao
 interface BackupDao {

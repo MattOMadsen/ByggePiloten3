@@ -1,6 +1,6 @@
 package dk.byggepiloten.firma.data.repository
 
-import dk.byggepiloten.firma.data.model.MaterialEstimate  // Model for estimat (fra oversigt: materials-map, totalPrice)
+import dk.byggepiloten.firma.data.model.price.MaterialEstimate  // Model for estimat (fra oversigt: materials-map, totalPrice)
 import kotlinx.coroutines.flow.Flow
 
 /**

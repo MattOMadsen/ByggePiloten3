@@ -1,7 +1,7 @@
 // File: data/repository/impl/MaterialRepositoryImpl.kt
 package dk.byggepiloten.firma.data.repository.impl
 
-import dk.byggepiloten.firma.data.model.MaterialEstimate
+import dk.byggepiloten.firma.data.model.price.MaterialEstimate
 import dk.byggepiloten.firma.data.repository.MaterialRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow

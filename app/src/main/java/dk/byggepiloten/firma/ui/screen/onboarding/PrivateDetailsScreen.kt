@@ -45,8 +45,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import dk.byggepiloten.firma.ui.theme.ByggePilotenTheme
-import dk.byggepiloten.firma.ui.viewmodel.OnboardingViewModel
-import dk.byggepiloten.firma.ui.viewmodel.PrivateDetailsViewModel
+import dk.byggepiloten.firma.ui.viewmodel.onboarding.OnboardingViewModel
+import dk.byggepiloten.firma.ui.viewmodel.onboarding.PrivateDetailsViewModel
 import timber.log.Timber
 
 @OptIn(ExperimentalMaterial3Api::class)

@@ -1,12 +1,9 @@
-// Fil: app/src/main/java/dk/byggepiloten/firma/ui/screen/NewTaskWizardScreen.kt
-// FULD FIL – DIN ORIGINAL VERSION (ca. 150 linjer) MED BLÅ GRADIENT BAGGRUND + HVID OVERSKRIFT.
-// - TILFØJET: Box med præcis samme blå gradient som Welcome/Login/Dashboard.
-// - Overskrift "Ny opgave" gjort hvid (TopAppBar containerColor = ByggePilotenBlue, titleContentColor = White).
-// - Cards beholdt uændret (surfaceVariant – ser godt ud på blå baggrund).
-// - Scaffold containerColor = Transparent så gradient vises.
-// - Beholdt ALLE originale elementer (TaskCategory, LazyVerticalGrid, try-catch i onClick, Timber.log, osv.).
-// - Fuldt funktionsdygtig: Vælg kategori → naviger til fag-screen.
-// - Linjer: Ca. 170 (lidt flere pga. baggrund + farve-rettelser).
+// Fil: app/src/main/java/dk/byggepiloten/firma/ui/screen/new_task/NewTaskWizardScreen.kt
+// OPDATERET: Fliser-kategori tekst ændret til "Flise- og klinkearbejde".
+// - Subtitle beholdt "Fliser på gulv og vægge".
+// - Route ændret til "flise_klinke" for at matche MainActivity.
+// - Alt andet 100% som din originale (gradient, TopAppBar, cards osv.).
+// - Linjer: 170.
 
 package dk.byggepiloten.firma.ui.screen.new_task
 
@@ -47,7 +44,7 @@ fun NewTaskWizardScreen(navController: NavController) {
     val categories = listOf(
         TaskCategory("Facadepudsning", "Pudsning og reparation af ydervægge", Icons.Default.Home, "facade_pudsning"),
         TaskCategory("Opmuring", "Opførelse af nye vægge", Icons.Default.Wallpaper, "opmuring"),
-        TaskCategory("Flisearbejde", "Fliser på gulv og vægge", Icons.Default.GridOn, "fliser"),
+        TaskCategory("Flise- og klinkearbejde", "Fliser på gulv og vægge", Icons.Default.GridOn, "flise_klinke"), // OPDATERET ROUTE
         TaskCategory("Badeværelse", "Komplet eller delvis renovering", Icons.Default.Bathtub, "badeværelse"),
         TaskCategory("Omfugning", "Omfugning af murværk", Icons.Default.Build, "omfugning"),
         TaskCategory("Nedbrydning", "Nedrivning af vægge og fliser", Icons.Default.DeleteForever, "nedbrydning"),
@@ -55,7 +52,6 @@ fun NewTaskWizardScreen(navController: NavController) {
         TaskCategory("Fundament", "Støbning og reparation", Icons.Default.Foundation, "fundament")
     )
 
-    // SAMME BLÅ GRADIENT SOM WELCOME/LOGIN/DASHBOARD
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -77,7 +73,7 @@ fun NewTaskWizardScreen(navController: NavController) {
                             "Ny opgave",
                             fontWeight = FontWeight.Bold,
                             fontSize = 22.sp,
-                            color = Color.White  // HVID OVERSKRIFT
+                            color = Color.White
                         )
                     },
                     navigationIcon = {
@@ -86,12 +82,12 @@ fun NewTaskWizardScreen(navController: NavController) {
                         }
                     },
                     colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                        containerColor = ByggePilotenBlue,  // Mørk blå topbar (passer til gradient)
+                        containerColor = ByggePilotenBlue,
                         titleContentColor = Color.White
                     )
                 )
             },
-            containerColor = Color.Transparent  // Transparent så gradient vises
+            containerColor = Color.Transparent
         ) { padding ->
             LazyVerticalGrid(
                 columns = GridCells.Fixed(2),

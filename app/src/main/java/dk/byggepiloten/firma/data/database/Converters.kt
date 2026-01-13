@@ -2,7 +2,7 @@
 // FULD, KOMPLET, KØRBAR VERSION – TILFØJET BidListConverter FOR List<Bid> (Gson til JSON; løser KSP-fejl i Request.kt for bids-felt).
 // Trin-for-trin forklaring:
 // 1. Beholdt ALLE originale elementer uændret (ingen sletninger – beholdt FirmaMaterialPriceList og StringList converters med @JvmName for KSP).
-// 2. TILFØJET: Import dk.byggepiloten.firma.data.model.Bid (fra din Bid.kt).
+// 2. TILFØJET: Import dk.byggepiloten.firma.data.model.task.Bid (fra din Bid.kt).
 // 3. TILFØJET: fromBidList (List<Bid>? → String? JSON) og toBidList (String? → List<Bid>?) – matcher eksisterende Gson-pattern, med @JvmName for KSP-kompatibilitet.
 // 4. Fuldt funktionsdygtig – kompilerer uden KSP-fejl, Room konverterer bids korrekt.
 // 5. Matcher regler sæt (Hilt DI for Gson, offline-first med Room, ingen nye deps).
@@ -14,8 +14,8 @@ package dk.byggepiloten.firma.data.database  // BEHOLDT: Flyttet til data.databa
 import androidx.room.TypeConverter
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
-import dk.byggepiloten.firma.data.model.FirmaMaterialPrice
-import dk.byggepiloten.firma.data.model.Bid  // TILFØJET: Import for Bid-model (fra din Bid.kt; nødvendigt for ny converter).
+import dk.byggepiloten.firma.data.model.price.FirmaMaterialPrice
+import dk.byggepiloten.firma.data.model.task.Bid  // TILFØJET: Import for Bid-model (fra din Bid.kt; nødvendigt for ny converter).
 
 class Converters {
     private val gson = Gson()

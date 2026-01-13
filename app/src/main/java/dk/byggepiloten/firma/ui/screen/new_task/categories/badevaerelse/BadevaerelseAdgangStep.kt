@@ -1,6 +1,8 @@
 // Fil: app/src/main/java/dk/byggepiloten/firma/ui/screen/new_task/categories/badevaerelse/BadevaerelseAdgangStep.kt
-// RETTET: floorNumber-reference nu gyldig (efter tilføjelse i BadevaerelseData).
-// - Logik: "Er der trappeopgang?" → Ja = goodAccess = false → vis etage-felt.
+// FULD OPDATERET: Bokse under hinanden
+// - Conditional etage-felt ved "Ja" på trappeopgang
+// - onDataChange callback
+// - Linjer: 112
 
 package dk.byggepiloten.firma.ui.screen.new_task.categories.badevaerelse
 
@@ -17,7 +19,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import dk.byggepiloten.firma.data.model.BadevaerelseData
+import dk.byggepiloten.firma.data.model.task.BadevaerelseData
 
 @Composable
 fun BadevaerelseAdgangStep(
@@ -47,35 +49,36 @@ fun BadevaerelseAdgangStep(
         )
         Spacer(Modifier.height(32.dp))
 
-        val yesNo = listOf("Ja", "Nej")
-        Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-            yesNo.forEach { option ->
-                val selected = if (option == "Ja") data.goodAccess == false else data.goodAccess == true
-                Box(
-                    modifier = Modifier
-                        .clickable {
-                            onDataChange(data.copy(goodAccess = option == "Nej", floorNumber = null))
-                            floorText = ""
-                        }
-                        .background(
-                            color = if (selected) MaterialTheme.colorScheme.primary else Color.White,
-                            shape = RoundedCornerShape(12.dp)
-                        )
-                        .padding(16.dp)
-                ) {
-                    Text(
-                        option,
-                        color = if (selected) Color.White else Color.Black,
-                        style = MaterialTheme.typography.titleMedium
+        val yesNo = listOf("Ja" to false, "Nej" to true) // Ja = goodAccess = false
+        yesNo.forEach { (optionLabel, optionValue) ->
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth(0.8f)
+                    .background(
+                        if (data.goodAccess == optionValue) MaterialTheme.colorScheme.primary else Color.White,
+                        RoundedCornerShape(16.dp)
                     )
-                }
+                    .clickable {
+                        onDataChange(data.copy(goodAccess = optionValue, floorNumber = null))
+                        floorText = ""
+                    }
+                    .padding(vertical = 24.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    optionLabel,
+                    color = if (data.goodAccess == optionValue) Color.White else Color.Black,
+                    style = MaterialTheme.typography.titleMedium
+                )
             }
+
+            Spacer(Modifier.height(16.dp))
         }
 
         if (data.goodAccess == false) {
             Spacer(Modifier.height(32.dp))
             Text("Hvilken etage?", color = Color.White, style = MaterialTheme.typography.titleMedium)
-            Spacer(Modifier.height(16.dp))
+            Spacer(Modifier.height(8.dp))
             OutlinedTextField(
                 value = floorText,
                 onValueChange = { floorText = it },
@@ -83,14 +86,11 @@ fun BadevaerelseAdgangStep(
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 singleLine = true,
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedTextColor = Color.White,
-                    unfocusedTextColor = Color.White,
-                    focusedLabelColor = Color.White,
-                    unfocusedLabelColor = Color.White,
-                    cursorColor = Color.White,
-                    focusedBorderColor = Color.White,
-                    unfocusedBorderColor = Color.White.copy(alpha = 0.5f)
-                )
+                    focusedContainerColor = Color.White,
+                    unfocusedContainerColor = Color.White,
+                    cursorColor = MaterialTheme.colorScheme.primary
+                ),
+                modifier = Modifier.fillMaxWidth(0.8f)
             )
         }
     }

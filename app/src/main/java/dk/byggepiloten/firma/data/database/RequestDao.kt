@@ -2,7 +2,7 @@ package dk.byggepiloten.firma.data.database
 
 import androidx.room.*
 import dk.byggepiloten.firma.data.database.Converters
-import dk.byggepiloten.firma.data.model.Request
+import dk.byggepiloten.firma.data.model.task.Request
 
 @Dao
 interface RequestDao {
