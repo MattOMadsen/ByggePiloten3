@@ -1,10 +1,9 @@
-// Fil: app/src/main/java/dk/byggepiloten/firma/ui/viewmodel/FacadeTaskViewModel.kt
+// Fil: app/src/main/java/dk/byggepiloten/firma/ui/viewmodel/task/FacadeTaskViewModel.kt
 // OPDATERET – tilføjet fuld override sendTask
 // • Beregner areaM2 direkte fra data.area (fallback 0f)
 // • Fuld detailsMap med ALLE felter fra FacadeData (inkl. conditional)
-// • Bruger protected requestRepository + setIsSending fra opdateret BaseTaskViewModel
+// • Bruger lokal private val requestRepository
 // • Kategori "facade_pudsning", roomType "Facadepudsning"
-// • Ingen hård validering – sender altid (som de andre kategorier)
 // • Linjer: 178 (bekræftet)
 
 package dk.byggepiloten.firma.ui.viewmodel.task
@@ -23,8 +22,8 @@ import com.google.firebase.auth.FirebaseAuth
 
 @HiltViewModel
 class FacadeTaskViewModel @Inject constructor(
-    requestRepository: RequestRepository
-) : BaseTaskViewModel(requestRepository) {
+    private val requestRepository: RequestRepository
+) : BaseTaskViewModel() {
 
     private val _facadeData = MutableStateFlow(FacadeData())
     val facadeData = _facadeData.asStateFlow()
@@ -37,9 +36,7 @@ class FacadeTaskViewModel @Inject constructor(
         viewModelScope.launch {
             setIsSending(true)
             try {
-                val category = currentCategory.value ?: throw Exception("Ingen category")
-                if (category != "facade_pudsning") throw Exception("Forkert ViewModel for category")
-
+                val category = currentCategory.value.ifBlank { "facade_pudsning" }
                 val d = _facadeData.value
                 val userId = FirebaseAuth.getInstance().currentUser?.uid ?: throw Exception("Ingen bruger")
 
@@ -74,7 +71,7 @@ class FacadeTaskViewModel @Inject constructor(
                     areaM2 = areaM2,
                     roomType = "Facadepudsning",
                     requiresMembrane = false,
-                    aiPrice = aiPriceEstimate.value ?: 0f,
+                    aiPrice = (aiPriceEstimate.value ?: 0L).toFloat(),
                     images = imageUris.value.map { it.toString() },
                     description = description.value,
                     status = "new"

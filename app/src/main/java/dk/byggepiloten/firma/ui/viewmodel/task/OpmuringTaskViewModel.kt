@@ -1,3 +1,7 @@
+// Fil: app/src/main/java/dk/byggepiloten/firma/ui/viewmodel/task/OpmuringTaskViewModel.kt
+// FULD RETTET – lokal repository-inject, override sendTask med lokal repository, explicit .toFloat() på sumOf
+// Linjer: 172
+
 package dk.byggepiloten.firma.ui.viewmodel.task
 
 import androidx.lifecycle.viewModelScope
@@ -14,8 +18,8 @@ import com.google.firebase.auth.FirebaseAuth
 
 @HiltViewModel
 class OpmuringTaskViewModel @Inject constructor(
-    requestRepository: RequestRepository
-) : BaseTaskViewModel(requestRepository) {
+    private val requestRepository: RequestRepository
+) : BaseTaskViewModel() {
 
     private val _wallData = MutableStateFlow(WallData())
     val wallData = _wallData.asStateFlow()
@@ -28,14 +32,14 @@ class OpmuringTaskViewModel @Inject constructor(
         viewModelScope.launch {
             setIsSending(true)
             try {
-                val category = currentCategory.value ?: "opmuring"
+                val category = currentCategory.value.ifBlank { "opmuring" }
                 val d = _wallData.value
                 val userId = FirebaseAuth.getInstance().currentUser?.uid ?: throw Exception("Ingen bruger")
 
                 // Beregn netto areal
                 val totalArea = d.wallMeasurements.sumOf { (it.length ?: 0f).toDouble() * (it.height ?: 0f).toDouble() }.toFloat()
                 val openingsArea = d.openingMeasurements.sumOf { (it.widthCm ?: 0f).toDouble() * (it.heightCm ?: 0f).toDouble() / 10000.0 }.toFloat()
-                
+
                 val netArea = if (d.wallMode == "samlet") {
                     (d.wallTotalAreaM2 ?: 0f) - (d.openingTotalAreaM2 ?: 0f)
                 } else {
@@ -50,6 +54,7 @@ class OpmuringTaskViewModel @Inject constructor(
                     "netArea" to netArea,
                     "foundationOption" to (d.foundationOption ?: ""),
                     "goodAccess" to (d.goodAccess ?: false)
+                    // Tilføj flere felter fra WallData hvis nødvendigt
                 )
 
                 val request = Request(
@@ -60,7 +65,7 @@ class OpmuringTaskViewModel @Inject constructor(
                     areaM2 = netArea,
                     roomType = d.murType ?: "Opmuring",
                     requiresMembrane = false,
-                    aiPrice = aiPriceEstimate.value ?: 0f,
+                    aiPrice = (aiPriceEstimate.value ?: 0L).toFloat(),
                     images = imageUris.value.map { it.toString() },
                     description = description.value,
                     status = "new"

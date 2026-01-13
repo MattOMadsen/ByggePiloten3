@@ -14,8 +14,8 @@ import com.google.firebase.auth.FirebaseAuth
 
 @HiltViewModel
 class FliserTaskViewModel @Inject constructor(
-    requestRepository: RequestRepository
-) : BaseTaskViewModel(requestRepository) {
+    private val requestRepository: RequestRepository
+) : BaseTaskViewModel() {
 
     private val _fliserData = MutableStateFlow(FliserData())
     val fliserData = _fliserData.asStateFlow()
@@ -28,7 +28,7 @@ class FliserTaskViewModel @Inject constructor(
         viewModelScope.launch {
             setIsSending(true)
             try {
-                val category = currentCategory.value ?: "flise_klinke"
+                val category = currentCategory.value.ifBlank { "flise_klinke" }
                 val d = _fliserData.value
                 val userId = FirebaseAuth.getInstance().currentUser?.uid ?: throw Exception("Ingen bruger")
 
@@ -53,7 +53,7 @@ class FliserTaskViewModel @Inject constructor(
                     areaM2 = netArea,
                     roomType = "Flise- og klinkearbejde",
                     requiresMembrane = false,
-                    aiPrice = aiPriceEstimate.value ?: 0f,
+                    aiPrice = (aiPriceEstimate.value ?: 0L).toFloat(),
                     images = imageUris.value.map { it.toString() },
                     description = description.value,
                     status = "new"

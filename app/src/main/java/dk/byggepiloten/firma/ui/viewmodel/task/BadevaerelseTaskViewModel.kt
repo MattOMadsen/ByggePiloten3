@@ -14,8 +14,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class BadevaerelseTaskViewModel @Inject constructor(
-    requestRepository: RequestRepository
-) : BaseTaskViewModel(requestRepository) {
+    private val requestRepository: RequestRepository
+) : BaseTaskViewModel() {
 
     private val _badevaerelseData = MutableStateFlow(BadevaerelseData())
     val badevaerelseData = _badevaerelseData.asStateFlow()
@@ -28,7 +28,7 @@ class BadevaerelseTaskViewModel @Inject constructor(
         viewModelScope.launch {
             setIsSending(true)
             try {
-                val category = currentCategory.value ?: ""
+                val category = currentCategory.value.ifBlank { "badeværelse" }
                 
                 val d = _badevaerelseData.value
                 val userId = FirebaseAuth.getInstance().currentUser?.uid ?: throw Exception("Ingen bruger")
@@ -53,7 +53,7 @@ class BadevaerelseTaskViewModel @Inject constructor(
                     areaM2 = netArea,
                     roomType = "Badeværelse",
                     requiresMembrane = d.hasMembrane ?: true,
-                    aiPrice = aiPriceEstimate.value ?: 0f,
+                    aiPrice = (aiPriceEstimate.value ?: 0L).toFloat(),
                     images = imageUris.value.map { it.toString() },
                     description = description.value,
                     status = "new"
