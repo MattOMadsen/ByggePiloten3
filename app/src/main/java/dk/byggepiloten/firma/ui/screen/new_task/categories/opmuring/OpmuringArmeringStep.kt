@@ -1,48 +1,36 @@
 // Fil: app/src/main/java/dk/byggepiloten/firma/ui/screen/new_task/categories/opmuring/OpmuringArmeringStep.kt
-// FIX: FlowRow → Column (valg under hinanden).
+// CONDITIONAL – KUN VIS VED PUDS/MALET (NY MUR)
+// Simpelt Ja/Nej (som original)
+// Linjer: 62
 
 package dk.byggepiloten.firma.ui.screen.new_task.categories.opmuring
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import dk.byggepiloten.firma.data.model.task.WallData
-import dk.byggepiloten.firma.ui.theme.ByggePilotenBlue
+import dk.byggepiloten.firma.ui.screen.new_task.components.common.YesNoRow
 
 @Composable
 fun OpmuringArmeringStep(
     data: WallData,
     onDataChange: (WallData) -> Unit
 ) {
-    Text("Armering (ny mur)", color = Color.White, fontWeight = FontWeight.Medium, fontSize = 20.sp)
-    Spacer(Modifier.height(16.dp))
-    Text("Ønskes armeringsnet i muren?", color = Color.White.copy(alpha = 0.9f))
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Text(
+            text = "Skal der armeres (anbefalet ved pudset overflade)?",
+            style = MaterialTheme.typography.titleMedium,
+            color = Color.White,
+            modifier = Modifier.padding(bottom = 16.dp)
+        )
 
-    Spacer(Modifier.height(24.dp))
-
-    val options = listOf("Ja" to true, "Nej" to false)
-
-    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        options.forEach { (text, value) ->
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable { onDataChange(data.copy(reinforcement = value)) }
-                    .background(if (data.reinforcement == value) ByggePilotenBlue else Color.White, RoundedCornerShape(8.dp))
-                    .padding(vertical = 20.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(text, color = if (data.reinforcement == value) Color.White else Color.Black, fontSize = 16.sp)
-            }
-        }
+        YesNoRow(
+            selected = data.reinforcement,
+            onSelected = { onDataChange(data.copy(reinforcement = it)) }
+        )
     }
 }

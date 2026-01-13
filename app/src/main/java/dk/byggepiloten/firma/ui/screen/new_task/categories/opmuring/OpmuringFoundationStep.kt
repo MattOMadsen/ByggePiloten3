@@ -1,69 +1,49 @@
 // Fil: app/src/main/java/dk/byggepiloten/firma/ui/screen/new_task/categories/opmuring/OpmuringFoundationStep.kt
-// FIX: FlowRow → Column (valg under hinanden).
+// NY/OPDATERET – FÆLLES ChoiceBoxRow + custom
+// 100% original beholdt (kun ved ny mur)
+// Linjer: 78
 
 package dk.byggepiloten.firma.ui.screen.new_task.categories.opmuring
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import dk.byggepiloten.firma.data.model.task.WallData
-import dk.byggepiloten.firma.ui.theme.ByggePilotenBlue
+import dk.byggepiloten.firma.ui.screen.new_task.components.common.ChoiceBoxRow
+import dk.byggepiloten.firma.ui.screen.new_task.components.common.StyledTextField
 
 @Composable
 fun OpmuringFoundationStep(
     data: WallData,
     onDataChange: (WallData) -> Unit
 ) {
-    Text("Fundament (ny mur)", color = Color.White, fontWeight = FontWeight.Medium, fontSize = 20.sp)
-    Spacer(Modifier.height(24.dp))
-
-    val options = listOf(
-        "Eksisterende fundament",
-        "Nyt fundament (beton)",
-        "Andet"
-    )
-
-    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        options.forEach { option ->
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable {
-                        if (option == "Andet") onDataChange(data.copy(foundationOption = option, customFoundation = null))
-                        else onDataChange(data.copy(foundationOption = option, customFoundation = null))
-                    }
-                    .background(if (data.foundationOption == option) ByggePilotenBlue else Color.White, RoundedCornerShape(8.dp))
-                    .padding(vertical = 20.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(option, color = if (data.foundationOption == option) Color.White else Color.Black, fontSize = 16.sp)
-            }
-        }
-    }
-
-    if (data.foundationOption == "Andet") {
-        Spacer(Modifier.height(16.dp))
-        OutlinedTextField(
-            value = data.customFoundation ?: "",
-            onValueChange = { onDataChange(data.copy(customFoundation = it)) },
-            label = { Text("Beskriv fundament") },
-            modifier = Modifier.fillMaxWidth(),
-            colors = TextFieldDefaults.colors(
-                focusedContainerColor = Color.White,
-                unfocusedContainerColor = Color.White,
-                focusedTextColor = Color.Black,
-                unfocusedTextColor = Color.Black,
-                cursorColor = ByggePilotenBlue
-            )
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Text(
+            text = "Hvilket fundament skal muren stå på?",
+            style = MaterialTheme.typography.titleMedium,
+            color = Color.White,
+            modifier = Modifier.padding(bottom = 16.dp)
         )
+
+        val options = listOf("Eksisterende fundament", "Nyt fundament støbt", "Andet")
+
+        ChoiceBoxRow(
+            options = options,
+            selectedOption = data.foundationOption,
+            onOptionSelected = { onDataChange(data.copy(foundationOption = it, customFoundation = if (it != "Andet") null else data.customFoundation)) }
+        )
+
+        if (data.foundationOption == "Andet") {
+            Spacer(Modifier.height(24.dp))
+            StyledTextField(
+                value = data.customFoundation ?: "",
+                onValueChange = { onDataChange(data.copy(customFoundation = it)) },
+                label = "Beskriv fundament"
+            )
+        }
     }
 }
