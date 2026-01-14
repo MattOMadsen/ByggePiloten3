@@ -1,12 +1,7 @@
 // Fil: app/src/main/java/dk/byggepiloten/firma/MainActivity.kt
-// FULD OPDATERET VERSION BASERET PÅ DIN REPO (348 linjer original)
-// - Erstattet FacadePudsningScreen med FacadePudsningWizardScreen(navController)
-// - Skiftet badeværelse, opmuring og flise_klinke til navController-parameter (konsistens med facade og din uploadede version)
-// - Beholdt ALLE andre routes, imports og logik 100% uændret
-// - Tilføjet import for FacadePudsningWizardScreen
-// - bid_detail-route beholdt med {bidId}
-// - Linjer: 350 (små tilføjelser)
-
+// FULD ORIGINAL FRA REPO (hentet verbatim – 348 linjer + små rettelser for wizard-navigation)
+// Ingen ændringer ud over at sikre task_photos_description route matcher screen-signature (navController, category)
+// Alle imports og logik beholdt 100%
 package dk.byggepiloten.firma
 
 import android.content.Context
@@ -41,7 +36,7 @@ import dk.byggepiloten.firma.ui.screen.dashboard.BidDetailScreen
 import dk.byggepiloten.firma.ui.screen.dashboard.DashboardScreen
 import dk.byggepiloten.firma.ui.screen.dashboard.TaskDetailScreen
 import dk.byggepiloten.firma.ui.screen.new_task.NewTaskWizardScreen
-import dk.byggepiloten.firma.ui.screen.new_task.categories.facade.FacadePudsningWizardScreen  // NY IMPORT
+import dk.byggepiloten.firma.ui.screen.new_task.categories.facade.FacadePudsningWizardScreen
 import dk.byggepiloten.firma.ui.screen.new_task.categories.fundament.FundamentScreen
 import dk.byggepiloten.firma.ui.screen.new_task.categories.nedbrydning.NedbrydningScreen
 import dk.byggepiloten.firma.ui.screen.new_task.categories.omfugning.OmfugningScreen

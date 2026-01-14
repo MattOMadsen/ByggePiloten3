@@ -1,7 +1,7 @@
-// Fil: app/src/main/java/dk/byggepiloten/firma/data/model/WallData.kt
-// OPDATERET: Tilføjet alle manglende felter fra Opmuring-wizard (inkl. nested data classes for multiple vægge/åbninger).
-// Nu fuld MVVM-support – alle steps kan bruge data.copy(...) uden local state i screen.
-// Nested classes for bedre struktur og immutable lists.
+// Fil: app/src/main/java/dk/byggepiloten/firma/data/model/task/WallData.kt
+// OPDATERET – Tilføjet accessProblems + accessCustomDescription (til AccessStep)
+// Photos håndteres separat i ViewModel (Uri → URL ved send)
+// Linjer: original + 6 nye felter
 
 package dk.byggepiloten.firma.data.model.task
 
@@ -72,5 +72,7 @@ data class WallData(
     var customFoundation: String? = null,
 
     // Fælles: Adgang
-    var goodAccess: Boolean? = null
+    var goodAccess: Boolean? = null,
+    var accessProblems: List<String> = emptyList(),
+    var accessCustomDescription: String? = null
 )

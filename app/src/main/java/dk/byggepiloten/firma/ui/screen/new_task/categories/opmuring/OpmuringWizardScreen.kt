@@ -1,13 +1,14 @@
 // Fil: app/src/main/java/dk/byggepiloten/firma/ui/screen/new_task/categories/opmuring/OpmuringWizardScreen.kt
-// FULD RETTET – index-baseret navigation (auto-skip armering ved "Rå mur"), explicit collectAsState(WallData()), null-safety på data-felter
-// Linjer: 348
+// OPDATERET – Tilføjet reel validering på "Næste"-knap via viewModel.isStepValid(currentStepNumber)
+// isNextEnabled disablet hvis step ikke gyldigt
+// Linjer: 392
 
 package dk.byggepiloten.firma.ui.screen.new_task.categories.opmuring
 
 import androidx.compose.runtime.*
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
-import dk.byggepiloten.firma.data.model.task.WallData
 import dk.byggepiloten.firma.ui.screen.new_task.components.WizardScaffold
 import dk.byggepiloten.firma.ui.viewmodel.task.OpmuringTaskViewModel
 
@@ -16,7 +17,14 @@ fun OpmuringWizardScreen(
     navController: NavController
 ) {
     val viewModel: OpmuringTaskViewModel = hiltViewModel()
-    val data by viewModel.wallData.collectAsState(initial = WallData())
+    val data by viewModel.wallData.collectAsStateWithLifecycle()
+
+    val stepPhotos by viewModel.stepPhotos.collectAsStateWithLifecycle()
+
+    val damagePhotos = stepPhotos["damage"] ?: emptyList()
+    val accessPhotos = stepPhotos["access"] ?: emptyList()
+    val openingsPhotos = stepPhotos["openings"] ?: emptyList()
+    val foundationPhotos = stepPhotos["foundation"] ?: emptyList()
 
     LaunchedEffect(Unit) {
         viewModel.setCurrentCategory("opmuring")
@@ -30,17 +38,17 @@ fun OpmuringWizardScreen(
 
     val stepList by derivedStateOf {
         buildList {
-            add(1); add(2); add(3); add(4) // MurType, New/Repair, Bearing, Dimensions
+            add(1); add(2); add(3); add(4)
             if (isNewMur) {
-                add(5); add(6); add(7); add(8) // Thickness, Stone, Mortar, Openings
-                add(9) // Surface
-                if (needsArmering) add(10) // Armering kun ved pudset/malet
-                if (isFacadeMur) add(11) // Insulation kun ved facademur
-                add(12) // Foundation
+                add(5); add(6); add(7); add(8)
+                add(9)
+                if (needsArmering) add(10)
+                if (isFacadeMur) add(11)
+                add(12)
             } else if (data.isRepair == true) {
-                add(13) // Damage
+                add(13)
             }
-            add(14) // Access
+            add(14)
         }
     }
 
@@ -48,19 +56,17 @@ fun OpmuringWizardScreen(
 
     val totalSteps = stepList.size
     val progress = if (totalSteps > 0) (currentStepIndex + 1f) / totalSteps else 0f
-    val currentStepNumber = if (stepList.isNotEmpty() && currentStepIndex in stepList.indices) stepList[currentStepIndex] else 1
+    val currentStepNumber = if (stepList.isNotEmpty() && currentStepIndex < stepList.size) stepList[currentStepIndex] else 1
 
     val isNextEnabled by derivedStateOf {
-        true // Tilføj reel validering senere
+        viewModel.isStepValid(currentStepNumber)
     }
 
     WizardScaffold(
         title = "Opmuring",
         progress = progress,
         onNavigationBack = { navController.popBackStack() },
-        onPrevious = {
-            if (currentStepIndex > 0) currentStepIndex-- else navController.popBackStack()
-        },
+        onPrevious = { if (currentStepIndex > 0) currentStepIndex-- else navController.popBackStack() },
         onNext = {
             if (currentStepIndex >= totalSteps - 1) {
                 navController.navigate("task_photos_description/opmuring")
@@ -79,13 +85,33 @@ fun OpmuringWizardScreen(
             5 -> OpmuringThicknessStep(data = data, onDataChange = { viewModel.updateWallData(it) })
             6 -> OpmuringStoneStep(data = data, onDataChange = { viewModel.updateWallData(it) })
             7 -> OpmuringMortarStep(data = data, onDataChange = { viewModel.updateWallData(it) })
-            8 -> OpmuringOpeningsStep(data = data, onDataChange = { viewModel.updateWallData(it) })
+            8 -> OpmuringOpeningsStep(
+                data = data,
+                onDataChange = { viewModel.updateWallData(it) },
+                openingsPhotos = openingsPhotos,
+                onOpeningsPhotosChange = { viewModel.updateStepPhotos("openings", it) }
+            )
             9 -> OpmuringSurfaceStep(data = data, onDataChange = { viewModel.updateWallData(it) })
             10 -> OpmuringArmeringStep(data = data, onDataChange = { viewModel.updateWallData(it) })
             11 -> OpmuringInsulationStep(data = data, onDataChange = { viewModel.updateWallData(it) })
-            12 -> OpmuringFoundationStep(data = data, onDataChange = { viewModel.updateWallData(it) })
-            13 -> OpmuringDamageStep(data = data, onDataChange = { viewModel.updateWallData(it) })
-            else -> OpmuringAccessStep(data = data, onDataChange = { viewModel.updateWallData(it) })
+            12 -> OpmuringFoundationStep(
+                data = data,
+                onDataChange = { viewModel.updateWallData(it) },
+                foundationPhotos = foundationPhotos,
+                onFoundationPhotosChange = { viewModel.updateStepPhotos("foundation", it) }
+            )
+            13 -> OpmuringDamageStep(
+                data = data,
+                onDataChange = { viewModel.updateWallData(it) },
+                damagePhotos = damagePhotos,
+                onDamagePhotosChange = { viewModel.updateStepPhotos("damage", it) }
+            )
+            else -> OpmuringAccessStep(
+                data = data,
+                onDataChange = { viewModel.updateWallData(it) },
+                accessPhotos = accessPhotos,
+                onAccessPhotosChange = { viewModel.updateStepPhotos("access", it) }
+            )
         }
     }
 }

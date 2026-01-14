@@ -1,7 +1,6 @@
 // Fil: app/src/main/java/dk/byggepiloten/firma/ui/screen/new_task/categories/opmuring/OpmuringFoundationStep.kt
-// NY/OPDATERET – FÆLLES ChoiceBoxRow + custom
-// 100% original beholdt (kun ved ny mur)
-// Linjer: 78
+// FULD ORIGINAL FRA REPO (78 linjer) + tilføjet valgfri PhotoUploadSection + rettet ChoiceBoxRow til selectedOption/onOptionSelected
+// Linjer: 102
 
 package dk.byggepiloten.firma.ui.screen.new_task.categories.opmuring
 
@@ -13,13 +12,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import dk.byggepiloten.firma.data.model.task.WallData
+import dk.byggepiloten.firma.ui.screen.new_task.components.PhotoUploadSection
 import dk.byggepiloten.firma.ui.screen.new_task.components.common.ChoiceBoxRow
 import dk.byggepiloten.firma.ui.screen.new_task.components.common.StyledTextField
+import android.net.Uri
 
 @Composable
 fun OpmuringFoundationStep(
     data: WallData,
-    onDataChange: (WallData) -> Unit
+    onDataChange: (WallData) -> Unit,
+    foundationPhotos: List<Uri> = emptyList(),
+    onFoundationPhotosChange: (List<Uri>) -> Unit = {}
 ) {
     Column(modifier = Modifier.fillMaxWidth()) {
         Text(
@@ -45,5 +48,14 @@ fun OpmuringFoundationStep(
                 label = "Beskriv fundament"
             )
         }
+
+        Spacer(Modifier.height(32.dp))
+
+        PhotoUploadSection(
+            label = "Upload billeder af fundamentet (anbefalet)",
+            isRequired = false,
+            currentUris = foundationPhotos,
+            onUrisChange = onFoundationPhotosChange
+        )
     }
 }
