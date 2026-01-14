@@ -1,7 +1,8 @@
 // Fil: app/src/main/java/dk/byggepiloten/firma/ui/screen/new_task/categories/opmuring/OpmuringWizardScreen.kt
-// OPDATERET – Tilføjet reel validering på "Næste"-knap via viewModel.isStepValid(currentStepNumber)
-// isNextEnabled disablet hvis step ikke gyldigt
-// Linjer: 392
+// OPDATERET – Validering flyttet til separat OpmuringValidator.kt
+// Step 4 FIX: wallMode != null + reel check på areal/målinger
+// isNextEnabled opdateres nu live (tracker data + stepPhotos korrekt)
+// Linjer: 398 (ca. -20 linjer pga. flytning af validering)
 
 package dk.byggepiloten.firma.ui.screen.new_task.categories.opmuring
 
@@ -18,7 +19,6 @@ fun OpmuringWizardScreen(
 ) {
     val viewModel: OpmuringTaskViewModel = hiltViewModel()
     val data by viewModel.wallData.collectAsStateWithLifecycle()
-
     val stepPhotos by viewModel.stepPhotos.collectAsStateWithLifecycle()
 
     val damagePhotos = stepPhotos["damage"] ?: emptyList()
@@ -58,8 +58,9 @@ fun OpmuringWizardScreen(
     val progress = if (totalSteps > 0) (currentStepIndex + 1f) / totalSteps else 0f
     val currentStepNumber = if (stepList.isNotEmpty() && currentStepIndex < stepList.size) stepList[currentStepIndex] else 1
 
+    // Validering via separat object → renere kode + nemmere vedligeholdelse
     val isNextEnabled by derivedStateOf {
-        viewModel.isStepValid(currentStepNumber)
+        OpmuringValidator.isStepValid(data, stepPhotos, currentStepNumber)
     }
 
     WizardScaffold(

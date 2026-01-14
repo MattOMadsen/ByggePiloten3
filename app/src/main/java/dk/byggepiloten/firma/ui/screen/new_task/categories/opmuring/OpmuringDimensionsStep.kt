@@ -1,6 +1,8 @@
 // Fil: app/src/main/java/dk/byggepiloten/firma/ui/screen/new_task/categories/opmuring/OpmuringDimensionsStep.kt
-// FULD FIX – live total fra Row, korrekt KeyboardType
-// Linjer: 112
+// FULD OPdatering – LaunchedEffect sætter default "Samlet areal" hvis wallMode == null
+// UI viser altid korrekt pre-select (via ?: "Samlet areal")
+// Live opdatering beholdt – areal/målinger registeres øjeblikkeligt
+// Linjer: 132 (ca. +20 pga. LaunchedEffect + kommentarer)
 
 package dk.byggepiloten.firma.ui.screen.new_task.categories.opmuring
 
@@ -32,6 +34,7 @@ fun OpmuringDimensionsStep(
 
         val modeOptions = listOf("Samlet areal", "Individuelle vægge")
 
+        // Pre-select "Samlet areal" i UI selv hvis wallMode == null
         ChoiceBoxRow(
             options = modeOptions,
             selectedOption = data.wallMode ?: "Samlet areal",
@@ -47,6 +50,14 @@ fun OpmuringDimensionsStep(
             },
             modifier = Modifier.padding(bottom = 24.dp)
         )
+
+        // Auto-set default mode hvis wallMode == null (f.eks. ny task)
+        // Kører kun én gang ved første load af steppet
+        LaunchedEffect(Unit) {
+            if (data.wallMode == null) {
+                onDataChange(data.copy(wallMode = "Samlet areal"))
+            }
+        }
 
         if (data.wallMode == "Samlet areal") {
             StyledTextField(
