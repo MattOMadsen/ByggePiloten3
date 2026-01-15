@@ -1,3 +1,9 @@
+// Fil: app/src/main/java/dk/byggepiloten/firma/data/model/task/Request.kt
+// OPDATERET – TILFØJET labeledPhotos (Map<String, List<String>>) for at understøtte step-billeder fra wizards
+// + Gjort labeledPhotos @Ignore (Room gemmer det ikke direkte – det kan parses fra details eller gemmes separat senere)
+// + Beholder eksisterende felter uændret
+// + ca. 45 linjer
+
 package dk.byggepiloten.firma.data.model.task
 
 import androidx.room.Entity
@@ -28,4 +34,9 @@ data class Request(
 ) {
     @Ignore
     var details: Map<String, Any> = emptyMap()
+
+    // Ny: Step-billeder fra wizards (label → liste af URLs). @Ignore fordi Room ikke gemmer det direkte.
+    // Kan senere gemmes i Firestore separat eller i details som JSON.
+    @Ignore
+    var labeledPhotos: Map<String, List<String>> = emptyMap()
 }
