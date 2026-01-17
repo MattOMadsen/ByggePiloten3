@@ -1,17 +1,13 @@
-// Fil: app/src/main/java/dk/byggepiloten/firma/ui/screen/dashboard/components/PhotoGrid.kt
-// FULD RETTET VERSION – LØSER 'aspectRatio' unresolved reference
-// + Korrekt import: import androidx.compose.foundation.layout.aspectRatio
-
 package dk.byggepiloten.firma.ui.screen.dashboard.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -33,13 +29,13 @@ fun PhotoGrid(
 ) {
     if (photos.isEmpty()) return
 
-    LazyVerticalGrid(
-        columns = GridCells.Fixed(3),
+    FlowRow(
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
-        modifier = modifier
+        maxItemsInEachRow = 3,
+        modifier = modifier.fillMaxWidth()
     ) {
-        items(photos) { url ->
+        photos.forEach { url ->
             SubcomposeAsyncImage(
                 model = url,
                 contentDescription = "Generelt billede af opgaven",

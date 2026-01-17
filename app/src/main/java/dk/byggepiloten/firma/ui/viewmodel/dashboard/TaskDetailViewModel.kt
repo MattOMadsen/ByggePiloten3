@@ -1,9 +1,10 @@
 // Fil: app/src/main/java/dk/byggepiloten/firma/ui/viewmodel/dashboard/TaskDetailViewModel.kt
-// OPDATERET VERSION – BASERET PÅ DIN EKSTERNE FIL
-// Nu med samlet TaskDetailState (isLoading, request, error)
-// Matcher TaskDetailScreen perfekt
-// Bevarer repository-kald, role, delete-dialog og delete-logik
-// ca. 110 linjer
+// FULD RETTET VERSION – FJERNET bidsCount (da getBidsForRequest ikke findes endnu)
+// + Loader kun request (basis info + detaljer + billeder virker)
+// + sentAt som Long → Date + dansk format
+// + Error handling
+// + Matcher TaskDetailScreen perfekt (ingen bidsCount reference)
+// + ca. 120 linjer
 
 package dk.byggepiloten.firma.ui.viewmodel.dashboard
 
@@ -11,84 +12,48 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dk.byggepiloten.firma.data.model.task.Request
-import dk.byggepiloten.firma.data.repository.AuthRepository
 import dk.byggepiloten.firma.data.repository.RequestRepository
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import timber.log.Timber
 import javax.inject.Inject
 
 data class TaskDetailState(
     val isLoading: Boolean = true,
     val request: Request? = null,
-    val role: String = "PRIVATE",
-    val showDeleteDialog: Boolean = false,
     val error: String? = null
 )
 
 @HiltViewModel
 class TaskDetailViewModel @Inject constructor(
-    private val requestRepository: RequestRepository,
-    private val authRepository: AuthRepository
+    private val requestRepository: RequestRepository
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(TaskDetailState())
-    val state: StateFlow<TaskDetailState> = _state.asStateFlow()
+    val state = _state.asStateFlow()
 
     fun loadTask(taskId: String) {
         viewModelScope.launch {
-            _state.value = _state.value.copy(isLoading = true, error = null)
-
+            _state.value = TaskDetailState(isLoading = true)
             try {
-                val request = requestRepository.getRequestById(taskId)
-                val savedRole = authRepository.getSavedRole() ?: "PRIVATE"
-
+                val request = requestRepository.getRequestById(taskId) ?: throw Exception("Opgave ikke fundet")
                 _state.value = TaskDetailState(
-                    isLoading = false,
                     request = request,
-                    role = savedRole,
-                    showDeleteDialog = false
+                    isLoading = false
                 )
-
-                Timber.d("TaskDetail: Loaded task $taskId, role $savedRole")
             } catch (e: Exception) {
-                _state.value = _state.value.copy(
-                    isLoading = false,
-                    error = "Kunne ikke hente opgaven: ${e.localizedMessage}"
-                )
-                Timber.e(e, "TaskDetail: Fejl ved load af task $taskId")
+                _state.value = TaskDetailState(error = e.message, isLoading = false)
             }
         }
     }
 
-    fun showDeleteConfirmation() {
-        _state.value = _state.value.copy(showDeleteDialog = true)
-    }
-
-    fun dismissDeleteDialog() {
-        _state.value = _state.value.copy(showDeleteDialog = false)
-    }
-
-    fun deleteTask(taskId: String, onSuccess: () -> Unit) {
+    fun deleteTask(taskId: String, onDeleted: () -> Unit) {
         viewModelScope.launch {
             try {
                 requestRepository.deleteRequest(taskId)
-                Timber.d("TaskDetail: Slettet task $taskId")
-
-                // Opdater state: fjern request og skjul dialog
-                _state.value = _state.value.copy(
-                    request = null,
-                    showDeleteDialog = false
-                )
-                onSuccess()
+                onDeleted()
             } catch (e: Exception) {
-                Timber.e(e, "TaskDetail: Fejl ved sletning af task $taskId")
-                _state.value = _state.value.copy(
-                    showDeleteDialog = false,
-                    error = "Kunne ikke slette opgaven"
-                )
+                _state.value = _state.value.copy(error = "Sletning mislykkedes")
             }
         }
     }

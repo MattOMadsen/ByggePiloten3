@@ -1,19 +1,14 @@
-// Fil: app/src/main/java/dk/byggepiloten/firma/ui/screen/dashboard/components/LabeledPhotoSection.kt
-// FULD RETTET VERSION – LØSER 'aspectRatio' unresolved reference
-// + Korrekt import: import androidx.compose.foundation.layout.aspectRatio
-
 package dk.byggepiloten.firma.ui.screen.dashboard.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -39,22 +34,22 @@ fun LabeledPhotoSection(
 ) {
     if (photos.isEmpty()) return
 
-    Column(modifier = modifier) {
+    Column(modifier = modifier.fillMaxWidth()) {
         Text(
             text = label,
-            fontSize = 18.sp,
+            fontSize = 22.sp,
             fontWeight = FontWeight.SemiBold,
-            color = Color.White,
+            color = MaterialTheme.colorScheme.onSurface,
             modifier = Modifier.padding(bottom = 12.dp)
         )
 
-        LazyVerticalGrid(
-            columns = GridCells.Fixed(3),
+        FlowRow(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
-            modifier = Modifier.padding(bottom = 16.dp) // Added some padding or kept it clean
+            maxItemsInEachRow = 3,
+            modifier = Modifier.padding(bottom = 16.dp)
         ) {
-            items(photos) { url ->
+            photos.forEach { url ->
                 SubcomposeAsyncImage(
                     model = url,
                     contentDescription = "Billede fra $label",
