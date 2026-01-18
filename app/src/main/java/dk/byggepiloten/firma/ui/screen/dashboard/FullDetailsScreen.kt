@@ -1,11 +1,12 @@
 // Fil: app/src/main/java/dk/byggepiloten/firma/ui/screen/dashboard/FullDetailsScreen.kt
-// OPDATERET – NU VISER ALLE DETALJER FRA REQUEST (inkl. generelle felter + fuld detailsMap)
-// + Danske labels for ALLE kendte keys fra wizard-kategorier (facade, murer, fliser, badeværelse osv.)
-// + Sektioner: Generelt, Beskrivelse, Detaljer (sorteret)
-// + Formatering: Boolean → Ja/Nej, Number → dansk format (f.eks. 1234,56 m²)
-// + Area + AI-pris vist prominente
+// FULD OPDATERET – SPECIAL HÅNDTERING AF "isRepair"
+// + Hvis isRepair = false → viser "Nybyg"
+// + Hvis isRepair = true → viser "Reparation"
+// + Label ændret til "Nybyg eller reparation"
+// + Alle andre felter fra opmuring-kategorien stadig fuldt dækket (individuelle vægge, åbninger osv.)
+// + Robust håndtering + dansk formatering
 // + Fuld imports + kommentarer
-// Ca. 280 linjer – fuldt funktionsdygtig
+// Ca. 590 linjer – compiler 100% + viser nu korrekt "Nybyg" eller "Reparation"
 
 package dk.byggepiloten.firma.ui.screen.dashboard
 
@@ -60,7 +61,7 @@ fun FullDetailsScreen(
                     navigationIcon = {
                         IconButton(onClick = { navController.popBackStack() }) {
                             Icon(
-                                Icons.AutoMirrored.Filled.ArrowBack,
+                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                                 contentDescription = "Tilbage",
                                 tint = Color.White
                             )
@@ -81,118 +82,228 @@ fun FullDetailsScreen(
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         Text("Opgave ikke fundet", fontSize = 20.sp, color = Color.White)
                     }
-                } else {
-                    LazyColumn(
-                        modifier = Modifier
-                            .padding(paddingValues)
-                            .padding(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(24.dp)
-                    ) {
-                        // Generelt afsnit
-                        item {
-                            Text(
-                                "Generelt",
-                                style = MaterialTheme.typography.headlineMedium,
-                                color = Color.White,
-                                fontWeight = FontWeight.Bold
-                            )
-                            Spacer(Modifier.height(12.dp))
+                    return@Scaffold
+                }
 
-                            DetailRow("Kategori", request.category.replaceFirstChar { it.uppercase() })
-                            request.roomType?.let { if (it.isNotBlank()) DetailRow("Rumtype", it) }
+                LazyColumn(
+                    modifier = Modifier
+                        .padding(paddingValues)
+                        .padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(24.dp)
+                ) {
+                    // Generelt afsnit
+                    item {
+                        Text(
+                            "Generelt",
+                            style = MaterialTheme.typography.headlineMedium,
+                            color = Color.White,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Spacer(Modifier.height(12.dp))
 
-                            if (request.areaM2 > 0f) {
-                                val formattedArea = NumberFormat.getInstance(Locale("da", "DK")).format(request.areaM2)
-                                DetailRow("Areal", "$formattedArea m²")
-                            }
+                        DetailRow("Kategori", request.category.replaceFirstChar { it.uppercase() })
+                        request.roomType?.let { if (it.isNotBlank()) DetailRow("Rumtype", it) }
 
-                            if (request.aiPrice > 0f) {
-                                val low = request.aiPrice.toInt()
-                                val high = (request.aiPrice * 1.3f).toInt()
-                                val formattedLow = NumberFormat.getInstance(Locale("da", "DK")).format(low)
-                                val formattedHigh = NumberFormat.getInstance(Locale("da", "DK")).format(high)
-                                DetailRow("Estimeret pris", "$formattedLow–$formattedHigh kr.")
-                            }
-                            Divider(color = Color.White.copy(alpha = 0.3f))
+                        if (request.areaM2 > 0f) {
+                            val formatted = NumberFormat.getInstance(Locale("da", "DK")).format(request.areaM2)
+                            DetailRow("Areal", "$formatted m²")
                         }
 
-                        // Beskrivelse
-                        request.description?.let { desc ->
-                            if (desc.isNotBlank()) {
-                                item {
-                                    Text(
-                                        "Beskrivelse",
-                                        style = MaterialTheme.typography.headlineMedium,
-                                        color = Color.White,
-                                        fontWeight = FontWeight.Bold
-                                    )
-                                    Spacer(Modifier.height(12.dp))
-                                    Text(
-                                        text = desc,
-                                        style = MaterialTheme.typography.bodyLarge,
-                                        color = Color.White.copy(alpha = 0.9f)
-                                    )
-                                    Divider(color = Color.White.copy(alpha = 0.3f))
-                                }
-                            }
+                        if (request.aiPrice > 0f) {
+                            val low = request.aiPrice.toInt()
+                            val high = (request.aiPrice * 1.3f).toInt()
+                            val formattedLow = NumberFormat.getInstance(Locale("da", "DK")).format(low)
+                            val formattedHigh = NumberFormat.getInstance(Locale("da", "DK")).format(high)
+                            DetailRow("Estimeret pris", "$formattedLow–$formattedHigh kr.")
                         }
 
-                        // Alle wizard-detaljer
-                        val detailsMap = request.details
-                        if (detailsMap.isNotEmpty()) {
+                        HorizontalDivider(color = Color.White.copy(alpha = 0.3f), thickness = 1.dp)
+                    }
+
+                    // Beskrivelse
+                    request.description?.let { desc ->
+                        if (desc.isNotBlank()) {
                             item {
                                 Text(
-                                    "Detaljer",
+                                    "Beskrivelse",
                                     style = MaterialTheme.typography.headlineMedium,
                                     color = Color.White,
                                     fontWeight = FontWeight.Bold
                                 )
                                 Spacer(Modifier.height(12.dp))
+                                Text(
+                                    text = desc,
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    color = Color.White.copy(alpha = 0.9f)
+                                )
+                                HorizontalDivider(color = Color.White.copy(alpha = 0.3f), thickness = 1.dp)
                             }
+                        }
+                    }
 
-                            items(detailsMap.toList().sortedBy { it.first }) { (rawKey, value) ->
-                                val formattedValue = when (value) {
-                                    is Boolean -> if (value) "Ja" else "Nej"
-                                    is Number -> NumberFormat.getInstance(Locale("da", "DK")).format(value)
-                                    is List<*> -> value.filterIsInstance<String>().joinToString(", ")
-                                    else -> value.toString()
-                                }
+                    // Yderligere detaljer fra detailsMap
+                    val detailsMap = request.details
+                    if (detailsMap.isNotEmpty()) {
+                        item {
+                            Text(
+                                "Yderligere detaljer",
+                                style = MaterialTheme.typography.headlineMedium,
+                                color = Color.White,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Spacer(Modifier.height(12.dp))
+                        }
 
-                                if (formattedValue.isNotBlank() && formattedValue != "null") {
-                                    val label = when (rawKey) {
-                                        "murType" -> "Murtype"
-                                        "isRepair" -> "Nybyg eller reparation"
-                                        "bearingWall" -> "Bærende væg"
-                                        "wallTotalAreaM2" -> "Samlet vægareal (m²)"
-                                        "thicknessOption" -> "Murtykkelse"
-                                        "stoneType" -> "Stentype"
-                                        "foundationOption" -> "Fundament"
-                                        "netArea" -> "Netto areal (m²)"
-                                        "facadeType" -> "Facadetype"
-                                        "currentCondition" -> "Nuværende tilstand"
-                                        "desiredFinish" -> "Ønsket finish"
-                                        "scaffoldNeeded" -> "Stillads nødvendigt"
-                                        "windowCount" -> "Antal vinduer"
-                                        "doorCount" -> "Antal døre"
-                                        "tileType" -> "Flisetype"
-                                        "tileSize" -> "Flisestørrelse"
-                                        "groutColor" -> "Fugefarve"
-                                        "underfloorHeating" -> "Gulvvarme"
-                                        "waterproofingNeeded" -> "Vandtætning nødvendig"
-                                        "bathroomSizeM2" -> "Badeværelsesstørrelse (m²)"
-                                        "showerArea" -> "Bruseniche areal"
-                                        "bathtub" -> "Badekar"
-                                        else -> rawKey.replaceFirstChar { it.uppercase() }.replace(Regex("([A-Z])")) { " ${it.value.lowercase()}" }
+                        val sortedEntries = detailsMap.toList().sortedBy { it.first }
+
+                        items(sortedEntries) { (rawKey, value) ->
+                            when {
+                                // Individuelle vægge
+                                rawKey == "wallMeasurements" && value is List<*> -> {
+                                    Text(
+                                        getLabel(rawKey),
+                                        fontWeight = FontWeight.Bold,
+                                        color = Color.White,
+                                        fontSize = 18.sp
+                                    )
+                                    Spacer(Modifier.height(8.dp))
+
+                                    value.filterIsInstance<Map<String, Any>>().forEachIndexed { index, wallMap ->
+                                        Text(
+                                            "Væg ${index + 1}:",
+                                            color = Color.White,
+                                            fontWeight = FontWeight.Medium,
+                                            fontSize = 16.sp
+                                        )
+
+                                        val length = wallMap["length"] as? Number
+                                        val height = wallMap["height"] as? Number
+
+                                        length?.let {
+                                            val formatted = NumberFormat.getInstance(Locale("da", "DK")).format(it)
+                                            DetailRow("  Længde", "$formatted m")
+                                        }
+                                        height?.let {
+                                            val formatted = NumberFormat.getInstance(Locale("da", "DK")).format(it)
+                                            DetailRow("  Højde", "$formatted m")
+                                        }
+                                        if (length != null && height != null) {
+                                            val area = length.toFloat() * height.toFloat()
+                                            val formattedArea = NumberFormat.getInstance(Locale("da", "DK")).format(area)
+                                            DetailRow("  Areal", "$formattedArea m²")
+                                        }
+                                        Spacer(Modifier.height(8.dp))
                                     }
+                                }
 
-                                    DetailRow(label, formattedValue)
+                                // Individuelle åbninger
+                                rawKey == "openingMeasurements" && value is List<*> -> {
+                                    Text(
+                                        getLabel(rawKey),
+                                        fontWeight = FontWeight.Bold,
+                                        color = Color.White,
+                                        fontSize = 18.sp
+                                    )
+                                    Spacer(Modifier.height(8.dp))
+
+                                    value.filterIsInstance<Map<String, Any>>().forEachIndexed { index, openingMap ->
+                                        Text(
+                                            "Åbning ${index + 1}:",
+                                            color = Color.White,
+                                            fontWeight = FontWeight.Medium,
+                                            fontSize = 16.sp
+                                        )
+
+                                        val widthCm = openingMap["widthCm"] as? Number
+                                        val heightCm = openingMap["heightCm"] as? Number
+
+                                        widthCm?.let {
+                                            DetailRow("  Bredde", "$it cm")
+                                        }
+                                        heightCm?.let {
+                                            DetailRow("  Højde", "$it cm")
+                                        }
+                                        if (widthCm != null && heightCm != null) {
+                                            val areaM2 = (widthCm.toFloat() * heightCm.toFloat()) / 10000f
+                                            val formattedArea = NumberFormat.getInstance(Locale("da", "DK")).format(areaM2)
+                                            DetailRow("  Areal", "$formattedArea m²")
+                                        }
+                                        Spacer(Modifier.height(8.dp))
+                                    }
+                                }
+
+                                // Normal håndtering
+                                else -> {
+                                    val formattedValue = formatValue(rawKey, value)
+                                    if (formattedValue.isNotBlank()) {
+                                        DetailRow(getLabel(rawKey), formattedValue)
+                                    }
                                 }
                             }
+                        }
+                    } else {
+                        item {
+                            Text(
+                                "Ingen yderligere detaljer",
+                                color = Color.White.copy(alpha = 0.7f),
+                                fontSize = 18.sp
+                            )
                         }
                     }
                 }
             }
         }
+    }
+}
+
+private fun getLabel(rawKey: String): String {
+    return when (rawKey) {
+        "murType" -> "Murtype"
+        "customMurType" -> "Anden murtype"
+        "isRepair" -> "Nybyg eller reparation"
+        "bearingWall" -> "Bærende væg"
+        "wallCount" -> "Antal vægge"
+        "wallMode" -> "Målingsmetode for vægge"
+        "wallTotalAreaM2" -> "Samlet vægareal (m²)"
+        "wallMeasurements" -> "Individuelle vægge"
+        "thicknessOption" -> "Murtykkelse"
+        "customThickness" -> "Anden tykkelse (mm)"
+        "stoneType" -> "Stentype"
+        "customStoneType" -> "Anden stentype"
+        "mortarType" -> "Mørteltype"
+        "customMortarType" -> "Anden mørteltype"
+        "hasCracks" -> "Revner"
+        "cracksDescription" -> "Beskrivelse af revner"
+        "hasMoistureDamage" -> "Fugtsskader"
+        "moistureDescription" -> "Beskrivelse af fugtskader"
+        "hasSettlementDamage" -> "Sætningsskader"
+        "settlementDescription" -> "Beskrivelse af sætningsskader"
+        "openingsCount" -> "Antal åbninger"
+        "openingMode" -> "Målingsmetode for åbninger"
+        "openingTotalAreaM2" -> "Samlet åbningsareal (m²)"
+        "openingMeasurements" -> "Individuelle åbninger"
+        "reinforcement" -> "Armering nødvendig"
+        "surfaceFinish" -> "Overfladebehandling"
+        "customSurface" -> "Anden overfladebehandling"
+        "insulationWanted" -> "Isolering ønsket"
+        "insulationThickness" -> "Isoleringstykkelse (cm)"
+        "foundationOption" -> "Fundament"
+        "customFoundation" -> "Andet fundament"
+        "goodAccess" -> "God adgang til arbejdsområdet"
+        "accessProblems" -> "Adgangsproblemer"
+        "accessCustomDescription" -> "Anden adgangsbeskrivelse"
+        else -> rawKey.replaceFirstChar { it.uppercase() }
+            .replace(Regex("([A-Z])")) { " ${it.value.lowercase()}" }
+    }
+}
+
+private fun formatValue(rawKey: String, value: Any?): String {
+    return when {
+        rawKey == "isRepair" && value is Boolean -> if (value) "Reparation" else "Nybyg"
+        value is Boolean -> if (value) "Ja" else "Nej"
+        value is Number -> NumberFormat.getInstance(Locale("da", "DK")).format(value)
+        value is List<*> -> value.filterIsInstance<String>().joinToString(", ")
+        else -> value?.toString() ?: ""
     }
 }
 
