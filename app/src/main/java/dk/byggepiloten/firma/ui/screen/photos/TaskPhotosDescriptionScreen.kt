@@ -3,12 +3,12 @@ package dk.byggepiloten.firma.ui.screen.photos
 
 import android.net.Uri
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -19,6 +19,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
@@ -40,14 +42,8 @@ fun TaskPhotosDescriptionScreen(
     navController: NavController,
     category: String = ""
 ) {
-    // VIKTIGT: Vi forsøger at hente den ViewModel der allerede er i brug i wizard-screenen
     val wizardBackStackEntry = remember(navController.currentBackStackEntry) {
-        try {
-            // Forsøg at finde den screen der startede forløbet (f.eks. "opmuring" eller "badeværelse")
-            navController.getBackStackEntry(category)
-        } catch (e: Exception) {
-            null
-        }
+        try { navController.getBackStackEntry(category) } catch (e: Exception) { null }
     }
 
     val viewModel: BaseTaskViewModel = if (wizardBackStackEntry != null) {
@@ -59,7 +55,6 @@ fun TaskPhotosDescriptionScreen(
             else -> hiltViewModel<BaseTaskViewModel>()
         }
     } else {
-        // Fallback hvis vi ikke kom fra en wizard
         when (category) {
             "fliser" -> hiltViewModel<FliserTaskViewModel>()
             "badeværelse" -> hiltViewModel<BadevaerelseTaskViewModel>()
@@ -78,115 +73,128 @@ fun TaskPhotosDescriptionScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
-    val stepPhotos by if (viewModel is OpmuringTaskViewModel) {
+    val stepPhotosMap by if (viewModel is OpmuringTaskViewModel) {
         viewModel.stepPhotos.collectAsStateWithLifecycle()
     } else {
         remember { mutableStateOf(emptyMap<String, List<Uri>>()) }
     }
 
-    LaunchedEffect(category) {
-        if (category.isNotBlank()) {
-            viewModel.setCurrentCategory(category)
-        }
-    }
+    // State til at styre hvilket billede der vises i fuld skærm
+    var fullscreenImageUri by remember { mutableStateOf<Uri?>(null) }
 
-    Scaffold(
-        snackbarHost = { SnackbarHost(snackbarHostState) },
-        containerColor = Color.Transparent
-    ) { padding ->
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(
-                    brush = Brush.verticalGradient(
-                        colors = listOf(ByggePilotenBlue, Color(0xFF42A5F5), Color(0xFF90CAF9))
-                    )
-                )
-                .padding(padding)
-        ) {
-            Column(
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Brush.verticalGradient(listOf(ByggePilotenBlue, Color(0xFF42A5F5), Color(0xFF90CAF9))))
+    ) {
+        Scaffold(
+            snackbarHost = { SnackbarHost(snackbarHostState) },
+            containerColor = Color.Transparent
+        ) { padding ->
+            LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
-                    .verticalScroll(rememberScrollState())
-                    .padding(16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
+                    .padding(padding)
+                    .padding(horizontal = 16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(24.dp)
             ) {
-                Spacer(Modifier.height(32.dp))
+                item {
+                    Spacer(Modifier.height(32.dp))
+                    Text(
+                        text = "Sidste step – billeder & beskrivelse",
+                        style = MaterialTheme.typography.headlineMedium,
+                        color = Color.White,
+                        textAlign = TextAlign.Center
+                    )
+                }
 
-                Text(
-                    text = "Sidste step – billeder & beskrivelse",
-                    style = MaterialTheme.typography.headlineMedium,
-                    color = Color.White,
-                    textAlign = TextAlign.Center
-                )
+                item {
+                    AiEstimateSection(isGeneratingEstimate, aiPriceEstimate)
+                }
 
-                Spacer(Modifier.height(24.dp))
-
-                AiEstimateSection(
-                    isGeneratingEstimate = isGeneratingEstimate,
-                    aiPriceEstimate = aiPriceEstimate
-                )
-
-                Spacer(Modifier.height(32.dp))
-
-                // Grupperede step-billeder
-                for ((stepId, uris) in stepPhotos) {
+                // Step-billeder grupperet i vandrette rækker
+                stepPhotosMap.forEach { (stepId, uris) ->
                     if (uris.isNotEmpty()) {
-                        Text(
-                            text = when (stepId) {
-                                "damage" -> "Billeder af skader"
-                                "access" -> "Billeder af adgangsforhold"
-                                "openings" -> "Billeder af åbninger"
-                                "foundation" -> "Billeder af fundament"
-                                else -> "Billeder fra $stepId"
-                            },
-                            style = MaterialTheme.typography.titleMedium,
-                            color = Color.White,
-                            modifier = Modifier.padding(vertical = 16.dp)
-                        )
-
-                        LazyVerticalGrid(
-                            columns = GridCells.Fixed(3),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            verticalArrangement = Arrangement.spacedBy(8.dp),
-                            modifier = Modifier.heightIn(max = 400.dp)
-                        ) {
-                            items(uris.size) { index ->
-                                val uri = uris[index]
-                                AsyncImage(
-                                    model = uri,
-                                    contentDescription = null,
-                                    modifier = Modifier
-                                        .aspectRatio(1f)
-                                        .clip(RoundedCornerShape(8.dp)),
-                                    contentScale = ContentScale.Crop
+                        item {
+                            Column(modifier = Modifier.fillMaxWidth()) {
+                                Text(
+                                    text = when (stepId) {
+                                        "damage" -> "Billeder af skader"
+                                        "access" -> "Billeder af adgangsforhold"
+                                        "openings" -> "Billeder af åbninger"
+                                        else -> "Billeder fra forløbet"
+                                    },
+                                    color = Color.White,
+                                    style = MaterialTheme.typography.titleMedium,
+                                    modifier = Modifier.padding(bottom = 8.dp)
                                 )
+                                LazyRow(
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    items(uris) { uri ->
+                                        AsyncImage(
+                                            model = uri,
+                                            contentDescription = null,
+                                            modifier = Modifier
+                                                .size(100.dp) // Små thumbnails
+                                                .clip(RoundedCornerShape(8.dp))
+                                                .clickable { fullscreenImageUri = uri },
+                                            contentScale = ContentScale.Crop
+                                        )
+                                    }
+                                }
                             }
                         }
-
-                        Spacer(Modifier.height(24.dp))
                     }
                 }
 
-                DescriptionSection(
-                    description = description,
-                    onDescriptionChange = { viewModel.updateDescription(it) }
-                )
+                item {
+                    DescriptionSection(
+                        description = description,
+                        onDescriptionChange = { viewModel.updateDescription(it) }
+                    )
+                }
 
-                Spacer(Modifier.height(32.dp))
+                item {
+                    ImageSelectionSection(viewModel, imageUris)
+                }
 
-                ImageSelectionSection(
-                    viewModel = viewModel,
-                    imageUris = imageUris
-                )
+                item {
+                    SendTaskSection(
+                        viewModel = viewModel,
+                        imageUris = imageUris,
+                        navController = navController,
+                        snackbarHostState = snackbarHostState,
+                        scope = scope,
+                        isSending = isSending
+                    )
+                    Spacer(Modifier.height(40.dp))
+                }
+            }
+        }
 
-                SendTaskSection(
-                    viewModel = viewModel,
-                    imageUris = imageUris,
-                    navController = navController,
-                    snackbarHostState = snackbarHostState,
-                    scope = scope
-                )
+        // Dialog til visning af billede i fuld skærm
+        if (fullscreenImageUri != null) {
+            Dialog(
+                onDismissRequest = { fullscreenImageUri = null },
+                properties = DialogProperties(usePlatformDefaultWidth = false)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.Black.copy(alpha = 0.9f))
+                        .clickable { fullscreenImageUri = null },
+                    contentAlignment = Alignment.Center
+                ) {
+                    AsyncImage(
+                        model = fullscreenImageUri,
+                        contentDescription = "Full screen image",
+                        modifier = Modifier.fillMaxSize(0.9f),
+                        contentScale = ContentScale.Fit
+                    )
+                }
             }
         }
     }

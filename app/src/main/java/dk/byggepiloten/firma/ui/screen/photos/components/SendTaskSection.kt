@@ -1,7 +1,4 @@
 // Fil: app/src/main/java/dk/byggepiloten/firma/ui/screen/photos/components/SendTaskSection.kt
-// NY FIL – Send-knap + no-images dialog + loading/snackbar
-// Linjer: 88
-
 package dk.byggepiloten.firma.ui.screen.photos.components
 
 import androidx.compose.foundation.layout.*
@@ -24,6 +21,7 @@ fun SendTaskSection(
     navController: NavController,
     snackbarHostState: SnackbarHostState,
     scope: CoroutineScope,
+    isSending: Boolean, // Modtager nu værdien udefra for reaktivitet
     modifier: Modifier = Modifier
 ) {
     var showNoImagesDialog by remember { mutableStateOf(false) }
@@ -47,12 +45,20 @@ fun SendTaskSection(
                 }
             },
             modifier = Modifier.fillMaxWidth(),
-            colors = ButtonDefaults.buttonColors(containerColor = Color.White)
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color.White,
+                disabledContainerColor = Color.White.copy(alpha = 0.6f)
+            ),
+            enabled = !isSending // Deaktiver knappen under afsendelse
         ) {
-            if (viewModel.isSending.value) {
-                CircularProgressIndicator(color = ByggePilotenBlue, modifier = Modifier.size(20.dp))
-                Spacer(Modifier.width(8.dp))
-                Text("Sender...", color = ByggePilotenBlue)
+            if (isSending) {
+                CircularProgressIndicator(
+                    color = ByggePilotenBlue, 
+                    modifier = Modifier.size(20.dp),
+                    strokeWidth = 2.dp
+                )
+                Spacer(Modifier.width(12.dp))
+                Text("Sender opgave...", color = ByggePilotenBlue, fontSize = 16.sp)
             } else {
                 Text("Send opgave til håndværkere", color = ByggePilotenBlue, fontSize = 18.sp)
             }
@@ -69,7 +75,7 @@ fun SendTaskSection(
                     showNoImagesDialog = false
                     viewModel.sendTask {
                         scope.launch {
-                            snackbarHostState.showSnackbar("Opgave sendt! Du får besked når der bydes")
+                            snackbarHostState.showSnackbar("Opgave sendt!")
                             navController.navigate("dashboard") {
                                 popUpTo("new_task") { inclusive = true }
                             }

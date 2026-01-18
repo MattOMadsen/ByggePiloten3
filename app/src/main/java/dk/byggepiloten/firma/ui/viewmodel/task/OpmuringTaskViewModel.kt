@@ -40,75 +40,30 @@ class OpmuringTaskViewModel @Inject constructor(
         _stepPhotos.value = _stepPhotos.value.toMutableMap().apply { this[stepId] = uris }
     }
 
-    fun isStepValid(stepNumber: Int): Boolean {
-        val d = _wallData.value
-        return when (stepNumber) {
-            1 -> d.murType != null
-            2 -> d.isRepair != null
-            3 -> d.bearingWall != null
-            4 -> if (d.wallMode == "samlet") (d.wallTotalAreaM2 ?: 0f) > 0f else d.wallMeasurements.isNotEmpty()
-            12 -> d.foundationOption != null
-            else -> true
-        }
-    }
-
     override fun sendTask(onComplete: () -> Unit) {
         viewModelScope.launch {
             setIsSending(true)
             try {
                 val currentUser = FirebaseAuth.getInstance().currentUser ?: return@launch
                 val d = _wallData.value
-                val descText = description.value // Her henter vi teksten fra BaseTaskViewModel
+                val descText = description.value
                 
-                Timber.d("Prøver at sende opgave med beskrivelse: '$descText'")
-
-                val detailsMap = mutableMapOf<String, Any>()
-                detailsMap["murType"] = d.murType ?: ""
-                detailsMap["isRepair"] = d.isRepair ?: false
-                detailsMap["bearingWall"] = d.bearingWall ?: false
-                detailsMap["wallTotalAreaM2"] = d.wallTotalAreaM2 ?: 0f
-                d.thicknessOption?.let { detailsMap["thicknessOption"] = it }
-                d.stoneType?.let { detailsMap["stoneType"] = it }
-                d.foundationOption?.let { detailsMap["foundationOption"] = it }
-
-                val netArea = (d.wallTotalAreaM2 ?: 0f) - (d.openingTotalAreaM2 ?: 0f)
                 val firestore = Firebase.firestore
                 val docRef = firestore.collection("requests").document()
                 val requestId = docRef.id
 
-                val initialRequest = Request(
-                    id = requestId,
-                    userId = currentUser.uid,
-                    role = "private",
-                    fag = "Murer",
-                    category = "Opmuring",
-                    areaM2 = netArea,
-                    roomType = d.murType ?: "Opmuring",
-                    description = descText, // Sikrer at beskrivelsen kommer med her
-                    aiPrice = aiPriceEstimate.value?.toFloat() ?: 0f,
-                    details = detailsMap
-                )
-
-                docRef.set(initialRequest).await()
-                Timber.d("Initial request gemt i Firestore")
-
-                val storage = FirebaseStorage.getInstance().reference
+                // 1. Upload billeder FØRST, så vi har alle URL'er klar
+                val storage = FirebaseStorage.getInstance("gs://byg-piloten.firebasestorage.app").reference
                 val generalUrls = mutableListOf<String>()
-                
-                // Upload generelle billeder
                 for (uri in imageUris.value) {
                     try {
-                        val ref = storage.child("requests/$requestId/${UUID.randomUUID()}.jpg")
+                        val ref = storage.child("requests/$requestId/general/${UUID.randomUUID()}.jpg")
                         ref.putFile(uri).await()
-                        val url = ref.downloadUrl.await().toString()
-                        generalUrls.add(url)
-                    } catch (e: Exception) { 
-                        Timber.e(e, "Fejl ved upload af billede $uri") 
-                    }
+                        generalUrls.add(ref.downloadUrl.await().toString())
+                    } catch (e: Exception) { Timber.e(e, "Upload fejl") }
                 }
 
-                // Upload step-billeder
-                val labeledMap = mutableMapOf<String, List<String>>()
+                val labeledUrlsMap = mutableMapOf<String, List<String>>()
                 for ((stepId, uris) in _stepPhotos.value) {
                     val urls = mutableListOf<String>()
                     for (uri in uris) {
@@ -116,31 +71,45 @@ class OpmuringTaskViewModel @Inject constructor(
                             val ref = storage.child("requests/$requestId/steps/$stepId/${UUID.randomUUID()}.jpg")
                             ref.putFile(uri).await()
                             urls.add(ref.downloadUrl.await().toString())
-                        } catch (e: Exception) { Timber.e(e, "Upload fejl step $stepId") }
+                        } catch (e: Exception) { Timber.e(e, "Step upload fejl") }
                     }
                     if (urls.isNotEmpty()) {
-                        val prettyLabel = when(stepId) {
+                        val label = when(stepId) {
                             "damage" -> "Billeder af skader"
                             "access" -> "Billeder af adgangsforhold"
                             "openings" -> "Billeder af åbninger"
                             else -> stepId
                         }
-                        labeledMap[prettyLabel] = urls
+                        labeledUrlsMap[label] = urls
                     }
                 }
 
-                // Opdater dokumentet med de endelige URL'er
-                if (generalUrls.isNotEmpty() || labeledMap.isNotEmpty()) {
-                    docRef.update(mapOf(
-                        "images" to generalUrls,
-                        "labeledPhotos" to labeledMap
-                    )).await()
-                    Timber.d("Firestore opdateret med URL'er")
-                }
+                // 2. Gem det HELE i Firestore i ét hug
+                val detailsMap = mutableMapOf<String, Any>()
+                detailsMap["murType"] = d.murType ?: ""
+                detailsMap["isRepair"] = d.isRepair ?: false
+                detailsMap["bearingWall"] = d.bearingWall ?: false
+                detailsMap["wallTotalAreaM2"] = d.wallTotalAreaM2 ?: 0f
+
+                val request = Request(
+                    id = requestId,
+                    userId = currentUser.uid,
+                    category = "opmuring",
+                    areaM2 = (d.wallTotalAreaM2 ?: 0f) - (d.openingTotalAreaM2 ?: 0f),
+                    roomType = d.murType ?: "Opmuring",
+                    description = descText,
+                    aiPrice = aiPriceEstimate.value?.toFloat() ?: 0f,
+                    images = generalUrls,
+                    labeledPhotos = labeledUrlsMap,
+                    details = detailsMap
+                )
+
+                docRef.set(request).await()
+                Timber.d("Opgave og billeder gemt korrekt i Firestore")
 
                 onComplete()
             } catch (e: Exception) {
-                Timber.e(e, "Kritisk fejl i sendTask")
+                Timber.e(e, "Kritisk fejl ved afsendelse")
             } finally {
                 setIsSending(false)
             }

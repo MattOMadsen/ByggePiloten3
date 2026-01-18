@@ -1,7 +1,4 @@
 // Fil: app/src/main/java/dk/byggepiloten/firma/ui/screen/new_task/components/common/StyledTextField.kt
-// FULD FIX – minimerer blå paste-firkant (autoCorrect = false + imeAction = Next)
-// Linjer: 68
-
 package dk.byggepiloten.firma.ui.screen.new_task.components.common
 
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -29,7 +26,9 @@ fun StyledTextField(
         onValueChange = onValueChange,
         label = { Text(label, color = ByggePilotenBlue) },
         modifier = modifier.fillMaxWidth(),
+        // Hvis singleLine er false, tillader vi multiLine og enter
         singleLine = singleLine,
+        maxLines = if (singleLine) 1 else 10,
         colors = OutlinedTextFieldDefaults.colors(
             focusedContainerColor = Color.White,
             unfocusedContainerColor = Color.White,
@@ -45,7 +44,8 @@ fun StyledTextField(
         ),
         keyboardOptions = KeyboardOptions(
             keyboardType = keyboardType,
-            imeAction = ImeAction.Next,
+            // Hvis det er multi-line, skal ImeAction være Default for at 'Enter' virker
+            imeAction = if (singleLine) ImeAction.Next else ImeAction.Default,
             autoCorrect = false
         ),
         shape = MaterialTheme.shapes.medium
