@@ -1,12 +1,11 @@
 // Fil: app/src/main/java/dk/byggepiloten/firma/ui/screen/dashboard/TaskDetailScreen.kt
-// FULD RETTET VERSION – alle knapper tilbage med korrekt visibility
-// + Bruger state.bidsCount, state.isContractor, state.isOwner
-// + Titel uden duplikering
-// + Description + teaser billede + areal + pris
-// + Knapper: Vis billeder/detaljer, Byd (contractor + new), Se bud (bids > 0), Slet (owner)
-// + Placeholder for Chat (kommende)
-// + Alle imports + clip + sp
-// ca. 650 linjer
+// FULD OPDATERET – matcher MainActivity routes
+// + Reel slet med dialog + progress
+// + Titel-fix + bidsCount + conditional knapper
+// + Teaser fallback hvis ingen billeder
+// + Knapper: "Vis alle billeder" → task_images/{taskId}
+// + "Vis fulde detaljer" → task_full_details/{taskId}
+// Ca. 320 linjer
 
 package dk.byggepiloten.firma.ui.screen.dashboard
 
@@ -45,8 +44,10 @@ fun TaskDetailScreen(
     taskId: String,
     viewModel: TaskDetailViewModel = hiltViewModel()
 ) {
-    val state = viewModel.state.collectAsStateWithLifecycle().value
+    val state by viewModel.state.collectAsStateWithLifecycle()
     val darkTheme = isSystemInDarkTheme()
+
+    var showDeleteDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(taskId) {
         viewModel.loadTask(taskId)
@@ -91,7 +92,7 @@ fun TaskDetailScreen(
                 if (state.isLoading) {
                     items(4) { TaskSkeleton() }
                 } else if (state.request != null) {
-                    val request = state.request
+                    val request: Request = state.request!!
 
                     item {
                         Card(
@@ -105,8 +106,10 @@ fun TaskDetailScreen(
                                 Text(
                                     text = buildString {
                                         append(request.category.replaceFirstChar { it.uppercase() })
-                                        if (!request.roomType.isNullOrBlank() && request.roomType.lowercase() != request.category.lowercase()) {
-                                            append(" – ${request.roomType}")
+                                        request.roomType?.let {
+                                            if (it.isNotBlank() && it.lowercase() != request.category.lowercase()) {
+                                                append(" – $it")
+                                            }
                                         }
                                     },
                                     fontSize = 26.sp,
@@ -150,18 +153,18 @@ fun TaskDetailScreen(
 
                                 Spacer(Modifier.height(20.dp))
 
-                                // Description
-                                val descriptionText = request.description ?: ""
-                                if (descriptionText.isNotBlank()) {
-                                    Text(
-                                        text = descriptionText,
-                                        style = MaterialTheme.typography.bodyLarge,
-                                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.9f)
-                                    )
-                                    Spacer(Modifier.height(20.dp))
+                                request.description?.let { desc ->
+                                    if (desc.isNotBlank()) {
+                                        Text(
+                                            text = desc,
+                                            style = MaterialTheme.typography.bodyLarge,
+                                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.9f)
+                                        )
+                                        Spacer(Modifier.height(20.dp))
+                                    }
                                 }
 
-                                // Teaser billede
+                                // Teaser billede med fallback
                                 val firstImage = request.images.firstOrNull()
                                 if (firstImage != null) {
                                     AsyncImage(
@@ -169,7 +172,7 @@ fun TaskDetailScreen(
                                         contentDescription = "Teaser billede",
                                         modifier = Modifier
                                             .fillMaxWidth()
-                                            .height(220.dp)
+                                            .height(240.dp)
                                             .clip(RoundedCornerShape(12.dp)),
                                         contentScale = ContentScale.Crop
                                     )
@@ -177,37 +180,39 @@ fun TaskDetailScreen(
                                     Box(
                                         modifier = Modifier
                                             .fillMaxWidth()
-                                            .height(220.dp)
-                                            .background(Color.LightGray.copy(alpha = 0.3f))
-                                            .clip(RoundedCornerShape(12.dp)),
+                                            .height(240.dp)
+                                            .background(Color.LightGray.copy(alpha = 0.3f), RoundedCornerShape(12.dp)),
                                         contentAlignment = Alignment.Center
                                     ) {
-                                        Text("Ingen billeder", color = Color.Gray, fontSize = 18.sp)
+                                        Text("Ingen billeder uploadet", color = Color.Gray, fontSize = 18.sp)
                                     }
                                 }
 
                                 Spacer(Modifier.height(32.dp))
 
-                                // Knapper
-                                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                                        Button(
-                                            onClick = { navController.navigate("task_images/$taskId") },
-                                            modifier = Modifier.weight(1f)
-                                        ) {
-                                            Text("Vis alle billeder")
-                                        }
-                                        Button(
-                                            onClick = { navController.navigate("task_full_details/$taskId") },
-                                            modifier = Modifier.weight(1f)
-                                        ) {
-                                            Text("Vis fulde detaljer")
-                                        }
+                                // Separate screen knapper (øverst i row)
+                                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                                    Button(
+                                        onClick = { navController.navigate("task_images/$taskId") },
+                                        modifier = Modifier.weight(1f)
+                                    ) {
+                                        Text("Vis alle billeder")
                                     }
+                                    Button(
+                                        onClick = { navController.navigate("task_full_details/$taskId") },
+                                        modifier = Modifier.weight(1f)
+                                    ) {
+                                        Text("Vis fulde detaljer")
+                                    }
+                                }
 
+                                Spacer(Modifier.height(16.dp))
+
+                                // Andre knapper
+                                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                                     if (state.isContractor && request.status == "new") {
                                         Button(
-                                            onClick = { /* TODO: Naviger til byd-flow / OfferEditorScreen */ },
+                                            onClick = { /* TODO: Naviger til byd-flow */ },
                                             modifier = Modifier.fillMaxWidth()
                                         ) {
                                             Text("Byd på opgave")
@@ -223,15 +228,21 @@ fun TaskDetailScreen(
                                         }
                                     }
 
-                                    // Placeholder for chat (kommende)
-                                    // Button(onClick = { /* Chat */ }, modifier = Modifier.fillMaxWidth()) { Text("Chat") }
-
                                     if (state.isOwner) {
                                         Button(
-                                            onClick = { /* TODO: Slet opgave + undo snackbar */ },
+                                            onClick = { showDeleteDialog = true },
                                             colors = ButtonDefaults.buttonColors(containerColor = Color.Red.copy(alpha = 0.8f)),
-                                            modifier = Modifier.fillMaxWidth()
+                                            modifier = Modifier.fillMaxWidth(),
+                                            enabled = !state.isDeleting
                                         ) {
+                                            if (state.isDeleting) {
+                                                CircularProgressIndicator(
+                                                    color = Color.White,
+                                                    modifier = Modifier.size(20.dp),
+                                                    strokeWidth = 2.dp
+                                                )
+                                                Spacer(Modifier.width(8.dp))
+                                            }
                                             Text("Slet opgave")
                                         }
                                     }
@@ -247,6 +258,31 @@ fun TaskDetailScreen(
                     }
                 }
             }
+        }
+
+        // Delete confirm dialog
+        if (showDeleteDialog) {
+            AlertDialog(
+                onDismissRequest = { showDeleteDialog = false },
+                title = { Text("Slet opgave?") },
+                text = { Text("Denne handling kan ikke fortrydes.") },
+                confirmButton = {
+                    TextButton(onClick = {
+                        viewModel.deleteTask(taskId,
+                            onSuccess = { navController.popBackStack() },
+                            onError = { }
+                        )
+                        showDeleteDialog = false
+                    }) {
+                        Text("Slet", color = Color.Red)
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showDeleteDialog = false }) {
+                        Text("Annuller")
+                    }
+                }
+            )
         }
     }
 }

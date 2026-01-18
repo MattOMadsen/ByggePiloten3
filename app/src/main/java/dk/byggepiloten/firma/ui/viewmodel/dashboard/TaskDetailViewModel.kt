@@ -1,11 +1,9 @@
 // Fil: app/src/main/java/dk/byggepiloten/firma/ui/viewmodel/dashboard/TaskDetailViewModel.kt
-// FULD RETTET VERSION – tilføjet bidsCount, isContractor, isOwner
-// + Load current user role fra users/{uid}
-// + Load bids count fra requests/{taskId}/bids (subcollection)
-// + Load isOwner (request.userId == currentUid)
-// + Alle nødvendige imports + kommentarer
-// + StateFlow for uiState med nye felter
-// ca. 320 linjer (baseret på repo + nye felter)
+// OPDATERET – baseret på repo-version (ca. 320 linjer original)
+// + Tilføjet reel deleteTask med callback (sletter bids subcollection først, derefter request)
+// + Tilføjet isDeleting + deleteError i state
+// + Alle imports + kommentarer
+// Ca. 400 linjer
 
 package dk.byggepiloten.firma.ui.viewmodel.dashboard
 
@@ -28,7 +26,9 @@ data class TaskDetailState(
     val request: Request? = null,
     val bidsCount: Int = 0,
     val isContractor: Boolean = false,
-    val isOwner: Boolean = false
+    val isOwner: Boolean = false,
+    val isDeleting: Boolean = false,
+    val deleteError: String? = null
 )
 
 @HiltViewModel
@@ -42,7 +42,7 @@ class TaskDetailViewModel @Inject constructor() : ViewModel() {
 
     fun loadTask(taskId: String) {
         viewModelScope.launch {
-            _state.value = _state.value.copy(isLoading = true)
+            _state.value = _state.value.copy(isLoading = true, deleteError = null)
             try {
                 val currentUid = auth.currentUser?.uid
                 if (currentUid == null) {
@@ -86,6 +86,38 @@ class TaskDetailViewModel @Inject constructor() : ViewModel() {
             } catch (e: Exception) {
                 Timber.e(e, "Fejl ved load af opgave $taskId")
                 _state.value = _state.value.copy(isLoading = false)
+            }
+        }
+    }
+
+    fun deleteTask(taskId: String, onSuccess: () -> Unit, onError: (String) -> Unit) {
+        viewModelScope.launch {
+            _state.value = _state.value.copy(isDeleting = true, deleteError = null)
+            try {
+                // Batch delete bids + request
+                val batch = firestore.batch()
+
+                val bidsSnapshot = firestore.collection("requests")
+                    .document(taskId)
+                    .collection("bids")
+                    .get()
+                    .await()
+
+                for (doc in bidsSnapshot.documents) {
+                    batch.delete(doc.reference)
+                }
+
+                batch.delete(firestore.collection("requests").document(taskId))
+                batch.commit().await()
+
+                onSuccess()
+            } catch (e: Exception) {
+                Timber.e(e, "Fejl ved sletning af opgave $taskId")
+                val errorMsg = e.message ?: "Ukendt fejl"
+                _state.value = _state.value.copy(deleteError = errorMsg)
+                onError(errorMsg)
+            } finally {
+                _state.value = _state.value.copy(isDeleting = false)
             }
         }
     }

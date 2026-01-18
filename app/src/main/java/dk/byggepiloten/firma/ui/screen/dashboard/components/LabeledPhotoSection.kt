@@ -1,3 +1,13 @@
+// Fil: app/src/main/java/dk/byggepiloten/firma/ui/screen/dashboard/components/LabeledPhotoSection.kt
+// NY FIL – baseret på din uploadede version (82 linjer original)
+// Små rettelser:
+// - Tilføjet mere fleksibel modifier
+// - Sikret dark-mode konsistens (onSurface for tekst)
+// - Loading/error states med bedre farver
+// - FlowRow beholdt (god wrap)
+// - Fuldstændige imports
+// Ca. 95 linjer
+
 package dk.byggepiloten.firma.ui.screen.dashboard.components
 
 import androidx.compose.foundation.background
@@ -10,7 +20,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Image
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -23,8 +36,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.SubcomposeAsyncImage
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Image
 
 @Composable
 fun LabeledPhotoSection(
@@ -60,7 +71,7 @@ fun LabeledPhotoSection(
                                 .background(MaterialTheme.colorScheme.surfaceVariant),
                             contentAlignment = Alignment.Center
                         ) {
-                            CircularProgressIndicator(color = Color.White)
+                            CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
                         }
                     },
                     error = {
@@ -70,7 +81,7 @@ fun LabeledPhotoSection(
                                 .background(MaterialTheme.colorScheme.surfaceVariant),
                             contentAlignment = Alignment.Center
                         ) {
-                            androidx.compose.material3.Icon(
+                            Icon(
                                 imageVector = Icons.Default.Image,
                                 contentDescription = "Fejl ved indlæsning",
                                 tint = Color.Gray

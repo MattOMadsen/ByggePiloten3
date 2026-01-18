@@ -1,10 +1,7 @@
 // Fil: app/src/main/java/dk/byggepiloten/firma/ui/screen/photos/TaskPhotosDescriptionScreen.kt
-// OPDATERET – Tilføjet bounded height (heightIn(max = 400.dp)) på LazyVerticalGrid for step-billeder for at undgå infinite height constraints
-// Beholdt al original struktur + imports
-// Linjer: 252
-
 package dk.byggepiloten.firma.ui.screen.photos
 
+import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -36,8 +33,6 @@ import dk.byggepiloten.firma.ui.viewmodel.task.BaseTaskViewModel
 import dk.byggepiloten.firma.ui.viewmodel.task.FacadeTaskViewModel
 import dk.byggepiloten.firma.ui.viewmodel.task.FliserTaskViewModel
 import dk.byggepiloten.firma.ui.viewmodel.task.OpmuringTaskViewModel
-import kotlinx.coroutines.launch
-import android.net.Uri
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -45,12 +40,33 @@ fun TaskPhotosDescriptionScreen(
     navController: NavController,
     category: String = ""
 ) {
-    val viewModel: BaseTaskViewModel = when (category) {
-        "fliser" -> hiltViewModel<FliserTaskViewModel>()
-        "badeværelse" -> hiltViewModel<BadevaerelseTaskViewModel>()
-        "opmuring" -> hiltViewModel<OpmuringTaskViewModel>()
-        "facade_pudsning" -> hiltViewModel<FacadeTaskViewModel>()
-        else -> hiltViewModel<BaseTaskViewModel>()
+    // VIKTIGT: Vi forsøger at hente den ViewModel der allerede er i brug i wizard-screenen
+    val wizardBackStackEntry = remember(navController.currentBackStackEntry) {
+        try {
+            // Forsøg at finde den screen der startede forløbet (f.eks. "opmuring" eller "badeværelse")
+            navController.getBackStackEntry(category)
+        } catch (e: Exception) {
+            null
+        }
+    }
+
+    val viewModel: BaseTaskViewModel = if (wizardBackStackEntry != null) {
+        when (category) {
+            "fliser" -> hiltViewModel<FliserTaskViewModel>(wizardBackStackEntry)
+            "badeværelse" -> hiltViewModel<BadevaerelseTaskViewModel>(wizardBackStackEntry)
+            "opmuring" -> hiltViewModel<OpmuringTaskViewModel>(wizardBackStackEntry)
+            "facade_pudsning" -> hiltViewModel<FacadeTaskViewModel>(wizardBackStackEntry)
+            else -> hiltViewModel<BaseTaskViewModel>()
+        }
+    } else {
+        // Fallback hvis vi ikke kom fra en wizard
+        when (category) {
+            "fliser" -> hiltViewModel<FliserTaskViewModel>()
+            "badeværelse" -> hiltViewModel<BadevaerelseTaskViewModel>()
+            "opmuring" -> hiltViewModel<OpmuringTaskViewModel>()
+            "facade_pudsning" -> hiltViewModel<FacadeTaskViewModel>()
+            else -> hiltViewModel<BaseTaskViewModel>()
+        }
     }
 
     val description by viewModel.description.collectAsStateWithLifecycle()
@@ -72,10 +88,6 @@ fun TaskPhotosDescriptionScreen(
         if (category.isNotBlank()) {
             viewModel.setCurrentCategory(category)
         }
-    }
-
-    LaunchedEffect(description, imageUris) {
-        viewModel.generateAiEstimate()
     }
 
     Scaffold(
@@ -117,7 +129,7 @@ fun TaskPhotosDescriptionScreen(
 
                 Spacer(Modifier.height(32.dp))
 
-                // Grupperede step-billeder (bounded height for at undgå infinite constraints)
+                // Grupperede step-billeder
                 for ((stepId, uris) in stepPhotos) {
                     if (uris.isNotEmpty()) {
                         Text(
@@ -137,7 +149,7 @@ fun TaskPhotosDescriptionScreen(
                             columns = GridCells.Fixed(3),
                             horizontalArrangement = Arrangement.spacedBy(8.dp),
                             verticalArrangement = Arrangement.spacedBy(8.dp),
-                            modifier = Modifier.heightIn(max = 400.dp) // Bounded height – fixer infinite constraints
+                            modifier = Modifier.heightIn(max = 400.dp)
                         ) {
                             items(uris.size) { index ->
                                 val uri = uris[index]
