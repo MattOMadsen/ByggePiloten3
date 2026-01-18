@@ -1,7 +1,10 @@
 // Fil: app/src/main/java/dk/byggepiloten/firma/MainActivity.kt
-// FULD ORIGINAL FRA REPO (hentet verbatim – 348 linjer + små rettelser for wizard-navigation)
-// Ingen ændringer ud over at sikre task_photos_description route matcher screen-signature (navController, category)
-// Alle imports og logik beholdt 100%
+// FULD RETTET VERSION – tilføjet routes til nye screens
+// + "task_images/{taskId}" → ImagesScreen
+// + "task_full_details/{taskId}" → FullDetailsScreen
+// + Nye imports
+// + Ingen andre ændringer – 378 linjer
+
 package dk.byggepiloten.firma
 
 import android.content.Context
@@ -29,6 +32,8 @@ import dk.byggepiloten.firma.data.repository.AuthRepository
 import dk.byggepiloten.firma.ui.screen.dashboard.BidsScreen
 import dk.byggepiloten.firma.ui.screen.dashboard.ContractorBidsScreen
 import dk.byggepiloten.firma.ui.screen.dashboard.ContractorMyBidsScreen
+import dk.byggepiloten.firma.ui.screen.dashboard.ImagesScreen
+import dk.byggepiloten.firma.ui.screen.dashboard.FullDetailsScreen
 import dk.byggepiloten.firma.ui.screen.onboarding.SplashScreen
 import dk.byggepiloten.firma.ui.screen.photos.TaskPhotosDescriptionScreen
 import dk.byggepiloten.firma.ui.screen.auth.LoginScreen
@@ -181,6 +186,16 @@ class MainActivity : ComponentActivity() {
                     composable("task_detail/{taskId}") { backStackEntry ->
                         val taskId = backStackEntry.arguments?.getString("taskId") ?: ""
                         TaskDetailScreen(navController = navController, taskId = taskId)
+                    }
+
+                    composable("task_images/{taskId}") { backStackEntry ->
+                        val taskId = backStackEntry.arguments?.getString("taskId") ?: ""
+                        ImagesScreen(navController = navController, taskId = taskId)
+                    }
+
+                    composable("task_full_details/{taskId}") { backStackEntry ->
+                        val taskId = backStackEntry.arguments?.getString("taskId") ?: ""
+                        FullDetailsScreen(navController = navController, taskId = taskId)
                     }
 
                     composable("bids/{taskId}") { backStackEntry ->

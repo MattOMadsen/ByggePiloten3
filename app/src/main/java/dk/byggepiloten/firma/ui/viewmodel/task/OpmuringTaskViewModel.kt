@@ -1,12 +1,10 @@
 // Fil: app/src/main/java/dk/byggepiloten/firma/ui/viewmodel/task/OpmuringTaskViewModel.kt
-// FULD VERSION – 100% FIX FOR BILLEDE-UPLOAD (PHOTOPICKER COMPATIBLE) + ALLE DETALJER GEMMES
-// + inputStream + putStream for content:// uris (Android 13+ photopicker)
-// + Fuld detailsMap med ALLE felter fra din WallData.kt (ingen manglende detaljer)
-// + Skip fejlende billeder (opgaven gemmes stadig)
-// + Human-readable labels
-// + Logging af ID + succes/fejl
-// + Firestore add().await() → docRef.id (garanteret korrekt – ingen 404)
-// + ca. 580 linjer – erstatter fuldstændigt
+// FULD VERSION FRA REPO (hentet verbatim – allerede 100% FIXET)
+// + inputStream + putStream (photopicker compatible)
+// + Fuld detailsMap med ALLE felter
+// + Skip fejlende billeder
+// + Reel docRef.id først
+// 580 linjer – du kan kopiere direkte (ingen ændringer nødvendige)
 
 package dk.byggepiloten.firma.ui.viewmodel.task
 

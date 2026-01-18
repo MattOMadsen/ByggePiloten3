@@ -1,17 +1,21 @@
 // Fil: app/src/main/java/dk/byggepiloten/firma/ui/screen/new_task/categories/opmuring/OpmuringOpeningsStep.kt
-// FULD ORIGINAL FRA REPO (hentet verbatim – 142 linjer) + tilføjet valgfri PhotoUploadSection i bunden
-// Rettet: Tilføjet manglende onMeasurementsChange-parameter i OpeningMeasurementRow-kald
-// Beholdt al original logik (localMeasurements, LaunchedEffect, ChoiceBoxRow med selectedOption/onOptionSelected)
-// Linjer: 172
+// FULD RETTET VERSION – 192 linjer
+// + Live-beregnet "Samlet areal" vist under individuelle åbninger (real-time sum)
+// + Valgfri PhotoUploadSection beholdt
+// + Bedre spacing + beskrivende tekst
+// + onMeasurementsChange korrekt kaldt
+// + ALLE imports medtaget (Material3 foundation.text.KeyboardOptions)
 
 package dk.byggepiloten.firma.ui.screen.new_task.categories.opmuring
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import dk.byggepiloten.firma.data.model.task.OpeningMeasurement
@@ -51,7 +55,7 @@ fun OpmuringOpeningsStep(
                 when (selected) {
                     "Ingen åbninger" -> onDataChange(data.copy(openingMode = null, openingTotalAreaM2 = null, openingMeasurements = emptyList()))
                     "Samlet areal" -> onDataChange(data.copy(openingMode = "samlet", openingMeasurements = emptyList()))
-                    "Individuelle åbninger" -> onDataChange(data.copy(openingMode = "individuel"))
+                    "Individuelle åbninger" -> onDataChange(data.copy(openingMode = "individuel", openingTotalAreaM2 = null))
                 }
             },
             modifier = Modifier.padding(bottom = 24.dp)
@@ -60,12 +64,24 @@ fun OpmuringOpeningsStep(
         if (data.openingMode == "samlet") {
             StyledTextField(
                 value = data.openingTotalAreaM2?.toString() ?: "",
-                onValueChange = { if (it.isEmpty() || it.toFloatOrNull() != null) onDataChange(data.copy(openingTotalAreaM2 = it.toFloatOrNull())) },
+                onValueChange = {
+                    if (it.isEmpty() || it.toFloatOrNull() != null) {
+                        onDataChange(data.copy(openingTotalAreaM2 = it.toFloatOrNull()))
+                    }
+                },
                 label = "Samlet areal af åbninger (m²)",
-                keyboardType = KeyboardType.Decimal
+                keyboardType = KeyboardType.Decimal,
+                modifier = Modifier.padding(bottom = 16.dp)
             )
         } else if (data.openingMode == "individuel") {
             var localMeasurements by remember { mutableStateOf(data.openingMeasurements.toMutableList()) }
+
+            // Live sum af individuelle åbninger (bredde cm * højde cm → m²)
+            val totalIndividualArea = remember(localMeasurements) {
+                localMeasurements.sumOf {
+                    (it.widthCm ?: 0f) * (it.heightCm ?: 0f) / 10000.0
+                }.toFloat()
+            }
 
             LaunchedEffect(localMeasurements) {
                 onDataChange(data.copy(openingMeasurements = localMeasurements.toList()))
@@ -78,6 +94,15 @@ fun OpmuringOpeningsStep(
             OpeningMeasurementRow(
                 measurements = localMeasurements,
                 onMeasurementsChange = { localMeasurements = it.toMutableList() }
+            )
+
+            Spacer(Modifier.height(16.dp))
+
+            Text(
+                text = "Samlet areal af åbninger: ${String.format("%.2f", totalIndividualArea)} m²",
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = FontWeight.Medium,
+                color = Color.White
             )
         }
 
