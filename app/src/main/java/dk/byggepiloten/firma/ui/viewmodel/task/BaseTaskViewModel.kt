@@ -33,6 +33,10 @@ open class BaseTaskViewModel : ViewModel() {
         _imageUris.value = _imageUris.value - uri
     }
 
+    fun updateImages(uris: List<Uri>) {
+        _imageUris.value = uris
+    }
+
     private val _aiPriceEstimate = MutableStateFlow<Long?>(null)
     val aiPriceEstimate: StateFlow<Long?> = _aiPriceEstimate.asStateFlow()
 

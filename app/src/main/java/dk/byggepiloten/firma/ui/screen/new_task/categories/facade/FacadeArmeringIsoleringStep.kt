@@ -1,75 +1,117 @@
 package dk.byggepiloten.firma.ui.screen.new_task.categories.facade
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import dk.byggepiloten.firma.data.model.task.FacadeData
-import dk.byggepiloten.firma.ui.theme.ByggePilotenBlue
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
+import dk.byggepiloten.firma.ui.screen.new_task.components.PhotoUploadSection
+import dk.byggepiloten.firma.ui.screen.new_task.components.common.ChoiceBoxRow
+import dk.byggepiloten.firma.ui.screen.new_task.components.common.StyledTextField
+import dk.byggepiloten.firma.ui.screen.new_task.components.WizardScaffold
+import dk.byggepiloten.firma.ui.viewmodel.task.FacadeTaskViewModel
 
-@OptIn(ExperimentalLayoutApi::class)
+private val isoleringTyper = listOf("Mineraluld", "EPS", "Anden")
+
 @Composable
 fun FacadeArmeringIsoleringStep(
-    data: FacadeData,
-    onUpdate: (FacadeData) -> Unit
+    navController: NavController,
+    viewModel: FacadeTaskViewModel = hiltViewModel()
 ) {
-    Column {
-        Text("Facadeisolering", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 20.sp)
-        Spacer(Modifier.height(24.dp))
+    val facadeData by viewModel.facadeData.collectAsState()
+    val stepImages by viewModel.stepPhotos.collectAsState()
 
-        Text("Ønskes udvendig facadeisolering (ETICS)?", color = Color.White, fontSize = 18.sp)
-        Spacer(Modifier.height(8.dp))
+    var armering by remember { mutableStateOf(facadeData.armeringsnet ?: if (facadeData.vaegtype == "Mursten") "Ja" else "") }
+    var isolering by remember { mutableStateOf(facadeData.isolering ?: "") }
+    var isoleringType by remember { mutableStateOf(facadeData.isoleringType ?: "") }
 
-        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            listOf("Ja", "Nej").forEach { option ->
-                Box(
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(8.dp))
-                        .background(if (data.isolering == option) ByggePilotenBlue else Color.White)
-                        .clickable {
-                            onUpdate(
-                                data.copy(
-                                    isolering = option,
-                                    isoleringType = if (option == "Nej") null else data.isoleringType
-                                )
+    WizardScaffold(
+        title = "Facadepudsning – Armering & Isolering",
+        progress = 7f / 9f,
+        onNavigationBack = { navController.popBackStack() },
+        onPrevious = { navController.popBackStack() },
+        onNext = {
+            val updated = facadeData.copy(
+                armeringsnet = armering,
+                isolering = isolering,
+                isoleringType = if (isolering == "Ja") isoleringType else null
+            )
+            viewModel.updateFacadeData(updated)
+            navController.navigate("facade_haeftemoertel")
+        },
+        isNextEnabled = armering.isNotBlank() && isolering.isNotBlank()
+    ) {
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(24.dp)
+        ) {
+            Card(
+                colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.95f)),
+                elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+            ) {
+                Column(modifier = Modifier.padding(20.dp)) {
+                    Text(
+                        "Armering og isolering",
+                        style = MaterialTheme.typography.titleLarge,
+                        color = Color.Black
+                    )
+                    Spacer(Modifier.height(16.dp))
+
+                    ChoiceBoxRow(
+                        label = "Skal der armeringsnet?",
+                        options = listOf("Ja", "Nej"),
+                        selectedOption = armering,
+                        onOptionSelected = { armering = it }
+                    )
+                    
+                    if (facadeData.vaegtype == "Mursten") {
+                        Text(
+                            "Ved mursten anbefales armeringsnet",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = Color.Black.copy(alpha = 0.7f),
+                            modifier = Modifier.padding(top = 8.dp, bottom = 8.dp)
+                        )
+                    }
+
+                    Spacer(Modifier.height(16.dp))
+
+                    ChoiceBoxRow(
+                        label = "Skal der isoleres?",
+                        options = listOf("Ja", "Nej"),
+                        selectedOption = isolering,
+                        onOptionSelected = { isolering = it }
+                    )
+
+                    if (isolering == "Ja") {
+                        Spacer(Modifier.height(24.dp))
+                        
+                        ChoiceBoxRow(
+                            label = "Vælg isoleringstype",
+                            options = isoleringTyper,
+                            selectedOption = isoleringType,
+                            onOptionSelected = { isoleringType = it }
+                        )
+
+                        if (isoleringType == "Anden") {
+                            Spacer(Modifier.height(16.dp))
+                            StyledTextField(
+                                value = facadeData.isoleringType ?: "",
+                                onValueChange = { viewModel.updateFacadeData(facadeData.copy(isoleringType = it)) },
+                                label = "Beskriv isoleringstype"
                             )
                         }
-                        .padding(16.dp)
-                ) {
-                    Text(option, color = if (data.isolering == option) Color.White else Color.Black)
-                }
-            }
-        }
-
-        if (data.isolering == "Ja") {
-            Spacer(Modifier.height(32.dp))
-            Text("Vælg isoleringstype", color = Color.White, fontSize = 18.sp)
-            Spacer(Modifier.height(8.dp))
-
-            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                listOf("Mineraluld (anbefales – bedst åndbarhed)", "EPS (billigere, højere fugtrisiko)").forEach { type ->
-                    Box(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(8.dp))
-                            .background(if (data.isoleringType == type) ByggePilotenBlue else Color.White)
-                            .clickable { onUpdate(data.copy(isoleringType = type)) }
-                            .padding(16.dp)
-                    ) {
-                        Text(type, color = if (data.isoleringType == type) Color.White else Color.Black, fontSize = 14.sp)
                     }
                 }
             }
 
-            Spacer(Modifier.height(16.dp))
-            Text("Advarsel: Kræver certificeret udførelse – risiko for fugtproblemer hvis fejl (kilde: Bolius).", color = Color(0xFFFFA500), fontSize = 14.sp)
+            PhotoUploadSection(
+                label = "Billeder af væg/underlag (valgfrit)",
+                currentUris = stepImages["isolering"] ?: emptyList(),
+                onUrisChange = { viewModel.updateStepPhotos("isolering", it) }
+            )
         }
     }
 }

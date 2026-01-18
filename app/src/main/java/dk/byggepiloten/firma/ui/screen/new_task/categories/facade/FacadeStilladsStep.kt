@@ -1,110 +1,105 @@
 package dk.byggepiloten.firma.ui.screen.new_task.categories.facade
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import dk.byggepiloten.firma.data.model.task.FacadeData
-import dk.byggepiloten.firma.ui.theme.ByggePilotenBlue
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
+import dk.byggepiloten.firma.ui.screen.new_task.components.PhotoUploadSection
+import dk.byggepiloten.firma.ui.screen.new_task.components.common.StyledTextField
+import dk.byggepiloten.firma.ui.screen.new_task.components.WizardScaffold
+import dk.byggepiloten.firma.ui.viewmodel.task.FacadeTaskViewModel
 
-@OptIn(ExperimentalLayoutApi::class)
+private val stilladsOptions = listOf("Ja", "Nej")
+
 @Composable
 fun FacadeStilladsStep(
-    data: FacadeData,
-    onUpdate: (FacadeData) -> Unit
+    navController: NavController,
+    viewModel: FacadeTaskViewModel = hiltViewModel()
 ) {
-    Column {
-        Text("Stillads og armeringsnet", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 20.sp)
-        Spacer(Modifier.height(24.dp))
+    val facadeData by viewModel.facadeData.collectAsState()
+    val stepImages by viewModel.stepPhotos.collectAsState()
 
-        Text("Er stillads nødvendigt?", color = Color.White, fontSize = 18.sp)
-        Spacer(Modifier.height(8.dp))
+    var selected by remember { mutableStateOf(facadeData.stilladsNoedvendigt ?: "") }
+    var adgang by remember { mutableStateOf(facadeData.stilladsAdgang ?: "") }
+    var trapper by remember { mutableStateOf(facadeData.stilladsTrapper ?: "") }
 
-        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            listOf("Ja", "Nej").forEach { option ->
-                Box(
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(8.dp))
-                        .background(if (data.stilladsNoedvendigt == option) ByggePilotenBlue else Color.White)
-                        .clickable {
-                            onUpdate(
-                                data.copy(
-                                    stilladsNoedvendigt = option,
-                                    stilladsAdgang = null,
-                                    stilladsTrapper = null
-                                )
+    WizardScaffold(
+        title = "Facadepudsning – Stillads",
+        progress = 4f / 9f,
+        onNavigationBack = { navController.popBackStack() },
+        onPrevious = { navController.popBackStack() },
+        onNext = {
+            val updated = facadeData.copy(
+                stilladsNoedvendigt = selected,
+                stilladsAdgang = if (selected == "Ja") adgang else null,
+                stilladsTrapper = if (selected == "Ja") trapper else null
+            )
+            viewModel.updateFacadeData(updated)
+            navController.navigate("facade_underlag")
+        },
+        isNextEnabled = selected.isNotBlank()
+    ) {
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(24.dp)
+        ) {
+            Card(
+                colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.95f)),
+                elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+            ) {
+                Column(modifier = Modifier.padding(20.dp)) {
+                    Text(
+                        "Er stillads nødvendigt?",
+                        style = MaterialTheme.typography.titleLarge,
+                        color = Color.Black
+                    )
+                    Spacer(Modifier.height(16.dp))
+
+                    stilladsOptions.forEach { option ->
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable { selected = option }
+                        ) {
+                            RadioButton(
+                                selected = selected == option,
+                                onClick = { selected = option }
                             )
+                            Text(option, modifier = Modifier.padding(start = 8.dp), color = Color.Black)
                         }
-                        .padding(16.dp)
-                ) {
-                    Text(option, color = if (data.stilladsNoedvendigt == option) Color.White else Color.Black)
-                }
-            }
-        }
+                    }
 
-        if (data.stilladsNoedvendigt == "Ja") {
-            Spacer(Modifier.height(32.dp))
-            Text("Adgang til stillads", color = Color.White, fontSize = 18.sp)
-            Spacer(Modifier.height(8.dp))
-
-            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                listOf("God adgang", "Begrænset adgang").forEach { option ->
-                    Box(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(8.dp))
-                            .background(if (data.stilladsAdgang == option) ByggePilotenBlue else Color.White)
-                            .clickable { onUpdate(data.copy(stilladsAdgang = option)) }
-                            .padding(16.dp)
-                    ) {
-                        Text(option, color = if (data.stilladsAdgang == option) Color.White else Color.Black)
+                    if (selected == "Ja") {
+                        Spacer(Modifier.height(16.dp))
+                        StyledTextField(
+                            value = adgang,
+                            onValueChange = { adgang = it },
+                            label = "Beskriv adgang til stillads"
+                        )
+                        Spacer(Modifier.height(8.dp))
+                        StyledTextField(
+                            value = trapper,
+                            onValueChange = { trapper = it },
+                            label = "Er der trapper/adgangsveje?"
+                        )
                     }
                 }
             }
 
-            Spacer(Modifier.height(32.dp))
-            Text("Skal stillads bæres op ad trapper?", color = Color.White, fontSize = 18.sp)
-            Spacer(Modifier.height(8.dp))
-
-            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                listOf("Ja", "Nej").forEach { option ->
-                    Box(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(8.dp))
-                            .background(if (data.stilladsTrapper == option) ByggePilotenBlue else Color.White)
-                            .clickable { onUpdate(data.copy(stilladsTrapper = option)) }
-                            .padding(16.dp)
-                    ) {
-                        Text(option, color = if (data.stilladsTrapper == option) Color.White else Color.Black)
-                    }
-                }
-            }
-        }
-
-        Spacer(Modifier.height(40.dp))
-
-        Text("Ønskes armeringsnet i pudsen?", color = Color.White, fontSize = 18.sp)
-        Spacer(Modifier.height(8.dp))
-
-        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            listOf("Ja", "Nej").forEach { option ->
-                Box(
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(8.dp))
-                        .background(if (data.armeringsnet == option) ByggePilotenBlue else Color.White)
-                        .clickable { onUpdate(data.copy(armeringsnet = option)) }
-                        .padding(16.dp)
-                ) {
-                    Text(option, color = if (data.armeringsnet == option) Color.White else Color.Black)
-                }
-            }
+            PhotoUploadSection(
+                label = "Billeder af adgangsforhold/stillads (valgfrit)",
+                currentUris = stepImages["stillads"] ?: emptyList(),
+                onUrisChange = { viewModel.updateStepPhotos("stillads", it) }
+            )
         }
     }
 }

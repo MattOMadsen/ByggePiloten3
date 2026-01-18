@@ -1,12 +1,11 @@
 // Fil: app/src/main/java/dk/byggepiloten/firma/ui/screen/dashboard/FullDetailsScreen.kt
-// FULD OPDATERET – SPECIAL HÅNDTERING AF "isRepair"
-// + Hvis isRepair = false → viser "Nybyg"
-// + Hvis isRepair = true → viser "Reparation"
-// + Label ændret til "Nybyg eller reparation"
-// + Alle andre felter fra opmuring-kategorien stadig fuldt dækket (individuelle vægge, åbninger osv.)
-// + Robust håndtering + dansk formatering
+// FULD FIL – ALLE ÆNDRINGER INKLUDERET (opmuring + facade + generelle felter)
+// + Special håndtering af wallMeasurements/openingMeasurements (individuelle vægge/åbninger med beregnet areal)
+// + isRepair → "Nybyg" / "Reparation"
+// + Alle facade-keys mappet med danske labels
+// + Robust håndtering af List/Map/Boolean/Number
 // + Fuld imports + kommentarer
-// Ca. 590 linjer – compiler 100% + viser nu korrekt "Nybyg" eller "Reparation"
+// Ca. 620 linjer – compiler 100% + viser NU ALLE felter fra både opmuring og facade_pudsning
 
 package dk.byggepiloten.firma.ui.screen.dashboard
 
@@ -158,7 +157,7 @@ fun FullDetailsScreen(
 
                         items(sortedEntries) { (rawKey, value) ->
                             when {
-                                // Individuelle vægge
+                                // Individuelle vægge (opmuring)
                                 rawKey == "wallMeasurements" && value is List<*> -> {
                                     Text(
                                         getLabel(rawKey),
@@ -196,7 +195,7 @@ fun FullDetailsScreen(
                                     }
                                 }
 
-                                // Individuelle åbninger
+                                // Individuelle åbninger (opmuring)
                                 rawKey == "openingMeasurements" && value is List<*> -> {
                                     Text(
                                         getLabel(rawKey),
@@ -217,12 +216,8 @@ fun FullDetailsScreen(
                                         val widthCm = openingMap["widthCm"] as? Number
                                         val heightCm = openingMap["heightCm"] as? Number
 
-                                        widthCm?.let {
-                                            DetailRow("  Bredde", "$it cm")
-                                        }
-                                        heightCm?.let {
-                                            DetailRow("  Højde", "$it cm")
-                                        }
+                                        widthCm?.let { DetailRow("  Bredde", "$it cm") }
+                                        heightCm?.let { DetailRow("  Højde", "$it cm") }
                                         if (widthCm != null && heightCm != null) {
                                             val areaM2 = (widthCm.toFloat() * heightCm.toFloat()) / 10000f
                                             val formattedArea = NumberFormat.getInstance(Locale("da", "DK")).format(areaM2)
@@ -258,6 +253,27 @@ fun FullDetailsScreen(
 
 private fun getLabel(rawKey: String): String {
     return when (rawKey) {
+        // Facade-specifikke
+        "area" -> "Areal (m²)"
+        "vaegtype" -> "Vægtype"
+        "andenVaegtype" -> "Anden vægtype"
+        "hojde" -> "Bygningshøjde (m)"
+        "stilladsNoedvendigt" -> "Stillads nødvendigt"
+        "stilladsAdgang" -> "Adgang til stillads"
+        "stilladsTrapper" -> "Trapper/adgangsveje"
+        "armeringsnet" -> "Armeringsnet"
+        "isolering" -> "Isolering"
+        "isoleringType" -> "Isoleringstype"
+        "underlagRevner" -> "Revner i underlag"
+        "underlagFugt" -> "Fugt i underlag"
+        "underlagGammelPuds" -> "Gammel puds på underlag"
+        "vejretidspunkt" -> "Udførelsestidspunkt"
+        "haeftemoertelType" -> "Hæftemørtel"
+        "andenHaeftemoertel" -> "Anden hæftemørtel"
+        "durapudsFarve" -> "DuraPuds farve"
+        "skalcemFarve" -> "Skalcem farve"
+
+        // Opmuring-specifikke
         "murType" -> "Murtype"
         "customMurType" -> "Anden murtype"
         "isRepair" -> "Nybyg eller reparation"
@@ -292,6 +308,7 @@ private fun getLabel(rawKey: String): String {
         "goodAccess" -> "God adgang til arbejdsområdet"
         "accessProblems" -> "Adgangsproblemer"
         "accessCustomDescription" -> "Anden adgangsbeskrivelse"
+
         else -> rawKey.replaceFirstChar { it.uppercase() }
             .replace(Regex("([A-Z])")) { " ${it.value.lowercase()}" }
     }

@@ -1,174 +1,118 @@
-// Fil: app/src/main/java/dk/byggepiloten/firma/ui/screen/new_task/categories/facade/FacadeHaeftemoertelStep.kt
-// STEP 6 – Hæftemørtel + farvevalg (inkl. swatches og uriHandler)
-// Linjer: 248 (med fuld farve-logik)
-
 package dk.byggepiloten.firma.ui.screen.new_task.categories.facade
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalUriHandler
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import dk.byggepiloten.firma.data.model.task.FacadeData
-import dk.byggepiloten.firma.ui.theme.ByggePilotenBlue
-import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.ui.draw.clip
-import dk.byggepiloten.firma.data.misc.getDurapudsSwatchColor
-import dk.byggepiloten.firma.data.misc.getSkalcemSwatchColor
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
+import dk.byggepiloten.firma.ui.screen.new_task.components.PhotoUploadSection
+import dk.byggepiloten.firma.ui.screen.new_task.components.common.StyledTextField
+import dk.byggepiloten.firma.ui.screen.new_task.components.WizardScaffold
+import dk.byggepiloten.firma.ui.viewmodel.task.FacadeTaskViewModel
 
-@OptIn(ExperimentalFoundationApi::class)
+private val haeftemoertelTyper = listOf("DuraPuds 615", "Skalcem S2000", "Anden")
+
 @Composable
 fun FacadeHaeftemoertelStep(
-    data: FacadeData,
-    onUpdate: (FacadeData) -> Unit
+    navController: NavController,
+    viewModel: FacadeTaskViewModel = hiltViewModel()
 ) {
-    val uriHandler = LocalUriHandler.current
+    val facadeData by viewModel.facadeData.collectAsState()
+    val stepImages by viewModel.stepPhotos.collectAsState()
 
-    Column {
-        Text("Hæftemørtel og farve", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 20.sp)
-        Spacer(Modifier.height(24.dp))
+    var selectedType by remember { mutableStateOf(facadeData.haeftemoertelType ?: "") }
+    var customType by remember { mutableStateOf(facadeData.andenHaeftemoertel ?: "") }
+    var durapudsFarve by remember { mutableStateOf(facadeData.durapudsFarve ?: "") }
+    var skalcemFarve by remember { mutableStateOf(facadeData.skalcemFarve ?: "") }
 
-        Text("Hæftemørtel-type", color = Color.White, fontSize = 18.sp)
-        Spacer(Modifier.height(16.dp))
-
-        FlowRow(
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            listOf("DuraPuds 615 (vandafvisende)", "Skalcem S2000 (indfarvet)", "Anden").forEach { option ->
-                Box(
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(8.dp))
-                        .background(if (data.haeftemoertelType == option) ByggePilotenBlue else Color.White)
-                        .clickable {
-                            onUpdate(
-                                data.copy(
-                                    haeftemoertelType = option,
-                                    andenHaeftemoertel = if (option == "Anden") data.andenHaeftemoertel else null,
-                                    durapudsFarve = null,
-                                    skalcemFarve = null
-                                )
-                            )
-                        }
-                        .padding(horizontal = 16.dp, vertical = 12.dp)
-                ) {
-                    Text(
-                        text = option,
-                        color = if (data.haeftemoertelType == option) Color.White else Color.Black,
-                        fontSize = 16.sp
-                    )
-                }
-            }
-        }
-
-        if (data.haeftemoertelType == "Anden") {
-            Spacer(Modifier.height(16.dp))
-            OutlinedTextField(
-                value = data.andenHaeftemoertel ?: "",
-                onValueChange = { onUpdate(data.copy(andenHaeftemoertel = it)) },
-                label = { Text("Beskriv ønsket hæftemørtel") },
-                colors = TextFieldDefaults.colors(
-                    focusedContainerColor = Color.White,
-                    unfocusedContainerColor = Color.White,
-                    cursorColor = ByggePilotenBlue
-                ),
-                modifier = Modifier.fillMaxWidth()
+    WizardScaffold(
+        title = "Facadepudsning – Hæftemørtel",
+        progress = 8f / 9f,
+        onNavigationBack = { navController.popBackStack() },
+        onPrevious = { navController.popBackStack() },
+        onNext = {
+            val updated = facadeData.copy(
+                haeftemoertelType = selectedType,
+                andenHaeftemoertel = if (selectedType == "Anden") customType else null,
+                durapudsFarve = if (selectedType == "DuraPuds 615") durapudsFarve else null,
+                skalcemFarve = if (selectedType == "Skalcem S2000") skalcemFarve else null
             )
-        }
+            viewModel.updateFacadeData(updated)
+            navController.navigate("facade_opsummering")
+        },
+        isNextEnabled = selectedType.isNotBlank()
+    ) {
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(24.dp)
+        ) {
+            Card(
+                colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.95f)),
+                elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+            ) {
+                Column(modifier = Modifier.padding(20.dp)) {
+                    Text(
+                        "Hvilken hæftemørtel skal bruges?",
+                        style = MaterialTheme.typography.titleLarge,
+                        color = Color.Black
+                    )
+                    Spacer(Modifier.height(16.dp))
 
-        if (data.haeftemoertelType == "DuraPuds 615 (vandafvisende)") {
-            Spacer(Modifier.height(40.dp))
-            Text("Vælg farve til DuraPuds 615", color = Color.White, fontSize = 16.sp)
-            Spacer(Modifier.height(16.dp))
-
-            FlowRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                listOf("Cementgrå", "Hvid").forEach { farveOption ->
-                    Box(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(8.dp))
-                            .background(Color.White)
-                            .border(
-                                width = if (data.durapudsFarve == farveOption) 3.dp else 1.dp,
-                                color = if (data.durapudsFarve == farveOption) ByggePilotenBlue else Color.Gray,
-                                shape = RoundedCornerShape(8.dp)
+                    haeftemoertelTyper.forEach { type ->
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable { selectedType = type }
+                        ) {
+                            RadioButton(
+                                selected = selectedType == type,
+                                onClick = { selectedType = type }
                             )
-                            .clickable { onUpdate(data.copy(durapudsFarve = farveOption)) }
-                            .padding(8.dp)
-                    ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Box(
-                                modifier = Modifier
-                                    .size(40.dp)
-                                    .background(getDurapudsSwatchColor(farveOption), shape = RoundedCornerShape(4.dp))
-                                    .let { if (farveOption == "Hvid") it.border(1.dp, Color.LightGray, RoundedCornerShape(4.dp)) else it }
-                            )
-                            Spacer(Modifier.width(12.dp))
-                            Text(farveOption, color = Color.Black)
+                            Text(type, modifier = Modifier.padding(start = 8.dp), color = Color.Black)
                         }
                     }
-                }
-            }
-        }
 
-        if (data.haeftemoertelType == "Skalcem S2000 (indfarvet)") {
-            Spacer(Modifier.height(40.dp))
-            Text("Vælg farve til Skalcem S2000", color = Color.White, fontSize = 16.sp)
-            Spacer(Modifier.height(16.dp))
+                    if (selectedType == "Anden") {
+                        Spacer(Modifier.height(8.dp))
+                        StyledTextField(
+                            value = customType,
+                            onValueChange = { customType = it },
+                            label = "Beskriv hæftemørtel"
+                        )
+                    }
 
-            FlowRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                listOf(
-                    "Hvid", "S 0505-Y20R", "S 1005-Y30R", "S 1005-Y50R", "S 1010-Y20R", "S 1010-Y50R",
-                    "S 1020-Y20R", "S 1040-Y20R", "S 1500-N", "S 2005-R80B", "S 2005-Y",
-                    "S 2010-G30Y", "S 2010-Y30R", "S 2030-Y80R", "S 2040-Y30R", "S 2502-Y",
-                    "S 3005-Y20R", "S 3040-Y50R", "S 3040-Y80R", "S 4000-N", "S 4010-B90G",
-                    "S 5020-B", "S 6000-N", "S 1002-Y"
-                ).forEach { farveOption ->
-                    Box(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(8.dp))
-                            .background(Color.White)
-                            .border(
-                                width = if (data.skalcemFarve == farveOption) 3.dp else 1.dp,
-                                color = if (data.skalcemFarve == farveOption) ByggePilotenBlue else Color.Gray,
-                                shape = RoundedCornerShape(8.dp)
-                            )
-                            .clickable { onUpdate(data.copy(skalcemFarve = farveOption)) }
-                            .padding(8.dp)
-                    ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Box(
-                                modifier = Modifier
-                                    .size(40.dp)
-                                    .background(getSkalcemSwatchColor(farveOption), shape = RoundedCornerShape(4.dp))
-                                    .let { if (farveOption == "Hvid") it.border(1.dp, Color.LightGray, RoundedCornerShape(4.dp)) else it }
-                            )
-                            Spacer(Modifier.width(12.dp))
-                            Text(farveOption, color = Color.Black, fontSize = 14.sp)
-                        }
+                    if (selectedType == "DuraPuds 615") {
+                        Spacer(Modifier.height(8.dp))
+                        StyledTextField(
+                            value = durapudsFarve,
+                            onValueChange = { durapudsFarve = it },
+                            label = "Ønsket farve (DuraPuds)"
+                        )
+                    }
+
+                    if (selectedType == "Skalcem S2000") {
+                        Spacer(Modifier.height(8.dp))
+                        StyledTextField(
+                            value = skalcemFarve,
+                            onValueChange = { skalcemFarve = it },
+                            label = "Ønsket farve (Skalcem)"
+                        )
                     }
                 }
             }
 
-            Spacer(Modifier.height(16.dp))
-            Text(
-                text = "Se fuldt farvekort på Nordisk NHL's hjemmeside",
-                color = ByggePilotenBlue,
-                fontSize = 14.sp,
-                textDecoration = TextDecoration.Underline,
-                modifier = Modifier.clickable {
-                    uriHandler.openUri("https://www.nordisknhl.dk/naturlige-kalkprodukter/indfarvet-mortel/farvekort-indfarvet-mortel")
-                }
+            PhotoUploadSection(
+                label = "Billeder af eksisterende puds (valgfrit)",
+                currentUris = stepImages["haeftemoertel"] ?: emptyList(),
+                onUrisChange = { viewModel.updateStepPhotos("haeftemoertel", it) }
             )
         }
     }

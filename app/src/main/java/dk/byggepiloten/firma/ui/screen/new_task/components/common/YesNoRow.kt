@@ -1,7 +1,3 @@
-// Fil: app/src/main/java/dk/byggepiloten/firma/ui/screen/new_task/components/common/YesNoRow.kt
-// FÆLLES COMPONENT – JA/NEJ BOKSE (SAMME STIL SOM CHOICEBOXROW)
-// Linjer: 48
-
 package dk.byggepiloten.firma.ui.screen.new_task.components.common
 
 import androidx.compose.foundation.background
