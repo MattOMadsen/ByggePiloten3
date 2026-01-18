@@ -1,6 +1,7 @@
 // Fil: app/src/main/java/dk/byggepiloten/firma/ui/viewmodel/task/BaseTaskViewModel.kt
-// FULD RETTET – ingen constructor-args (Hilt/KSP-fix), fælles flows + open sendTask/generateAiEstimate
-// Linjer: 178
+// FULD RETTET – setError gjort public
+// Tilføjet manglende imports for collectAsStateWithLifecycle i screens (men denne fil har ingen)
+// aiEstimateGenerator beholdt i constructor
 
 package dk.byggepiloten.firma.ui.viewmodel.task
 
@@ -12,8 +13,11 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import timber.log.Timber
+import javax.inject.Inject
 
-open class BaseTaskViewModel : ViewModel() {
+open class BaseTaskViewModel @Inject constructor(
+    private val aiEstimateGenerator: AiEstimateGenerator
+) : ViewModel() {
 
     private val _description = MutableStateFlow("")
     val description: StateFlow<String> = _description.asStateFlow()
@@ -46,8 +50,20 @@ open class BaseTaskViewModel : ViewModel() {
     private val _isSending = MutableStateFlow(false)
     val isSending: StateFlow<Boolean> = _isSending.asStateFlow()
 
-    protected fun setIsSending(value: Boolean) {
+    fun setIsSending(value: Boolean) {
         _isSending.value = value
+    }
+
+    private val _error = MutableStateFlow<String?>(null)
+    val error: StateFlow<String?> = _error.asStateFlow()
+
+    // Public så WizardScreen kan vise fejl som rød tekst
+    fun setError(message: String?) {
+        _error.value = message
+    }
+
+    fun clearError() {
+        _error.value = null
     }
 
     private val _currentCategory = MutableStateFlow("")
@@ -57,34 +73,35 @@ open class BaseTaskViewModel : ViewModel() {
         _currentCategory.value = category
     }
 
-    // Placeholder AI-generation (Gemini Nano local → cloud fallback)
-    open fun generateAiEstimate() {
+    open fun generateAiEstimate(areaM2: Float) {
         if (_isGeneratingEstimate.value) return
 
         viewModelScope.launch {
             _isGeneratingEstimate.value = true
-            try {
-                // TODO: Reel Gemini Nano + cloud integration her
-                // Placeholder for test
-                _aiPriceEstimate.value = 15000L
-            } catch (e: Exception) {
-                Timber.e(e, "AI estimate fejl")
-                _aiPriceEstimate.value = null
-            } finally {
-                _isGeneratingEstimate.value = false
-            }
+            aiEstimateGenerator.generateEstimate(
+                category = currentCategory.value,
+                areaM2 = areaM2,
+                description = description.value,
+                onSuccess = { estimate ->
+                    _aiPriceEstimate.value = estimate
+                },
+                onError = { msg ->
+                    setError(msg)
+                    _aiPriceEstimate.value = null
+                }
+            )
+            _isGeneratingEstimate.value = false
         }
     }
 
-    // Open sendTask – override i specifikke ViewModels med reel repository-logik
     open fun sendTask(onComplete: () -> Unit) {
         viewModelScope.launch {
             setIsSending(true)
             try {
-                // Placeholder – reel logik i specifikke
                 onComplete()
             } catch (e: Exception) {
                 Timber.e(e, "Send task fejl")
+                setError("Kunne ikke sende opgaven")
             } finally {
                 setIsSending(false)
             }

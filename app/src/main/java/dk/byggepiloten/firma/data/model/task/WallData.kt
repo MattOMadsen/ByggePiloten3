@@ -1,7 +1,8 @@
 // Fil: app/src/main/java/dk/byggepiloten/firma/data/model/task/WallData.kt
-// OPDATERET – Tilføjet accessProblems + accessCustomDescription (til AccessStep)
-// Photos håndteres separat i ViewModel (Uri → URL ved send)
-// Linjer: original + 6 nye felter
+// FULD OPDATERET – Tilføjet nye felter til special sten
+// specialStoneName: String? (navn)
+// specialStoneLink: String? (link – valgfrit)
+// Felter placeret efter stoneType for logisk rækkefølge
 
 package dk.byggepiloten.firma.data.model.task
 
@@ -28,7 +29,7 @@ data class WallData(
 
     // Step 4: Dimensioner
     var wallCount: Int? = null,
-    var wallMode: String? = null,                 // "samlet" eller "individuel"
+    var wallMode: String? = null,
     var wallTotalAreaM2: Float? = null,
     var wallMeasurements: List<WallMeasurement> = emptyList(),
 
@@ -36,9 +37,12 @@ data class WallData(
     var thicknessOption: String? = null,
     var customThickness: Int? = null,
 
-    // Ny mur: Materialer
+    // Ny mur: Materialer – sten
     var stoneType: String? = null,
-    var customStoneType: String? = null,
+    var specialStoneName: String? = null,     // NYT: Navn på special sten
+    var specialStoneLink: String? = null,     // NYT: Valgfrit link til special sten
+
+    // Ny mur: Mørtel
     var mortarType: String? = null,
     var customMortarType: String? = null,
 
@@ -63,9 +67,12 @@ data class WallData(
     var surfaceFinish: String? = null,
     var customSurface: String? = null,
 
-    // Ny mur (kun facademur): Isolering
+    // Nyt: Vejr/tidspunkt
+    var vejrTidspunkt: String? = null,
+
+    // Ny mur (facademur): Isolering
     var insulationWanted: Boolean? = null,
-    var insulationThickness: Float? = null,       // cm
+    var insulationThickness: Float? = null,
 
     // Ny mur: Fundament
     var foundationOption: String? = null,

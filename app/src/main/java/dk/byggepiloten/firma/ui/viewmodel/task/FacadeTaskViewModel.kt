@@ -3,8 +3,7 @@
 // + StepPhotos (Map<String, List<Uri>>) – upload + labels (f.eks. "Billeder af underlag")
 // + Beregn areaM2 = area (ingen åbninger i facade)
 // + Arver fra BaseTaskViewModel
-// + Fuld imports + kommentarer
-// Ca. 380 linjer
+// RETTET: Tilføjet aiEstimateGenerator til constructor.
 
 package dk.byggepiloten.firma.ui.viewmodel.task
 
@@ -28,8 +27,9 @@ import javax.inject.Inject
 
 @HiltViewModel
 class FacadeTaskViewModel @Inject constructor(
-    private val application: Application
-) : BaseTaskViewModel() {
+    private val application: Application,
+    aiEstimateGenerator: AiEstimateGenerator
+) : BaseTaskViewModel(aiEstimateGenerator) {
 
     private val _facadeData = MutableStateFlow(FacadeData())
     val facadeData = _facadeData.asStateFlow()

@@ -1,7 +1,7 @@
 // Fil: app/src/main/java/dk/byggepiloten/firma/ui/viewmodel/task/FliserTaskViewModel.kt
 // FULD OPDATERET – TILFØJET REEL BILLEDE-UPLOAD (general) MED SERVER-ID FLOW
 // + images sættes som URLs
-// + ca. 220 linjer
+// RETTET: Tilføjet aiEstimateGenerator til constructor.
 
 package dk.byggepiloten.firma.ui.viewmodel.task
 
@@ -22,8 +22,9 @@ import javax.inject.Inject
 
 @HiltViewModel
 class FliserTaskViewModel @Inject constructor(
-    private val requestRepository: RequestRepository
-) : BaseTaskViewModel() {
+    private val requestRepository: RequestRepository,
+    aiEstimateGenerator: AiEstimateGenerator
+) : BaseTaskViewModel(aiEstimateGenerator) {
 
     private val _fliserData = MutableStateFlow(FliserData())
     val fliserData = _fliserData.asStateFlow()
@@ -49,7 +50,6 @@ class FliserTaskViewModel @Inject constructor(
                     "floorLength" to (d.floorLength ?: 0f),
                     "floorWidth" to (d.floorWidth ?: 0f),
                     "netArea" to netArea
-                    // Tilføj flere details efter behov
                 )
 
                 val tempRequest = Request(

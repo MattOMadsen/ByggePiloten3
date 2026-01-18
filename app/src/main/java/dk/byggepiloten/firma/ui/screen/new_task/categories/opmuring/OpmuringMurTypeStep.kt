@@ -1,7 +1,6 @@
 // Fil: app/src/main/java/dk/byggepiloten/firma/ui/screen/new_task/categories/opmuring/OpmuringMurTypeStep.kt
-// 100% MATCH MED ORIGINAL – INGEN ÆNDRING I INDHOLD/OPTIONS
-// Layout refactored til ChoiceBoxRow + StyledTextField
-// Linjer: 92
+// FULD RETTET – KeyboardOptions rettet (korrekt brug af KeyboardType)
+// Tilføjet collectAsStateWithLifecycle
 
 package dk.byggepiloten.firma.ui.screen.new_task.categories.opmuring
 
@@ -11,43 +10,61 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dk.byggepiloten.firma.data.model.task.WallData
-import dk.byggepiloten.firma.ui.screen.new_task.components.common.ChoiceBoxRow
+import dk.byggepiloten.firma.ui.screen.new_task.components.common.ChoiceBox
 import dk.byggepiloten.firma.ui.screen.new_task.components.common.StyledTextField
+import dk.byggepiloten.firma.ui.viewmodel.task.OpmuringTaskViewModel
+
+private val murTypeOptions = listOf(
+    "Facademur (skalmur/ydervæg)",
+    "Indvendig væg",
+    "Have-/ støttemur",
+    "Andet"
+)
 
 @Composable
 fun OpmuringMurTypeStep(
-    data: WallData,
-    onDataChange: (WallData) -> Unit
+    viewModel: OpmuringTaskViewModel
 ) {
-    Column(modifier = Modifier.fillMaxWidth()) {
+    val data by viewModel.wallData.collectAsStateWithLifecycle()
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(32.dp)
+    ) {
         Text(
             text = "Hvilken type mur skal opmures eller repareres?",
-            style = MaterialTheme.typography.titleMedium,
-            color = Color.White,
-            modifier = Modifier.padding(bottom = 16.dp)
+            style = MaterialTheme.typography.headlineMedium,
+            fontWeight = FontWeight.Bold,
+            color = Color.White
         )
 
-        val options = listOf(
-            "Facademur (skalmur/ydervæg)",
-            "Bagmur eller indvendig væg",
-            "Havemur eller støttemur",
-            "Andet"
-        )
-
-        ChoiceBoxRow(
-            options = options,
+        ChoiceBox(
+            options = murTypeOptions,
             selectedOption = data.murType,
-            onOptionSelected = { onDataChange(data.copy(murType = it, customMurType = if (it != "Andet") null else data.customMurType)) }
+            onOptionSelected = { option ->
+                viewModel.updateWallData(
+                    data.copy(
+                        murType = option,
+                        customMurType = if (option == "Andet") data.customMurType else null
+                    )
+                )
+            }
         )
 
         if (data.murType == "Andet") {
-            Spacer(Modifier.height(24.dp))
             StyledTextField(
                 value = data.customMurType ?: "",
-                onValueChange = { onDataChange(data.copy(customMurType = it)) },
-                label = "Beskriv murtypen"
+                onValueChange = { viewModel.updateWallData(data.copy(customMurType = it)) },
+                label = "Beskriv hvilken type mur",
+                keyboardType = KeyboardType.Text,
+                singleLine = false
             )
         }
     }

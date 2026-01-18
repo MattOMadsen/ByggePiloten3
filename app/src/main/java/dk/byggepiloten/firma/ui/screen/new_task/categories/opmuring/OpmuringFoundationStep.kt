@@ -1,6 +1,7 @@
 // Fil: app/src/main/java/dk/byggepiloten/firma/ui/screen/new_task/categories/opmuring/OpmuringFoundationStep.kt
-// FULD ORIGINAL FRA REPO (78 linjer) + tilføjet valgfri PhotoUploadSection + rettet ChoiceBoxRow til selectedOption/onOptionSelected
-// Linjer: 102
+// FULD OPDATERET – Ændret til viewModel-parameter
+// Bind direkte til viewModel.updateWallData
+// Layout uændret (ChoiceBox + custom fundament)
 
 package dk.byggepiloten.firma.ui.screen.new_task.categories.opmuring
 
@@ -10,52 +11,54 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import dk.byggepiloten.firma.data.model.task.WallData
-import dk.byggepiloten.firma.ui.screen.new_task.components.PhotoUploadSection
-import dk.byggepiloten.firma.ui.screen.new_task.components.common.ChoiceBoxRow
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import dk.byggepiloten.firma.ui.screen.new_task.components.common.ChoiceBox
 import dk.byggepiloten.firma.ui.screen.new_task.components.common.StyledTextField
-import android.net.Uri
+import dk.byggepiloten.firma.ui.viewmodel.task.OpmuringTaskViewModel
+
+private val foundationOptions = listOf("Eksisterende fundament", "Nyt fundament", "Andet")
 
 @Composable
 fun OpmuringFoundationStep(
-    data: WallData,
-    onDataChange: (WallData) -> Unit,
-    foundationPhotos: List<Uri> = emptyList(),
-    onFoundationPhotosChange: (List<Uri>) -> Unit = {}
+    viewModel: OpmuringTaskViewModel
 ) {
-    Column(modifier = Modifier.fillMaxWidth()) {
+    val data by viewModel.wallData.collectAsStateWithLifecycle()
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(32.dp)
+    ) {
         Text(
-            text = "Hvilket fundament skal muren stå på?",
-            style = MaterialTheme.typography.titleMedium,
-            color = Color.White,
-            modifier = Modifier.padding(bottom = 16.dp)
+            text = "Hvad med fundamentet?",
+            style = MaterialTheme.typography.headlineMedium,
+            fontWeight = FontWeight.Bold,
+            color = Color.White
         )
 
-        val options = listOf("Eksisterende fundament", "Nyt fundament støbt", "Andet")
-
-        ChoiceBoxRow(
-            options = options,
+        ChoiceBox(
+            options = foundationOptions,
             selectedOption = data.foundationOption,
-            onOptionSelected = { onDataChange(data.copy(foundationOption = it, customFoundation = if (it != "Andet") null else data.customFoundation)) }
+            onOptionSelected = { option ->
+                viewModel.updateWallData(
+                    data.copy(
+                        foundationOption = option,
+                        customFoundation = if (option == "Andet") data.customFoundation else null
+                    )
+                )
+            }
         )
 
         if (data.foundationOption == "Andet") {
-            Spacer(Modifier.height(24.dp))
             StyledTextField(
                 value = data.customFoundation ?: "",
-                onValueChange = { onDataChange(data.copy(customFoundation = it)) },
-                label = "Beskriv fundament"
+                onValueChange = { viewModel.updateWallData(data.copy(customFoundation = it)) },
+                label = "Beskriv fundament",
+                singleLine = false
             )
         }
-
-        Spacer(Modifier.height(32.dp))
-
-        PhotoUploadSection(
-            label = "Upload billeder af fundamentet (anbefalet)",
-            isRequired = false,
-            currentUris = foundationPhotos,
-            onUrisChange = onFoundationPhotosChange
-        )
     }
 }

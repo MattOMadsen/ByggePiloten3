@@ -1,37 +1,49 @@
 // Fil: app/src/main/java/dk/byggepiloten/firma/ui/screen/new_task/categories/opmuring/OpmuringBearingWallStep.kt
-// FULD RETTET – MED FILLMAXWIDTH IMPORT
-// Linjer: 62
+// FULD OPDATERET – Ændret til viewModel-parameter
+// Bind direkte til viewModel.updateWallData
+// Layout uændret (ChoiceBox Ja/Nej)
 
 package dk.byggepiloten.firma.ui.screen.new_task.categories.opmuring
 
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import dk.byggepiloten.firma.data.model.task.WallData
-import dk.byggepiloten.firma.ui.screen.new_task.components.common.YesNoRow
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import dk.byggepiloten.firma.ui.screen.new_task.components.common.ChoiceBox
+import dk.byggepiloten.firma.ui.viewmodel.task.OpmuringTaskViewModel
+
+private val options = listOf("Ja", "Nej")
 
 @Composable
 fun OpmuringBearingWallStep(
-    data: WallData,
-    onDataChange: (WallData) -> Unit
+    viewModel: OpmuringTaskViewModel
 ) {
-    Column(modifier = Modifier.fillMaxWidth()) {
+    val data by viewModel.wallData.collectAsStateWithLifecycle()
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(32.dp)
+    ) {
         Text(
             text = "Er muren bærende?",
-            style = MaterialTheme.typography.titleMedium,
-            color = Color.White,
-            modifier = Modifier.padding(bottom = 16.dp)
+            style = MaterialTheme.typography.headlineMedium,
+            fontWeight = FontWeight.Bold,
+            color = Color.White
         )
 
-        YesNoRow(
-            selected = data.bearingWall,
-            onSelected = { onDataChange(data.copy(bearingWall = it)) }
+        ChoiceBox(
+            options = options,
+            selectedOption = if (data.bearingWall == true) "Ja" else if (data.bearingWall == false) "Nej" else null,
+            onOptionSelected = { option ->
+                viewModel.updateWallData(data.copy(bearingWall = option == "Ja"))
+            }
         )
     }
 }

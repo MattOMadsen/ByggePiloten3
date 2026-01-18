@@ -1,7 +1,7 @@
 // Fil: app/src/main/java/dk/byggepiloten/firma/ui/screen/new_task/categories/opmuring/OpmuringThicknessStep.kt
-// 100% MATCH MED ORIGINAL – KORREKT MM-VÆRDIER ("108 mm (½ sten)" osv.)
-// Layout refactored til ChoiceBoxRow + StyledTextField (Int for mm)
-// Linjer: 82
+// FULD OPDATERET – Ændret til viewModel-parameter
+// Bind direkte til viewModel.updateWallData
+// Layout uændret (ChoiceBox + custom felt)
 
 package dk.byggepiloten.firma.ui.screen.new_task.categories.opmuring
 
@@ -11,40 +11,56 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import dk.byggepiloten.firma.data.model.task.WallData
-import dk.byggepiloten.firma.ui.screen.new_task.components.common.ChoiceBoxRow
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import dk.byggepiloten.firma.ui.screen.new_task.components.common.ChoiceBox
 import dk.byggepiloten.firma.ui.screen.new_task.components.common.StyledTextField
+import dk.byggepiloten.firma.ui.viewmodel.task.OpmuringTaskViewModel
+
+private val thicknessOptions = listOf("108 mm (halvsten)", "228 mm (helsten)", "348 mm (1½ sten)", "Andet")
 
 @Composable
 fun OpmuringThicknessStep(
-    data: WallData,
-    onDataChange: (WallData) -> Unit
+    viewModel: OpmuringTaskViewModel
 ) {
-    Column(modifier = Modifier.fillMaxWidth()) {
+    val data by viewModel.wallData.collectAsStateWithLifecycle()
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(32.dp)
+    ) {
         Text(
             text = "Hvilken tykkelse skal muren have?",
-            style = MaterialTheme.typography.titleMedium,
-            color = Color.White,
-            modifier = Modifier.padding(bottom = 16.dp)
+            style = MaterialTheme.typography.headlineMedium,
+            fontWeight = FontWeight.Bold,
+            color = Color.White
         )
 
-        val options = listOf("108 mm (½ sten)", "228 mm (1 sten)", "348 mm (1½ sten)", "Andet")
-
-        ChoiceBoxRow(
-            options = options,
+        ChoiceBox(
+            options = thicknessOptions,
             selectedOption = data.thicknessOption,
-            onOptionSelected = { onDataChange(data.copy(thicknessOption = it, customThickness = if (it != "Andet") null else data.customThickness)) }
+            onOptionSelected = { option ->
+                viewModel.updateWallData(
+                    data.copy(
+                        thicknessOption = option,
+                        customThickness = if (option == "Andet") data.customThickness else null
+                    )
+                )
+            }
         )
 
         if (data.thicknessOption == "Andet") {
-            Spacer(Modifier.height(24.dp))
             StyledTextField(
                 value = data.customThickness?.toString() ?: "",
-                onValueChange = { if (it.isEmpty() || it.toIntOrNull() != null) onDataChange(data.copy(customThickness = it.toIntOrNull())) },
-                label = "Tykkelse (mm)",
-                keyboardType = KeyboardType.Number
+                onValueChange = { value ->
+                    viewModel.updateWallData(data.copy(customThickness = value.toIntOrNull()))
+                },
+                label = "Angiv tykkelse i mm",
+                keyboardType = androidx.compose.ui.text.input.KeyboardType.Number,
+                singleLine = true
             )
         }
     }

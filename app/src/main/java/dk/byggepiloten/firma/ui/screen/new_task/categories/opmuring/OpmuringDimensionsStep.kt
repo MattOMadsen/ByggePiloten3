@@ -1,79 +1,122 @@
 // Fil: app/src/main/java/dk/byggepiloten/firma/ui/screen/new_task/categories/opmuring/OpmuringDimensionsStep.kt
-// FULD OPdatering – LaunchedEffect sætter default "Samlet areal" hvis wallMode == null
-// UI viser altid korrekt pre-select (via ?: "Samlet areal")
-// Live opdatering beholdt – areal/målinger registeres øjeblikkeligt
-// Linjer: 132 (ca. +20 pga. LaunchedEffect + kommentarer)
+// FULD RETTET – copy() rettet med korrekte parameter-navne (length, height)
+// sumOf rettet med toDouble()
 
 package dk.byggepiloten.firma.ui.screen.new_task.categories.opmuring
 
 import androidx.compose.foundation.layout.*
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import dk.byggepiloten.firma.data.model.task.WallData
-import dk.byggepiloten.firma.ui.screen.new_task.components.common.ChoiceBoxRow
-import dk.byggepiloten.firma.ui.screen.new_task.components.common.MeasurementRow
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import dk.byggepiloten.firma.data.model.task.WallMeasurement
 import dk.byggepiloten.firma.ui.screen.new_task.components.common.StyledTextField
+import dk.byggepiloten.firma.ui.theme.ByggePilotenBlue
+import dk.byggepiloten.firma.ui.viewmodel.task.OpmuringTaskViewModel
 
 @Composable
 fun OpmuringDimensionsStep(
-    data: WallData,
-    onDataChange: (WallData) -> Unit
+    viewModel: OpmuringTaskViewModel
 ) {
-    Column(modifier = Modifier.fillMaxWidth()) {
+    val data by viewModel.wallData.collectAsStateWithLifecycle()
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(40.dp)
+    ) {
         Text(
-            text = "Hvad er dimensionerne på muren?",
-            style = MaterialTheme.typography.titleMedium,
-            color = Color.White,
-            modifier = Modifier.padding(bottom = 16.dp)
+            text = "Angiv mål på væggene",
+            style = MaterialTheme.typography.headlineMedium,
+            fontWeight = FontWeight.Bold,
+            color = Color.White
         )
 
-        val modeOptions = listOf("Samlet areal", "Individuelle vægge")
+        Text(
+            text = "Tilføj én eller flere vægge – samlet areal beregnes automatisk",
+            style = MaterialTheme.typography.bodyLarge,
+            color = Color.White.copy(alpha = 0.9f)
+        )
 
-        // Pre-select "Samlet areal" i UI selv hvis wallMode == null
-        ChoiceBoxRow(
-            options = modeOptions,
-            selectedOption = data.wallMode ?: "Samlet areal",
-            onOptionSelected = {
-                val clearedMeasurements = if (it == "Samlet areal") emptyList() else data.wallMeasurements
-                onDataChange(
-                    data.copy(
-                        wallMode = it,
-                        wallMeasurements = clearedMeasurements,
-                        wallTotalAreaM2 = if (it == "Samlet areal") data.wallTotalAreaM2 else null
-                    )
+        data.wallMeasurements.forEachIndexed { index, measurement ->
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                StyledTextField(
+                    value = measurement.length?.toString() ?: "",
+                    onValueChange = { value ->
+                        val newList = data.wallMeasurements.toMutableList()
+                        newList[index] = measurement.copy(length = value.toFloatOrNull())
+                        viewModel.updateWallData(data.copy(wallMeasurements = newList))
+                    },
+                    label = "Længde (m)",
+                    keyboardType = KeyboardType.Decimal,
+                    singleLine = true,
+                    modifier = Modifier.weight(1f)
                 )
-            },
-            modifier = Modifier.padding(bottom = 24.dp)
-        )
 
-        // Auto-set default mode hvis wallMode == null (f.eks. ny task)
-        // Kører kun én gang ved første load af steppet
-        LaunchedEffect(Unit) {
-            if (data.wallMode == null) {
-                onDataChange(data.copy(wallMode = "Samlet areal"))
+                Spacer(Modifier.width(16.dp))
+
+                StyledTextField(
+                    value = measurement.height?.toString() ?: "",
+                    onValueChange = { value ->
+                        val newList = data.wallMeasurements.toMutableList()
+                        newList[index] = measurement.copy(height = value.toFloatOrNull())
+                        viewModel.updateWallData(data.copy(wallMeasurements = newList))
+                    },
+                    label = "Højde (m)",
+                    keyboardType = KeyboardType.Decimal,
+                    singleLine = true,
+                    modifier = Modifier.weight(1f)
+                )
+
+                IconButton(
+                    onClick = {
+                        val newList = data.wallMeasurements.toMutableList()
+                        if (newList.size > 1) newList.removeAt(index)
+                        viewModel.updateWallData(data.copy(wallMeasurements = newList))
+                    },
+                    enabled = data.wallMeasurements.size > 1
+                ) {
+                    Icon(Icons.Filled.Close, contentDescription = "Fjern væg", tint = Color.White)
+                }
             }
         }
 
-        if (data.wallMode == "Samlet areal") {
-            StyledTextField(
-                value = data.wallTotalAreaM2?.toString() ?: "",
-                onValueChange = { newValue ->
-                    val cleaned = newValue.replace(',', '.')
-                    onDataChange(data.copy(wallTotalAreaM2 = cleaned.toFloatOrNull()))
-                },
-                label = "Samlet areal (m²)",
-                keyboardType = KeyboardType.Decimal,
-                singleLine = true
-            )
-        } else if (data.wallMode == "Individuelle vægge") {
-            MeasurementRow(
-                measurements = data.wallMeasurements,
-                onMeasurementsChange = { onDataChange(data.copy(wallMeasurements = it)) }
+        FilledTonalButton(
+            onClick = {
+                viewModel.updateWallData(
+                    data.copy(
+                        wallMeasurements = data.wallMeasurements + WallMeasurement()
+                    )
+                )
+            },
+            colors = ButtonDefaults.filledTonalButtonColors(
+                containerColor = Color.White,
+                contentColor = ByggePilotenBlue
+            ),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("Tilføj væg", fontWeight = FontWeight.Medium)
+        }
+
+        val totalArea = data.wallMeasurements.sumOf { ((it.length ?: 0f) * (it.height ?: 0f)).toDouble() }.toFloat()
+        if (totalArea > 0f) {
+            Text(
+                text = "Samlet vægareal: %.2f m²".format(totalArea),
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = FontWeight.Bold,
+                color = Color.White,
+                modifier = Modifier.align(Alignment.CenterHorizontally).padding(top = 24.dp)
             )
         }
     }

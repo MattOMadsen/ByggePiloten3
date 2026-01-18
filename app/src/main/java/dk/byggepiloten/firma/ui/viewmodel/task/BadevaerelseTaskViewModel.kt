@@ -1,7 +1,7 @@
 // Fil: app/src/main/java/dk/byggepiloten/firma/ui/viewmodel/task/BadevaerelseTaskViewModel.kt
 // FULD OPDATERET – TILFØJET REEL BILLEDE-UPLOAD (general) MED SERVER-ID FLOW
 // + images sættes som URLs
-// + ca. 230 linjer
+// RETTET: Tilføjet aiEstimateGenerator til constructor.
 
 package dk.byggepiloten.firma.ui.viewmodel.task
 
@@ -22,8 +22,9 @@ import javax.inject.Inject
 
 @HiltViewModel
 class BadevaerelseTaskViewModel @Inject constructor(
-    private val requestRepository: RequestRepository
-) : BaseTaskViewModel() {
+    private val requestRepository: RequestRepository,
+    aiEstimateGenerator: AiEstimateGenerator
+) : BaseTaskViewModel(aiEstimateGenerator) {
 
     private val _badevaerelseData = MutableStateFlow(BadevaerelseData())
     val badevaerelseData = _badevaerelseData.asStateFlow()
@@ -48,7 +49,6 @@ class BadevaerelseTaskViewModel @Inject constructor(
                     "floorWidth" to (d.floorWidth ?: 0f),
                     "wallHeight" to (d.wallHeight ?: 0f),
                     "netArea" to netArea
-                    // Tilføj flere details efter behov
                 )
 
                 val tempRequest = Request(

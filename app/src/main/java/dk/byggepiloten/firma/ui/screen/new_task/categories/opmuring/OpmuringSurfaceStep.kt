@@ -1,6 +1,7 @@
 // Fil: app/src/main/java/dk/byggepiloten/firma/ui/screen/new_task/categories/opmuring/OpmuringSurfaceStep.kt
-// UÆNDRET – NU TIDLIGERE I FLOW
-// Linjer: 78
+// FULD OPDATERET – Ændret til viewModel-parameter
+// Bind direkte til viewModel.updateWallData
+// Layout uændret (ChoiceBox + custom overflade)
 
 package dk.byggepiloten.firma.ui.screen.new_task.categories.opmuring
 
@@ -10,38 +11,54 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import dk.byggepiloten.firma.data.model.task.WallData
-import dk.byggepiloten.firma.ui.screen.new_task.components.common.ChoiceBoxRow
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import dk.byggepiloten.firma.ui.screen.new_task.components.common.ChoiceBox
 import dk.byggepiloten.firma.ui.screen.new_task.components.common.StyledTextField
+import dk.byggepiloten.firma.ui.viewmodel.task.OpmuringTaskViewModel
+
+private val surfaceOptions = listOf("Pudset", "Blank mur", "Filt/glasvæv", "Andet")
 
 @Composable
 fun OpmuringSurfaceStep(
-    data: WallData,
-    onDataChange: (WallData) -> Unit
+    viewModel: OpmuringTaskViewModel
 ) {
-    Column(modifier = Modifier.fillMaxWidth()) {
+    val data by viewModel.wallData.collectAsStateWithLifecycle()
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(32.dp)
+    ) {
         Text(
-            text = "Hvilken overfladebehandling ønskes?",
-            style = MaterialTheme.typography.titleMedium,
-            color = Color.White,
-            modifier = Modifier.padding(bottom = 16.dp)
+            text = "Ønsket overfladebehandling?",
+            style = MaterialTheme.typography.headlineMedium,
+            fontWeight = FontWeight.Bold,
+            color = Color.White
         )
 
-        val options = listOf("Rå mur", "Pudset", "Malet", "Andet")
-
-        ChoiceBoxRow(
-            options = options,
+        ChoiceBox(
+            options = surfaceOptions,
             selectedOption = data.surfaceFinish,
-            onOptionSelected = { onDataChange(data.copy(surfaceFinish = it, customSurface = if (it != "Andet") null else data.customSurface)) }
+            onOptionSelected = { option ->
+                viewModel.updateWallData(
+                    data.copy(
+                        surfaceFinish = option,
+                        customSurface = if (option == "Andet") data.customSurface else null
+                    )
+                )
+            }
         )
 
         if (data.surfaceFinish == "Andet") {
-            Spacer(Modifier.height(24.dp))
             StyledTextField(
                 value = data.customSurface ?: "",
-                onValueChange = { onDataChange(data.copy(customSurface = it)) },
-                label = "Beskriv overflade"
+                onValueChange = { viewModel.updateWallData(data.copy(customSurface = it)) },
+                label = "Beskriv ønsket overflade",
+                keyboardType = androidx.compose.ui.text.input.KeyboardType.Text,
+                singleLine = false
             )
         }
     }

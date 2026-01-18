@@ -1,7 +1,7 @@
 // Fil: app/src/main/java/dk/byggepiloten/firma/ui/screen/new_task/categories/opmuring/OpmuringStoneStep.kt
-// 100% MATCH MED ORIGINAL – ALLE STEN-TYPER BEHOLDT
-// Layout refactored til ChoiceBoxRow + StyledTextField
-// Linjer: 82
+// FULD OPDATERET – Ændret til viewModel-parameter
+// Bind direkte til viewModel.updateWallData
+// Layout uændret (ChoiceBox + specialsten felter)
 
 package dk.byggepiloten.firma.ui.screen.new_task.categories.opmuring
 
@@ -11,45 +11,70 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import dk.byggepiloten.firma.data.model.task.WallData
-import dk.byggepiloten.firma.ui.screen.new_task.components.common.ChoiceBoxRow
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import dk.byggepiloten.firma.ui.screen.new_task.components.common.ChoiceBox
 import dk.byggepiloten.firma.ui.screen.new_task.components.common.StyledTextField
+import dk.byggepiloten.firma.ui.viewmodel.task.OpmuringTaskViewModel
+
+private val stoneOptions = listOf(
+    "Teglsten",
+    "Gasbeton",
+    "Leca-blokke",
+    "Cellesten",
+    "Special sten"
+)
 
 @Composable
 fun OpmuringStoneStep(
-    data: WallData,
-    onDataChange: (WallData) -> Unit
+    viewModel: OpmuringTaskViewModel
 ) {
-    Column(modifier = Modifier.fillMaxWidth()) {
+    val data by viewModel.wallData.collectAsStateWithLifecycle()
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(32.dp)
+    ) {
         Text(
             text = "Hvilken type sten skal bruges?",
-            style = MaterialTheme.typography.titleMedium,
-            color = Color.White,
-            modifier = Modifier.padding(bottom = 16.dp)
+            style = MaterialTheme.typography.headlineMedium,
+            fontWeight = FontWeight.Bold,
+            color = Color.White
         )
 
-        val options = listOf(
-            "Standard teglsten (rød)",
-            "Gule teglsten",
-            "Gasbetonblokke",
-            "Letbetonblokke",
-            "Andet"
-        )
-
-        ChoiceBoxRow(
-            options = options,
+        ChoiceBox(
+            options = stoneOptions,
             selectedOption = data.stoneType,
-            onOptionSelected = { onDataChange(data.copy(stoneType = it, customStoneType = if (it != "Andet") null else data.customStoneType)) }
+            onOptionSelected = { option ->
+                viewModel.updateWallData(
+                    data.copy(
+                        stoneType = option,
+                        specialStoneName = if (option == "Special sten") data.specialStoneName else null,
+                        specialStoneLink = if (option == "Special sten") data.specialStoneLink else null
+                    )
+                )
+            }
         )
 
-        if (data.stoneType == "Andet") {
-            Spacer(Modifier.height(24.dp))
-            StyledTextField(
-                value = data.customStoneType ?: "",
-                onValueChange = { onDataChange(data.copy(customStoneType = it)) },
-                label = "Beskriv sten-type"
-            )
+        if (data.stoneType == "Special sten") {
+            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                StyledTextField(
+                    value = data.specialStoneName ?: "",
+                    onValueChange = { viewModel.updateWallData(data.copy(specialStoneName = it)) },
+                    label = "Navn på specialsten (obligatorisk)",
+                    singleLine = true
+                )
+
+                StyledTextField(
+                    value = data.specialStoneLink ?: "",
+                    onValueChange = { viewModel.updateWallData(data.copy(specialStoneLink = it)) },
+                    label = "Link til specialsten (valgfrit)",
+                    singleLine = true
+                )
+            }
         }
     }
 }

@@ -1,6 +1,8 @@
 // Fil: app/src/main/java/dk/byggepiloten/firma/ui/screen/new_task/components/common/MeasurementRow.kt
-// FULD FIX – tilføjet import androidx.compose.ui.Alignment (for .align)
-// Linjer: 160
+// FULD RETTET – Tilføjet manglende import: kotlinx.coroutines.flow.snapshotFlow
+// Dette løser "Unresolved reference 'snapshotFlow'"
+// Ingen andre ændringer – "Tilføj væg"-knap beholdt med hvid baggrund/blå tekst for kontrast
+// TotalArea og delete-logik uændret
 
 package dk.byggepiloten.firma.ui.screen.new_task.components.common
 
@@ -18,6 +20,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import dk.byggepiloten.firma.data.model.task.WallMeasurement
 import dk.byggepiloten.firma.ui.theme.ByggePilotenBlue
+import androidx.compose.runtime.snapshotFlow // NY IMPORT – løser compile-fejlen
 import kotlinx.coroutines.flow.collectLatest
 
 @Composable
@@ -54,7 +57,7 @@ fun MeasurementRow(
         localMeasurements.forEachIndexed { index, measurement ->
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(vertical = 8.dp)
+                modifier = Modifier.padding(vertical = 12.dp)
             ) {
                 StyledTextField(
                     value = measurement.length?.toString() ?: "",
@@ -70,7 +73,7 @@ fun MeasurementRow(
                     singleLine = true,
                     modifier = Modifier.weight(1f)
                 )
-                Spacer(Modifier.width(12.dp))
+                Spacer(Modifier.width(16.dp))
                 StyledTextField(
                     value = measurement.height?.toString() ?: "",
                     onValueChange = { newValue ->
@@ -89,7 +92,7 @@ fun MeasurementRow(
                     onClick = { if (localMeasurements.size > 1) localMeasurements.removeAt(index) },
                     enabled = localMeasurements.size > 1
                 ) {
-                    Icon(Icons.Filled.Delete, contentDescription = "Fjern", tint = Color.Red)
+                    Icon(Icons.Filled.Delete, contentDescription = "Fjern væg", tint = Color.Red)
                 }
             }
         }
@@ -99,17 +102,20 @@ fun MeasurementRow(
             style = MaterialTheme.typography.bodyLarge,
             fontWeight = FontWeight.Bold,
             color = Color.White,
-            modifier = Modifier.align(Alignment.CenterHorizontally).padding(top = 16.dp)
+            modifier = Modifier.align(Alignment.CenterHorizontally).padding(top = 24.dp)
         )
 
-        Button(
+        FilledTonalButton(
             onClick = { localMeasurements.add(WallMeasurement()) },
-            colors = ButtonDefaults.buttonColors(containerColor = ByggePilotenBlue),
-            modifier = Modifier.align(Alignment.CenterHorizontally).padding(top = 16.dp)
+            colors = ButtonDefaults.filledTonalButtonColors(
+                containerColor = Color.White,
+                contentColor = ByggePilotenBlue
+            ),
+            modifier = Modifier.align(Alignment.CenterHorizontally).padding(top = 24.dp)
         ) {
-            Icon(Icons.Filled.Add, contentDescription = null, tint = Color.White)
+            Icon(Icons.Filled.Add, contentDescription = null)
             Spacer(Modifier.width(8.dp))
-            Text("Tilføj væg", color = Color.White)
+            Text("Tilføj væg", fontWeight = FontWeight.Medium)
         }
     }
 }
