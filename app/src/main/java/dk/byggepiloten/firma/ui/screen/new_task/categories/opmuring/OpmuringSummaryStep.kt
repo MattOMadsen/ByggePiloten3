@@ -1,25 +1,29 @@
 // Fil: app/src/main/java/dk/byggepiloten/firma/ui/screen/new_task/categories/opmuring/OpmuringSummaryStep.kt
-// FIX: Erstattet alle direkte .value-kald med collectAsStateWithLifecycle()
-// - Nu bruges by-delegation på description, imageUris og stepPhotos
-// - Fjerner lint-warningen "StateFlow.value should not be called within composition"
-// - Beholdt alle tidligere features (netto-areal, SummaryRow, AI-estimat, billed-count)
-// - Ingen nested scroll (allerede fjernet tidligere)
-// Total lines: 198
+// FIX: Vis error fra viewModel.error som rød banner øverst (hvis ikke null)
+// - Error ryddes automatisk ved ny generation (fra BaseTaskViewModel-fix)
+// - Beholdt billed-preview, bullet-adgangsproblemer, gul hint kun ved 0 billeder
+// - Ingen gul tekst fra AiEstimateSection mere
+// Total lines: 298
 
 package dk.byggepiloten.firma.ui.screen.new_task.categories.opmuring
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import coil.compose.AsyncImage
 import dk.byggepiloten.firma.data.model.task.WallData
 import dk.byggepiloten.firma.ui.screen.photos.components.AiEstimateSection
 import dk.byggepiloten.firma.ui.theme.ByggePilotenBlue
@@ -36,6 +40,13 @@ fun OpmuringSummaryStep(
     val description by viewModel.description.collectAsStateWithLifecycle()
     val imageUris by viewModel.imageUris.collectAsStateWithLifecycle()
     val stepPhotos by viewModel.stepPhotos.collectAsStateWithLifecycle()
+    val error by viewModel.error.collectAsStateWithLifecycle()
+
+    // Saml ALLE billeder til preview
+    val allUris = remember(imageUris, stepPhotos) {
+        imageUris + stepPhotos.values.flatten()
+    }
+    val totalImageCount = allUris.size
 
     Column(
         modifier = Modifier
@@ -50,7 +61,22 @@ fun OpmuringSummaryStep(
             color = Color.White
         )
 
-        // Live netto-areal teaser øverst
+        // Rød error-banner øverst hvis fejl
+        error?.let {
+            Card(
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(
+                    text = it,
+                    color = MaterialTheme.colorScheme.onErrorContainer,
+                    style = MaterialTheme.typography.bodyLarge,
+                    modifier = Modifier.padding(16.dp)
+                )
+            }
+        }
+
+        // Live netto-areal teaser
         val totalWallArea = remember(data.wallMeasurements, data.wallTotalAreaM2) {
             if (data.wallMode == "Samlet areal") data.wallTotalAreaM2 ?: 0f
             else data.wallMeasurements.sumOf { ((it.length ?: 0f) * (it.height ?: 0f)).toDouble() }.toFloat()
@@ -121,30 +147,87 @@ fun OpmuringSummaryStep(
         }
 
         data.goodAccess?.let { SummaryRow("God adgang", if (it) "Ja" else "Nej") }
+
         if (data.accessProblems.isNotEmpty()) {
-            SummaryRow("Adgangsproblemer", data.accessProblems.joinToString(", "))
-            data.accessCustomDescription?.let { SummaryRow("Yderligere beskrivelse", it) }
+            SummaryRow("Adgangsproblemer", "")
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                data.accessProblems.forEach { problem ->
+                    Text(
+                        text = "• $problem",
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = Color.White.copy(alpha = 0.9f)
+                    )
+                }
+                data.accessCustomDescription?.let { custom ->
+                    Text(
+                        text = custom,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = Color.White.copy(alpha = 0.8f)
+                    )
+                }
+            }
         }
 
-        // AI-estimat
+        // AI-estimat sektion (ingen fallback-tekst her)
         AiEstimateSection(
             isGeneratingEstimate = isGeneratingEstimate,
             aiPriceEstimate = aiPriceEstimate
         )
+
+        // Gul hint kun ved 0 billeder
+        if (totalImageCount == 0) {
+            Text(
+                text = "Ingen AI-estimat endnu – tilføj billeder for bedre resultat",
+                style = MaterialTheme.typography.bodyLarge,
+                color = Color(0xFFFFD700)
+            )
+        }
 
         // Beskrivelse
         if (description.isNotBlank()) {
             SummaryRow("Din beskrivelse", description)
         }
 
-        // Billeder
-        val generalCount = imageUris.size
-        val stepCount = stepPhotos.values.sumOf { it.size }
+        // Billed-count + preview
         Text(
-            text = "Uploadede billeder: $generalCount generelle + $stepCount trin-specifikke",
+            text = "Uploadede billeder: ${imageUris.size} generelle + ${stepPhotos.values.sumOf { it.size }} trin-specifikke",
             style = MaterialTheme.typography.bodyLarge,
             color = Color.White.copy(alpha = 0.9f)
         )
+
+        if (allUris.isNotEmpty()) {
+            Text(
+                text = "Dine billeder",
+                style = MaterialTheme.typography.titleLarge,
+                color = Color.White,
+                modifier = Modifier.padding(top = 8.dp)
+            )
+
+            val chunks = allUris.chunked(3)
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                chunks.forEach { rowUris ->
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        rowUris.forEach { uri ->
+                            AsyncImage(
+                                model = uri,
+                                contentDescription = "Uploadet billede",
+                                contentScale = ContentScale.Crop,
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .aspectRatio(1f)
+                                    .clip(RoundedCornerShape(12.dp))
+                            )
+                        }
+                        repeat(3 - rowUris.size) {
+                            Spacer(modifier = Modifier.weight(1f))
+                        }
+                    }
+                }
+            }
+        }
 
         Spacer(Modifier.height(32.dp))
     }

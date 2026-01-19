@@ -1,9 +1,8 @@
 // Fil: app/src/main/java/dk/byggepiloten/firma/ui/screen/new_task/categories/opmuring/OpmuringAiPreviewStep.kt
-// NY FIL – 92 linjer
-// + Viser AI-estimat via reusable AiEstimateSection
-// + Henter isGenerating + aiPriceEstimate fra BaseTaskViewModel (antager felter der)
-// + Fallback-tekst hvis ingen estimat
-// + Centreret layout med kort forklaring
+// FIX: Vis error fra viewModel.error (collect fra BaseTaskViewModel via cast)
+// - Rød fejlmeddelelse vises centreret hvis generation fejlede
+// - Ingen neutral fallback – error kommer direkte fra generatoren
+// Total lines: 98
 
 package dk.byggepiloten.firma.ui.screen.new_task.categories.opmuring
 
@@ -18,18 +17,16 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dk.byggepiloten.firma.ui.screen.photos.components.AiEstimateSection
 import dk.byggepiloten.firma.ui.viewmodel.task.BaseTaskViewModel
+import dk.byggepiloten.firma.ui.viewmodel.task.OpmuringTaskViewModel
 
-/**
- * Sidste step i wizard: Visning af AI-genereret prisestimat.
- * Bruger reusable AiEstimateSection.
- * Kaldes automatisk i summary/AI-step efter calculateAndGenerateEstimate().
- */
 @Composable
 fun OpmuringAiPreviewStep(
-    viewModel: BaseTaskViewModel
+    viewModel: OpmuringTaskViewModel // Vi caster til Base for at få error-flow
 ) {
+    val baseViewModel = viewModel as BaseTaskViewModel
     val isGenerating by viewModel.isGeneratingEstimate.collectAsStateWithLifecycle()
     val aiEstimate by viewModel.aiPriceEstimate.collectAsStateWithLifecycle()
+    val error by baseViewModel.error.collectAsStateWithLifecycle()
 
     Column(
         modifier = Modifier
@@ -38,7 +35,7 @@ fun OpmuringAiPreviewStep(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
-            text = "Dit AI-estimat er klar",
+            text = "Dit AI-estimat",
             style = MaterialTheme.typography.titleLarge,
             color = Color.White,
             modifier = Modifier.padding(bottom = 24.dp)
@@ -50,6 +47,16 @@ fun OpmuringAiPreviewStep(
             modifier = Modifier.fillMaxWidth()
         )
 
+        // Vis error hvis generation fejlede
+        error?.let {
+            Text(
+                text = it,
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.bodyLarge,
+                modifier = Modifier.padding(top = 16.dp)
+            )
+        }
+
         Spacer(Modifier.height(32.dp))
 
         Text(
@@ -60,5 +67,3 @@ fun OpmuringAiPreviewStep(
         )
     }
 }
-
-// Total lines: 92

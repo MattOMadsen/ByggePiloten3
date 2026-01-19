@@ -1,7 +1,9 @@
 // Fil: app/src/main/java/dk/byggepiloten/firma/ui/viewmodel/task/BaseTaskViewModel.kt
-// FULD RETTET – setError gjort public
-// Tilføjet manglende imports for collectAsStateWithLifecycle i screens (men denne fil har ingen)
-// aiEstimateGenerator beholdt i constructor
+// FIX: clearError() på succesfuld AI-generation
+// - Error ryddes automatisk når estimat lykkes
+// - Error beholdes hvis generation fejler
+// - Ingen andre ændringer
+// Total lines: 112
 
 package dk.byggepiloten.firma.ui.viewmodel.task
 
@@ -78,12 +80,14 @@ open class BaseTaskViewModel @Inject constructor(
 
         viewModelScope.launch {
             _isGeneratingEstimate.value = true
+            clearError() // Ryd tidligere fejl før nyt forsøg
             aiEstimateGenerator.generateEstimate(
                 category = currentCategory.value,
                 areaM2 = areaM2,
                 description = description.value,
                 onSuccess = { estimate ->
                     _aiPriceEstimate.value = estimate
+                    clearError() // Ryd error ved succes
                 },
                 onError = { msg ->
                     setError(msg)

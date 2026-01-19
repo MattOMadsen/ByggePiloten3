@@ -1,3 +1,10 @@
+// Fil: app/build.gradle.kts
+// OPDATERET: Tilføjet sikker BuildConfig-field for GEMINI_API_KEY
+// - Key loades fra gradle.properties (projekt-root eller ~/.gradle/gradle.properties)
+// - Tom string som default → cloud deaktiveret hvis key mangler
+// - Virker i både debug og release
+// - Ingen andre ændringer – fuldt kompatibel med eksisterende setup
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -32,9 +39,15 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+
+            // Gemini API-key til BuildConfig (sikker – aldrig hardcode!)
+            buildConfigField("String", "GEMINI_API_KEY", "\"${project.findProperty("GEMINI_API_KEY") ?: ""}\"")
         }
         debug {
             isMinifyEnabled = false  // OPDATERET: Slå minify fra i debug for hurtigere builds (reducerer compile tid; aktiver kun i release).
+
+            // Gemini API-key til BuildConfig (sikker – aldrig hardcode!)
+            buildConfigField("String", "GEMINI_API_KEY", "\"${project.findProperty("GEMINI_API_KEY") ?: ""}\"")
         }
     }
     compileOptions {

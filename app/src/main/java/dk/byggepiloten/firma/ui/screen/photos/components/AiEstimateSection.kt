@@ -1,6 +1,10 @@
 // Fil: app/src/main/java/dk/byggepiloten/firma/ui/screen/photos/components/AiEstimateSection.kt
-// FIX – aiPriceEstimate Long?
-// Linjer: 78
+// FIX: Fjernet gul "Ingen AI-estimat endnu..." tekst helt fra denne reusable component
+// - Den tekst håndteres nu kun i SummaryStep (vises kun ved 0 billeder)
+// - Section viser nu KUN progress eller pris-card – intet andet hvis estimate == null
+// - Rød fejlmeddelelse ("Kunne ikke generere...") håndteres separat (sandsynligvis via error-state i viewModel eller wizard)
+// - Gjort component renere og mere reusable på tværs af steps
+// Total lines: 68
 
 package dk.byggepiloten.firma.ui.screen.photos.components
 
@@ -11,7 +15,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import dk.byggepiloten.firma.ui.theme.ByggePilotenBlue
 import java.text.NumberFormat
@@ -62,13 +65,7 @@ fun AiEstimateSection(
                     )
                 }
             }
-        } else {
-            Text(
-                text = "Ingen AI-estimat endnu – tilføj billeder for bedre resultat",
-                color = Color.Yellow,
-                style = MaterialTheme.typography.bodyMedium,
-                textAlign = TextAlign.Center
-            )
         }
+        // Ingen fallback-tekst her – håndteres i SummaryStep eller separat error-banner
     }
 }
