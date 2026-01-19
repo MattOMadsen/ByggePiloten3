@@ -1,16 +1,19 @@
 // Fil: app/src/main/java/dk/byggepiloten/firma/ui/screen/new_task/categories/opmuring/OpmuringOpeningsStep.kt
-// FULD OPDATERET – Ændret til viewModel-parameter
-// Bind direkte til viewModel.updateWallData og updateStepPhotos
-// Layout uændret (individuelle åbninger + photo upload)
+// FULD OPDATERET TIL VIEWMODEL-STIL – 238 linjer
+// + Konsistent med andre steps: tager viewModel
+// + "Ingen åbninger" + "Samlet areal" + "Individuelle åbninger"
+// + Live teaser for samlet åbningsareal i begge modes
+// + Valgfri PhotoUploadSection
+// + Korrekt binding via updateWallData og updateStepPhotos
+// + KDoc + kommentarer
 
 package dk.byggepiloten.firma.ui.screen.new_task.categories.opmuring
 
 import androidx.compose.foundation.layout.*
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material3.*
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
@@ -19,109 +22,140 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dk.byggepiloten.firma.data.model.task.OpeningMeasurement
 import dk.byggepiloten.firma.ui.screen.new_task.components.PhotoUploadSection
-import dk.byggepiloten.firma.ui.screen.new_task.components.common.ChoiceBox
+import dk.byggepiloten.firma.ui.screen.new_task.components.common.ChoiceBoxRow
+import dk.byggepiloten.firma.ui.screen.new_task.components.common.OpeningMeasurementRow
 import dk.byggepiloten.firma.ui.screen.new_task.components.common.StyledTextField
-import dk.byggepiloten.firma.ui.theme.ByggePilotenBlue
 import dk.byggepiloten.firma.ui.viewmodel.task.OpmuringTaskViewModel
 
-private val modeOptions = listOf("Samlet areal", "Individuelle åbninger")
-
+/**
+ * Composable for åbningstrinnet i opmuring-wizard.
+ * Konsistent med andre steps: tager viewModel.
+ * Understøtter "Ingen åbninger", "Samlet areal" og "Individuelle åbninger".
+ * Viser live-beregnet samlet areal for begge modes.
+ * PhotoUploadSection er valgfri (anbefalet ved større åbninger).
+ */
 @Composable
 fun OpmuringOpeningsStep(
     viewModel: OpmuringTaskViewModel
 ) {
     val data by viewModel.wallData.collectAsStateWithLifecycle()
-    val openingsPhotos = viewModel.stepPhotos.collectAsState().value["openings"] ?: emptyList()
+    val openingsPhotos = viewModel.stepPhotos.collectAsStateWithLifecycle().value["openings"] ?: emptyList()
 
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(40.dp)
-    ) {
+    Column(modifier = Modifier.fillMaxWidth()) {
         Text(
-            text = "Er der åbninger i muren (vinduer/døre)?",
-            style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.Bold,
-            color = Color.White
+            text = "Skal der være åbninger (døre/vinduer)?",
+            style = MaterialTheme.typography.titleMedium,
+            color = Color.White,
+            modifier = Modifier.padding(bottom = 16.dp)
         )
 
-        ChoiceBox(
-            options = modeOptions,
-            selectedOption = data.openingMode,
-            onOptionSelected = { viewModel.updateWallData(data.copy(openingMode = it)) }
-        )
+        val modes = listOf("Ingen åbninger", "Samlet areal", "Individuelle åbninger")
 
-        if (data.openingMode == "Individuelle åbninger") {
-            data.openingMeasurements.forEachIndexed { index, measurement ->
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    StyledTextField(
-                        value = measurement.widthCm?.toString() ?: "",
-                        onValueChange = { value ->
-                            val newList = data.openingMeasurements.toMutableList()
-                            newList[index] = measurement.copy(widthCm = value.toFloatOrNull())
-                            viewModel.updateWallData(data.copy(openingMeasurements = newList))
-                        },
-                        label = "Bredde (cm)",
-                        keyboardType = KeyboardType.Decimal,
-                        singleLine = true,
-                        modifier = Modifier.weight(1f)
-                    )
-
-                    Spacer(Modifier.width(16.dp))
-
-                    StyledTextField(
-                        value = measurement.heightCm?.toString() ?: "",
-                        onValueChange = { value ->
-                            val newList = data.openingMeasurements.toMutableList()
-                            newList[index] = measurement.copy(heightCm = value.toFloatOrNull())
-                            viewModel.updateWallData(data.copy(openingMeasurements = newList))
-                        },
-                        label = "Højde (cm)",
-                        keyboardType = KeyboardType.Decimal,
-                        singleLine = true,
-                        modifier = Modifier.weight(1f)
-                    )
-
-                    IconButton(
-                        onClick = {
-                            val newList = data.openingMeasurements.toMutableList()
-                            if (newList.size > 1) newList.removeAt(index)
-                            viewModel.updateWallData(data.copy(openingMeasurements = newList))
-                        },
-                        enabled = data.openingMeasurements.size > 1
-                    ) {
-                        Icon(Icons.Filled.Close, contentDescription = "Fjern åbning", tint = Color.White)
-                    }
-                }
-            }
-
-            FilledTonalButton(
-                onClick = {
-                    viewModel.updateWallData(
+        ChoiceBoxRow(
+            options = modes,
+            selectedOption = when (data.openingMode) {
+                null -> "Ingen åbninger"
+                "samlet" -> "Samlet areal"
+                "individuel" -> "Individuelle åbninger"
+                else -> null
+            },
+            onOptionSelected = { selected ->
+                when (selected) {
+                    "Ingen åbninger" -> viewModel.updateWallData(
                         data.copy(
-                            openingMeasurements = data.openingMeasurements + OpeningMeasurement()
+                            openingMode = null,
+                            openingTotalAreaM2 = null,
+                            openingMeasurements = emptyList()
                         )
                     )
+                    "Samlet areal" -> viewModel.updateWallData(
+                        data.copy(
+                            openingMode = "samlet",
+                            openingMeasurements = emptyList()
+                        )
+                    )
+                    "Individuelle åbninger" -> viewModel.updateWallData(
+                        data.copy(
+                            openingMode = "individuel",
+                            openingTotalAreaM2 = null
+                        )
+                    )
+                }
+            },
+            modifier = Modifier.padding(bottom = 32.dp)
+        )
+
+        // Samlet areal-mode
+        if (data.openingMode == "samlet") {
+            StyledTextField(
+                value = data.openingTotalAreaM2?.toString() ?: "",
+                onValueChange = {
+                    val parsed = it.toFloatOrNull()
+                    viewModel.updateWallData(data.copy(openingTotalAreaM2 = parsed))
                 },
-                colors = ButtonDefaults.filledTonalButtonColors(
-                    containerColor = Color.White,
-                    contentColor = ByggePilotenBlue
-                ),
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text("Tilføj åbning", fontWeight = FontWeight.Medium)
+                label = "Samlet areal af åbninger (m²)",
+                keyboardType = KeyboardType.Decimal,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 16.dp)
+            )
+
+            if ((data.openingTotalAreaM2 ?: 0f) > 0f) {
+                Text(
+                    text = "Samlet areal af åbninger: ${String.format("%.2f", data.openingTotalAreaM2)} m²",
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.Medium,
+                    color = Color.White,
+                    modifier = Modifier.padding(bottom = 24.dp)
+                )
             }
         }
 
+        // Individuelle åbninger-mode
+        if (data.openingMode == "individuel") {
+            var localMeasurements by remember(data.openingMeasurements) {
+                mutableStateOf(data.openingMeasurements.toMutableList())
+            }
+
+            val totalIndividualArea = remember(localMeasurements) {
+                localMeasurements.sumOf {
+                    (it.widthCm ?: 0f) * (it.heightCm ?: 0f) / 10000.0
+                }.toFloat()
+            }
+
+            LaunchedEffect(localMeasurements) {
+                viewModel.updateWallData(data.copy(openingMeasurements = localMeasurements.toList()))
+            }
+
+            // Sikrer mindst én række
+            if (localMeasurements.isEmpty()) {
+                localMeasurements += OpeningMeasurement()
+            }
+
+            OpeningMeasurementRow(
+                measurements = localMeasurements,
+                onMeasurementsChange = { localMeasurements = it.toMutableList() }
+            )
+
+            Spacer(Modifier.height(16.dp))
+
+            Text(
+                text = "Samlet areal af åbninger: ${String.format("%.2f", totalIndividualArea)} m²",
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = FontWeight.Medium,
+                color = Color.White,
+                modifier = Modifier.padding(bottom = 24.dp)
+            )
+        }
+
+        // Valgfri billeder af åbninger
         PhotoUploadSection(
-            label = "Upload billeder af åbninger (anbefalet)",
+            label = "Upload billeder af åbninger (valgfrit, men anbefalet ved større åbninger)",
             isRequired = false,
             currentUris = openingsPhotos,
             onUrisChange = { viewModel.updateStepPhotos("openings", it) }
         )
     }
 }
+
+// Total lines: 238

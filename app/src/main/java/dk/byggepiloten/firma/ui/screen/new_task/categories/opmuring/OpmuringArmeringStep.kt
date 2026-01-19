@@ -1,7 +1,7 @@
 // Fil: app/src/main/java/dk/byggepiloten/firma/ui/screen/new_task/categories/opmuring/OpmuringArmeringStep.kt
-// FULD OPDATERET – Ændret til viewModel-parameter
-// Bind direkte til viewModel.updateWallData
-// Layout uændret (ChoiceBox Ja/Nej)
+// FULD OPDATERET – 3 valg for pudsarmering (String-baseret)
+// Bruger ChoiceBoxRow + stærk anbefaling
+// Bind via viewModel.updateWallData(data.copy(...))
 
 package dk.byggepiloten.firma.ui.screen.new_task.categories.opmuring
 
@@ -11,13 +11,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import dk.byggepiloten.firma.ui.screen.new_task.components.common.ChoiceBox
+import dk.byggepiloten.firma.ui.screen.new_task.components.common.ChoiceBoxRow
 import dk.byggepiloten.firma.ui.viewmodel.task.OpmuringTaskViewModel
-
-private val options = listOf("Ja", "Nej")
 
 @Composable
 fun OpmuringArmeringStep(
@@ -25,25 +22,54 @@ fun OpmuringArmeringStep(
 ) {
     val data by viewModel.wallData.collectAsStateWithLifecycle()
 
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(32.dp)
-    ) {
+    Column(modifier = Modifier.fillMaxWidth()) {
         Text(
-            text = "Skal der armeres?",
-            style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.Bold,
-            color = Color.White
+            text = "Skal der armeringsnet i pudslaget?",
+            style = MaterialTheme.typography.titleMedium,
+            color = Color.White,
+            modifier = Modifier.padding(bottom = 16.dp)
         )
 
-        ChoiceBox(
+        Text(
+            text = "Armeringsnet lægges over hele murfladen inde i pudslaget og er standard ved pudset facade for at forhindre revner fra bevægelser, temperatur eller pudsspændinger.\nUden net er risikoen for revner markant højere.",
+            color = Color(0xFFFFEB3B),
+            style = MaterialTheme.typography.bodyLarge,
+            modifier = Modifier.padding(bottom = 32.dp)
+        )
+
+        val options = listOf(
+            "Ingen armeringsnet",
+            "Standard armeringsnet over hele fladen (anbefalet)",
+            "Forstærket armeringsnet (ekstra lag eller tættere ved høj risiko)"
+        )
+
+        val selectedOption = when (data.reinforcementLevel) {
+            "none" -> "Ingen armeringsnet"
+            "standard" -> "Standard armeringsnet over hele fladen (anbefalet)"
+            "reinforced" -> "Forstærket armeringsnet (ekstra lag eller tættere ved høj risiko)"
+            else -> null
+        }
+
+        ChoiceBoxRow(
             options = options,
-            selectedOption = if (data.reinforcement == true) "Ja" else if (data.reinforcement == false) "Nej" else null,
-            onOptionSelected = { option ->
-                viewModel.updateWallData(data.copy(reinforcement = option == "Ja"))
-            }
+            selectedOption = selectedOption,
+            onOptionSelected = { selected ->
+                val level = when (selected) {
+                    "Ingen armeringsnet" -> "none"
+                    "Standard armeringsnet over hele fladen (anbefalet)" -> "standard"
+                    "Forstærket armeringsnet (ekstra lag eller tættere ved høj risiko)" -> "reinforced"
+                    else -> null
+                }
+                viewModel.updateWallData(data.copy(reinforcementLevel = level))
+            },
+            modifier = Modifier.padding(bottom = 24.dp)
+        )
+
+        Text(
+            text = "Bemærk: Strukturel armering i fuger (rustfri stål) håndteres separat ved skader eller særlige krav til bæreevne.",
+            color = Color.White,
+            style = MaterialTheme.typography.bodyMedium,
+            modifier = Modifier.padding(top = 8.dp)
         )
     }
 }

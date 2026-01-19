@@ -1,28 +1,31 @@
 // Fil: app/src/main/java/dk/byggepiloten/firma/ui/screen/new_task/categories/opmuring/OpmuringStoneStep.kt
-// FULD OPDATERET – Ændret til viewModel-parameter
-// Bind direkte til viewModel.updateWallData
-// Layout uændret (ChoiceBox + specialsten felter)
+// OPDATERET: Fjernet ekstra outer Column + verticalScroll (håndteres nu i WizardScaffold)
+// Conditional felter synlige uden scroll-problem
+// Commit: StoneStep uden lokal scroll – bruger Scaffold's scroll (fix visibility + crash)
 
 package dk.byggepiloten.firma.ui.screen.new_task.categories.opmuring
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dk.byggepiloten.firma.ui.screen.new_task.components.common.ChoiceBox
+import dk.byggepiloten.firma.ui.screen.new_task.components.common.ConditionalContent
 import dk.byggepiloten.firma.ui.screen.new_task.components.common.StyledTextField
+import dk.byggepiloten.firma.ui.screen.new_task.components.common.WizardStepContainer
 import dk.byggepiloten.firma.ui.viewmodel.task.OpmuringTaskViewModel
 
 private val stoneOptions = listOf(
-    "Teglsten",
-    "Gasbeton",
-    "Leca-blokke",
-    "Cellesten",
+    "Standard mursten (rød)",
+    "Gule mursten",
+    "Grå betonsten",
+    "Letbetonsten",
     "Special sten"
 )
 
@@ -32,19 +35,9 @@ fun OpmuringStoneStep(
 ) {
     val data by viewModel.wallData.collectAsStateWithLifecycle()
 
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(32.dp)
+    WizardStepContainer(
+        title = "Hvilken type sten skal bruges?"
     ) {
-        Text(
-            text = "Hvilken type sten skal bruges?",
-            style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.Bold,
-            color = Color.White
-        )
-
         ChoiceBox(
             options = stoneOptions,
             selectedOption = data.stoneType,
@@ -59,22 +52,31 @@ fun OpmuringStoneStep(
             }
         )
 
-        if (data.stoneType == "Special sten") {
-            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                StyledTextField(
-                    value = data.specialStoneName ?: "",
-                    onValueChange = { viewModel.updateWallData(data.copy(specialStoneName = it)) },
-                    label = "Navn på specialsten (obligatorisk)",
-                    singleLine = true
-                )
+        ConditionalContent(visible = data.stoneType == "Special sten") {
+            StyledTextField(
+                value = data.specialStoneName ?: "",
+                onValueChange = { viewModel.updateWallData(data.copy(specialStoneName = it)) },
+                label = "Navn på special sten",
+                singleLine = true
+            )
 
-                StyledTextField(
-                    value = data.specialStoneLink ?: "",
-                    onValueChange = { viewModel.updateWallData(data.copy(specialStoneLink = it)) },
-                    label = "Link til specialsten (valgfrit)",
-                    singleLine = true
-                )
-            }
+            Spacer(modifier = Modifier.height(16.dp))
+
+            StyledTextField(
+                value = data.specialStoneLink ?: "",
+                onValueChange = { viewModel.updateWallData(data.copy(specialStoneLink = it)) },
+                label = "Link til sten (valgfrit – f.eks. leverandørs side)",
+                keyboardType = KeyboardType.Uri,
+                singleLine = true
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Text(
+                text = "Linket hjælper håndværkeren med at se præcis hvilken sten du ønsker.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = Color.White.copy(alpha = 0.9f)
+            )
         }
     }
 }

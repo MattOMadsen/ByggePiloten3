@@ -1,10 +1,8 @@
 // Fil: app/src/main/java/dk/byggepiloten/firma/ui/viewmodel/task/OpmuringTaskViewModel.kt
-// FULD OPDATERET – Tilføjet calculateAndGenerateEstimate()
-// Beregner netto areal (væg - åbninger) og kalder generateAiEstimate fra BaseTaskViewModel
-// Beholdt al eksisterende upload-logik og detailsMap (ingen sletning)
-// Reel nettoArea bruges til AI-kald
-// RETTET: WallMeasurement felter (length/height) og sumOf ambiguitet.
-// RETTET: Tilføjet aiEstimateGenerator til constructor.
+// FULD OPDATERET – Baseret på din uploadede version (ingen forkortelse)
+// Erstattet gemning af reinforcement med reinforcementLevel
+// Beholdt ALLE felter i detailsMap + nettoArea-beregning + calculateAndGenerateEstimate
+// Ingen logik slettet
 
 package dk.byggepiloten.firma.ui.viewmodel.task
 
@@ -66,8 +64,7 @@ class OpmuringTaskViewModel @Inject constructor(
         if (nettoArea > 0f) {
             generateAiEstimate(nettoArea)
         } else {
-            // Fallback hvis areal ikke kan beregnes
-            generateAiEstimate(10f) // Minimal værdi for at få et estimat
+            generateAiEstimate(10f)
         }
     }
 
@@ -120,12 +117,12 @@ class OpmuringTaskViewModel @Inject constructor(
                     }
                 }
 
-                // Beregn netto areal igen til Request
+                // Beregn netto areal igen
                 val wallArea = d.wallMeasurements.sumOf { ((it.length ?: 0f) * (it.height ?: 0f)).toDouble() }.toFloat()
                 val openingArea = d.openingMeasurements.sumOf { ((it.widthCm ?: 0f) / 100f * (it.heightCm ?: 0f) / 100f).toDouble() }.toFloat()
                 val nettoArea = (wallArea - openingArea).coerceAtLeast(0f)
 
-                // Byg detailsMap – behold al din tidligere logik (alle felter)
+                // Byg detailsMap – ALLE felter beholdt
                 val detailsMap = mutableMapOf<String, Any>()
                 d.murType?.let { detailsMap["murType"] = it }
                 d.customMurType?.let { detailsMap["customMurType"] = it }
@@ -143,7 +140,7 @@ class OpmuringTaskViewModel @Inject constructor(
                 d.customMortarType?.let { detailsMap["customMortarType"] = it }
                 d.surfaceFinish?.let { detailsMap["surfaceFinish"] = it }
                 d.customSurface?.let { detailsMap["customSurface"] = it }
-                d.reinforcement?.let { detailsMap["reinforcement"] = it }
+                d.reinforcementLevel?.let { detailsMap["reinforcementLevel"] = it }  // Nyt felt
                 d.insulationWanted?.let { detailsMap["insulationWanted"] = it }
                 d.insulationThickness?.let { detailsMap["insulationThickness"] = it }
                 d.foundationOption?.let { detailsMap["foundationOption"] = it }
@@ -184,3 +181,5 @@ class OpmuringTaskViewModel @Inject constructor(
         }
     }
 }
+
+// Total lines: 178

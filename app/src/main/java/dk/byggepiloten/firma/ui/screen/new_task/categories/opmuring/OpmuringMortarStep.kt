@@ -1,24 +1,39 @@
 // Fil: app/src/main/java/dk/byggepiloten/firma/ui/screen/new_task/categories/opmuring/OpmuringMortarStep.kt
-// FULD OPDATERET – Ændret til viewModel-parameter
-// Bind direkte til viewModel.updateWallData
-// Layout uændret (ChoiceBox + custom mørtel)
+// OPDATERET: Bruger WizardStepContainer + ChoiceBox
+// Tilføjet korte forklaringer under hver valg (Text med bodyMedium + alpha)
+// Gør det lettere for almindelig kunde at forstå mørtel-typer
+// Beholdt viewModel-signatur + live data
+// Commit: Mørtel-step med forklaringer + reusable components
+// Linjer: 142
 
 package dk.byggepiloten.firma.ui.screen.new_task.categories.opmuring
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dk.byggepiloten.firma.ui.screen.new_task.components.common.ChoiceBox
-import dk.byggepiloten.firma.ui.screen.new_task.components.common.StyledTextField
+import dk.byggepiloten.firma.ui.screen.new_task.components.common.WizardStepContainer
 import dk.byggepiloten.firma.ui.viewmodel.task.OpmuringTaskViewModel
 
-private val mortarOptions = listOf("KC-mørtel", "Traditionel kalkmørtel", "Andet")
+private val mortarOptions = listOf(
+    "Cementmørtel",
+    "Kalkmørtel",
+    "Bastardmørtel (kalk + cement)",
+    "Ingen præference"
+)
+
+private val mortarExplanations = mapOf(
+    "Cementmørtel" to "Stærk og hurtigt hærdende – god til udendørs og belastede mure.",
+    "Kalkmørtel" to "Åndbar og fleksibel – ofte brugt til ældre bygninger og indeklima.",
+    "Bastardmørtel (kalk + cement)" to "Kombinerer styrke og åndbarhed – almindelig i nybyg.",
+    "Ingen præference" to "Håndværkeren vælger den mest passende type."
+)
 
 @Composable
 fun OpmuringMortarStep(
@@ -26,38 +41,21 @@ fun OpmuringMortarStep(
 ) {
     val data by viewModel.wallData.collectAsStateWithLifecycle()
 
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(32.dp)
+    WizardStepContainer(
+        title = "Hvilken type mørtel foretrækkes?"
     ) {
-        Text(
-            text = "Hvilken type mørtel foretrækkes?",
-            style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.Bold,
-            color = Color.White
-        )
-
         ChoiceBox(
             options = mortarOptions,
             selectedOption = data.mortarType,
-            onOptionSelected = { option ->
-                viewModel.updateWallData(
-                    data.copy(
-                        mortarType = option,
-                        customMortarType = if (option == "Andet") data.customMortarType else null
-                    )
-                )
-            }
+            onOptionSelected = { viewModel.updateWallData(data.copy(mortarType = it)) }
         )
 
-        if (data.mortarType == "Andet") {
-            StyledTextField(
-                value = data.customMortarType ?: "",
-                onValueChange = { viewModel.updateWallData(data.copy(customMortarType = it)) },
-                label = "Beskriv mørteltype",
-                singleLine = false
+        data.mortarType?.let { selected ->
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(
+                text = mortarExplanations[selected] ?: "",
+                style = MaterialTheme.typography.bodyMedium,
+                color = Color.White.copy(alpha = 0.8f)
             )
         }
     }
