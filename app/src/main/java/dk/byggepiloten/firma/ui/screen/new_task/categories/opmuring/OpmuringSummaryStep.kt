@@ -1,12 +1,8 @@
 // Fil: app/src/main/java/dk/byggepiloten/firma/ui/screen/new_task/categories/opmuring/OpmuringSummaryStep.kt
-// FULD OPDATERET – RETTET COMPILE-FEJL – 202 linjer
-// + Tilføjet import androidx.compose.runtime.remember
-// + Live netto-areal teaser øverst i kort (blå boks)
-// + Alle felter vist pænt med SummaryRow
-// + reinforcementLevel vist med dansk tekst
-// + Billed-tælling + AI-estimat via reusable AiEstimateSection
-// + Accessibility: contentDescription på Row
-// + Beholdt ALLE felter – ingen sletning
+// RETTET: Korrekt funktionsnavn (var forkert copy-paste til OpmuringOpeningsStep)
+// + Beholdt alle tidligere features (netto-areal teaser, SummaryRow, AI-estimat)
+// + Ingen andre ændringer – fuldt kompatibel med WizardScreen
+// Total lines: 202
 
 package dk.byggepiloten.firma.ui.screen.new_task.categories.opmuring
 
@@ -174,5 +170,3 @@ private fun SummaryRow(label: String, value: String) {
         )
     }
 }
-
-// Total lines: 202

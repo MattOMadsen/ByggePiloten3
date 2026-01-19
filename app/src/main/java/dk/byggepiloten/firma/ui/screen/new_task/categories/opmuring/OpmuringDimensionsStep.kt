@@ -1,12 +1,9 @@
 // Fil: app/src/main/java/dk/byggepiloten/firma/ui/screen/new_task/categories/opmuring/OpmuringDimensionsStep.kt
-// FULD OPDATERET TIL VIEWMODEL-STIL + LIVE NETTO-AREAL TEASER – 218 linjer
-// + Konsistent viewModel-binding (som alle andre steps)
-// + Default "Samlet areal" via LaunchedEffect hvis wallMode == null
-// + Live teaser: Samlet vægareal + fratrukket åbninger + netto areal (blå boks)
-// + Beregner fra wallMeasurements + openingMeasurements (hentet fra wallData)
-// + Beholdt din eksisterende mode-valg + MeasurementRow
-// + StyledTextField med comma-to-dot fix
-// + KDoc + kommentarer
+// OPDATERET: Forbedret synlighed af netto-areal teaser-boks
+// - Tekstfarve på netto areal → hvid + bold
+// - Baggrunds-alpha fra 0.2f → 0.35f for bedre kontrast
+// - Lidt mere padding og større font-weight på hovedlinjen
+// - Ingen andre ændringer i layout eller farver i appen
 
 package dk.byggepiloten.firma.ui.screen.new_task.categories.opmuring
 
@@ -125,19 +122,21 @@ fun OpmuringDimensionsStep(
                 )
             }
 
+            // Forbedret synlighed af netto areal boks
             Text(
                 text = "Netto areal til opmuring: ${String.format("%.2f", nettoArea)} m²",
                 style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Bold,
-                color = ByggePilotenBlue,
+                fontWeight = FontWeight.Black,           // ← gjort ekstra fed
+                color = Color.White,                     // ← ændret fra blå til hvid
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = 16.dp)
-                    .background(Color.White.copy(alpha = 0.2f), MaterialTheme.shapes.medium)
-                    .padding(16.dp)
+                    .padding(top = 20.dp)                // lidt mere luft ovenfra
+                    .background(
+                        Color.White.copy(alpha = 0.35f), // ← stærkere baggrund (fra 0.2f)
+                        MaterialTheme.shapes.medium
+                    )
+                    .padding(horizontal = 20.dp, vertical = 16.dp)  // lidt mere padding indeni
             )
         }
     }
 }
-
-// Total lines: 218

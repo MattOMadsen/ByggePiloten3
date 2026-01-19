@@ -1,6 +1,11 @@
 // Fil: app/src/main/java/dk/byggepiloten/firma/ui/screen/new_task/categories/opmuring/OpmuringWizardScreen.kt
-// FIX: Fjernet verticalScroll herfra, da WizardScaffold allerede håndterer scroll.
-// Dette løser "Infinite maximum height constraints" crashet.
+// OPDATERET: Irrelevante trin springes helt over (ingen "ikke relevant"-side)
+// - Armeringsnet (trin 10) springes hvis !needsPudsarmering (inkl. "Ingen/Rå")
+// - Skader (trin 13) springes hvis !needsDamageStep (ny mur)
+// - onNext incrementer automatisk indtil relevant trin
+// - Fjernet placeholder-branchene i when()
+// - Progress og totalSteps beholdt fixed (17) – føles naturligt
+// - Validation uændret (skipped trin er altid valid)
 
 package dk.byggepiloten.firma.ui.screen.new_task.categories.opmuring
 
@@ -25,29 +30,36 @@ fun OpmuringWizardScreen(
     val viewModel: OpmuringTaskViewModel = hiltViewModel()
     val data by viewModel.wallData.collectAsStateWithLifecycle()
     val stepPhotos by viewModel.stepPhotos.collectAsStateWithLifecycle()
+    val generalUris by viewModel.imageUris.collectAsStateWithLifecycle()
     val errorMessage by viewModel.error.collectAsStateWithLifecycle()
     val isSending by viewModel.isSending.collectAsStateWithLifecycle()
 
     var currentStepIndex by remember { mutableIntStateOf(0) }
 
-    val totalSteps = 17
+    val totalSteps = 17 // Fixed – brugeren ser kun relevante trin
     val progress by derivedStateOf { (currentStepIndex + 1f) / totalSteps }
     val currentStepNumber = currentStepIndex + 1
 
+    // Udvidet: "Ingen/Rå" betyder ingen puds → ingen armering
     val needsPudsarmering by derivedStateOf {
         val surface = data.surfaceFinish.orEmpty().lowercase()
-        surface.contains("puds") || surface.contains("malet") || surface.contains("filt")
+        surface.contains("puds") || surface.contains("malet") || surface.contains("filt") || surface.contains("skalcem") || surface.contains("dura") || surface.contains("vandskuring")
     }
 
     val needsDamageStep by derivedStateOf { data.isRepair == true }
 
-    val isStepValid by derivedStateOf {
-        if ((currentStepNumber == 10 && !needsPudsarmering) ||
-            (currentStepNumber == 13 && !needsDamageStep)) {
-            true
-        } else {
-            OpmuringValidator.isStepValid(data, stepPhotos, currentStepNumber)
+    // Hjælpefunktion: Er dette trin irrelevant?
+    fun isStepSkipped(step: Int): Boolean {
+        return when (step) {
+            10 -> !needsPudsarmering
+            13 -> !needsDamageStep
+            else -> false
         }
+    }
+
+    val isStepValid by derivedStateOf {
+        if (isStepSkipped(currentStepNumber)) true
+        else OpmuringValidator.isStepValid(data, stepPhotos, currentStepNumber)
     }
 
     val tryNext = {
@@ -55,7 +67,20 @@ fun OpmuringWizardScreen(
             if (currentStepIndex < totalSteps - 1) {
                 currentStepIndex++
                 viewModel.clearError()
+
+                // Spring irrelevante trin over automatisk
+                while (isStepSkipped(currentStepIndex + 1) && currentStepIndex < totalSteps - 1) {
+                    currentStepIndex++
+                }
             } else {
+                // Automatisk fallback billede hvis ingen generelle
+                if (generalUris.isEmpty()) {
+                    val allStepUris = stepPhotos.values.flatten()
+                    if (allStepUris.isNotEmpty()) {
+                        viewModel.updateImages(listOf(allStepUris.first()))
+                    }
+                }
+
                 viewModel.sendTask {
                     navController.navigate("dashboard") { popUpTo(0) }
                 }
@@ -79,6 +104,10 @@ fun OpmuringWizardScreen(
             if (currentStepIndex > 0) {
                 currentStepIndex--
                 viewModel.clearError()
+                // Gå tilbage til sidste relevante trin
+                while (isStepSkipped(currentStepIndex + 1) && currentStepIndex > 0) {
+                    currentStepIndex--
+                }
             } else {
                 navController.popBackStack()
             }
@@ -87,10 +116,7 @@ fun OpmuringWizardScreen(
         isNextEnabled = isStepValid || currentStepNumber == totalSteps,
         nextButtonText = if (currentStepNumber == totalSteps) if (isSending) "Sender..." else "Send opgave" else "Næste"
     ) {
-        // VIGTIGT: Ingen .verticalScroll() her, da WizardScaffold har det i sin definition.
-        Column(
-            modifier = Modifier.fillMaxWidth()
-        ) {
+        Column(modifier = Modifier.fillMaxWidth()) {
             if (errorMessage != null) {
                 Text(
                     text = errorMessage!!,
@@ -111,46 +137,10 @@ fun OpmuringWizardScreen(
                 7 -> OpmuringMortarStep(viewModel = viewModel)
                 8 -> OpmuringOpeningsStep(viewModel = viewModel)
                 9 -> OpmuringSurfaceStep(viewModel = viewModel)
-                10 -> {
-                    if (needsPudsarmering) {
-                        OpmuringArmeringStep(viewModel = viewModel)
-                    } else {
-                        Column(modifier = Modifier.fillMaxWidth()) {
-                            Text(
-                                text = "Armeringsnet ikke relevant",
-                                style = MaterialTheme.typography.titleMedium,
-                                color = Color.White,
-                                modifier = Modifier.padding(bottom = 16.dp)
-                            )
-                            Text(
-                                text = "Ved rå, blank eller ubehandlet murværk pudses der ikke, og armeringsnet i pudslag er derfor ikke nødvendigt.\nDette trin springes automatisk over.",
-                                style = MaterialTheme.typography.bodyLarge,
-                                color = Color.White
-                            )
-                        }
-                    }
-                }
+                10 -> OpmuringArmeringStep(viewModel = viewModel) // Kun vist hvis needsPudsarmering
                 11 -> OpmuringInsulationStep(viewModel = viewModel)
                 12 -> OpmuringFoundationStep(viewModel = viewModel)
-                13 -> {
-                    if (needsDamageStep) {
-                        OpmuringDamageStep(viewModel = viewModel)
-                    } else {
-                        Column(modifier = Modifier.fillMaxWidth()) {
-                            Text(
-                                text = "Skader ikke relevant",
-                                style = MaterialTheme.typography.titleMedium,
-                                color = Color.White,
-                                modifier = Modifier.padding(bottom = 16.dp)
-                            )
-                            Text(
-                                text = "Dette er en ny opmuring, så skader på eksisterende mur er ikke relevant.\nTrinnet springes automatisk over.",
-                                style = MaterialTheme.typography.bodyLarge,
-                                color = Color.White
-                            )
-                        }
-                    }
-                }
+                13 -> OpmuringDamageStep(viewModel = viewModel) // Kun vist hvis needsDamageStep
                 14 -> OpmuringAccessStep(viewModel = viewModel)
                 15 -> OpmuringPhotosStep(viewModel = viewModel)
                 16 -> OpmuringDescriptionStep(viewModel = viewModel)

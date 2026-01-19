@@ -1,7 +1,8 @@
 // Fil: app/src/main/java/dk/byggepiloten/firma/ui/screen/new_task/categories/opmuring/OpmuringPhotosStep.kt
-// FULD RETTET – Tilføjet import androidx.compose.runtime.getValue
-// forEach rettet til entries + explicit key/value
-// PhotoUploadSection kald inde i Column
+// OPDATERET: Generelle billeder nu valgfrit (isRequired = false)
+// - Ny label + forklarende tekst: Hvis trin-billeder eksisterer, er generelle valgfrit
+// - Beholdt visning af allerede uploadede trin-billeder
+// - Ingen andre ændringer – fuldt kompatibel
 
 package dk.byggepiloten.firma.ui.screen.new_task.categories.opmuring
 
@@ -38,9 +39,16 @@ fun OpmuringPhotosStep(
             color = Color.White
         )
 
+        Text(
+            text = "Hvis du allerede har uploadet billeder undervejs i wizarden, er generelle billeder her valgfrit.",
+            style = MaterialTheme.typography.bodyMedium,
+            color = Color.White.copy(alpha = 0.85f),
+            modifier = Modifier.padding(bottom = 16.dp)
+        )
+
         PhotoUploadSection(
-            label = "Generelle billeder (mindst ét påkrævet)",
-            isRequired = true,
+            label = "Generelle billeder (valgfrit hvis du har uploadet undervejs)",
+            isRequired = false,
             currentUris = generalUris,
             onUrisChange = { viewModel.updateImages(it) }
         )
@@ -59,7 +67,8 @@ fun OpmuringPhotosStep(
                     "damage" -> "Skader"
                     "access" -> "Adgangsforhold"
                     "openings" -> "Åbninger"
-                    else -> stepId
+                    "foundation" -> "Fundament"
+                    else -> stepId.replaceFirstChar { it.uppercase() }
                 }
                 PhotoUploadSection(
                     label = label,

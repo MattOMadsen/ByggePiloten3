@@ -1,33 +1,23 @@
 // Fil: app/src/main/java/dk/byggepiloten/firma/ui/screen/new_task/categories/opmuring/OpmuringStoneStep.kt
-// OPDATERET: Fjernet ekstra outer Column + verticalScroll (håndteres nu i WizardScaffold)
-// Conditional felter synlige uden scroll-problem
-// Commit: StoneStep uden lokal scroll – bruger Scaffold's scroll (fix visibility + crash)
+// OPDATERET: Bruger nu reusable ChoiceBoxColumn
+// - "Cellesten" tilføjet
+// - Conditional specialsten felter beholdt
 
 package dk.byggepiloten.firma.ui.screen.new_task.categories.opmuring
 
 import androidx.compose.foundation.layout.*
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import dk.byggepiloten.firma.ui.screen.new_task.components.common.ChoiceBox
+import dk.byggepiloten.firma.ui.screen.new_task.components.common.ChoiceBoxColumn
 import dk.byggepiloten.firma.ui.screen.new_task.components.common.ConditionalContent
 import dk.byggepiloten.firma.ui.screen.new_task.components.common.StyledTextField
-import dk.byggepiloten.firma.ui.screen.new_task.components.common.WizardStepContainer
 import dk.byggepiloten.firma.ui.viewmodel.task.OpmuringTaskViewModel
-
-private val stoneOptions = listOf(
-    "Standard mursten (rød)",
-    "Gule mursten",
-    "Grå betonsten",
-    "Letbetonsten",
-    "Special sten"
-)
 
 @Composable
 fun OpmuringStoneStep(
@@ -35,18 +25,43 @@ fun OpmuringStoneStep(
 ) {
     val data by viewModel.wallData.collectAsStateWithLifecycle()
 
-    WizardStepContainer(
-        title = "Hvilken type sten skal bruges?"
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(24.dp)
     ) {
-        ChoiceBox(
-            options = stoneOptions,
+        Text(
+            text = "Sten type",
+            style = MaterialTheme.typography.headlineSmall,
+            fontWeight = FontWeight.Bold,
+            color = Color.White
+        )
+
+        Text(
+            text = "Hvilken type sten skal muren bygges med?",
+            style = MaterialTheme.typography.titleMedium,
+            color = Color.White
+        )
+
+        val options = listOf(
+            "Standard mursten (rød)",
+            "Gule mursten",
+            "Grå betonsten",
+            "Letbetonsten",
+            "Cellesten",
+            "Special sten"
+        )
+
+        ChoiceBoxColumn(
+            options = options,
             selectedOption = data.stoneType,
-            onOptionSelected = { option ->
+            onOptionSelected = {
                 viewModel.updateWallData(
                     data.copy(
-                        stoneType = option,
-                        specialStoneName = if (option == "Special sten") data.specialStoneName else null,
-                        specialStoneLink = if (option == "Special sten") data.specialStoneLink else null
+                        stoneType = it,
+                        specialStoneName = if (it == "Special sten") data.specialStoneName else null,
+                        specialStoneLink = if (it == "Special sten") data.specialStoneLink else null
                     )
                 )
             }
@@ -60,7 +75,7 @@ fun OpmuringStoneStep(
                 singleLine = true
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(Modifier.height(16.dp))
 
             StyledTextField(
                 value = data.specialStoneLink ?: "",
@@ -70,7 +85,7 @@ fun OpmuringStoneStep(
                 singleLine = true
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(Modifier.height(16.dp))
 
             Text(
                 text = "Linket hjælper håndværkeren med at se præcis hvilken sten du ønsker.",

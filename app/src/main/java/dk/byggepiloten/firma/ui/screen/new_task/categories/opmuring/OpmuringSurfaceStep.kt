@@ -1,8 +1,7 @@
 // Fil: app/src/main/java/dk/byggepiloten/firma/ui/screen/new_task/categories/opmuring/OpmuringSurfaceStep.kt
-// FULD RETTET – Tastefejl rettet (ldesluminance → luminance)
-// Tilføjet import androidx.compose.ui.graphics.luminance
-// Farve-tekst nu auto sort/hvid baseret på baggrundsfarve
-// Commit: Fix luminance typo + import – farve-swatches fungerer nu uden build-fejl
+// OPDATERET: Bruger nu reusable ChoiceBoxColumn
+// - "Ingen/Rå" tilføjet
+// - Farve-swatches beholdt under conditional
 
 package dk.byggepiloten.firma.ui.screen.new_task.categories.opmuring
 
@@ -11,40 +10,22 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.luminance  // FIX: Import til luminance extension
+import androidx.compose.ui.graphics.luminance
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dk.byggepiloten.firma.data.misc.getDurapudsSwatchColor
 import dk.byggepiloten.firma.data.misc.getSkalcemSwatchColor
-import dk.byggepiloten.firma.ui.screen.new_task.components.common.ChoiceBox
+import dk.byggepiloten.firma.ui.screen.new_task.components.common.ChoiceBoxColumn
 import dk.byggepiloten.firma.ui.screen.new_task.components.common.ConditionalContent
 import dk.byggepiloten.firma.ui.screen.new_task.components.common.StyledTextField
-import dk.byggepiloten.firma.ui.screen.new_task.components.common.WizardStepContainer
 import dk.byggepiloten.firma.ui.viewmodel.task.OpmuringTaskViewModel
-
-private val surfaceOptions = listOf(
-    "Hæftemørtel (DuraPuds 615)",
-    "Skalcem S2000",
-    "Vandskuring",
-    "Andet"
-)
-
-private val durapudsFarver = listOf("Cementgrå", "Hvid")
-
-private val skalcemFarver = listOf(
-    "Hvid", "S 0505-Y20R", "S 1005-Y30R", "S 1005-Y50R", "S 1010-Y20R", "S 1010-Y50R",
-    "S 1020-Y20R", "S 1040-Y20R", "S 1500-N", "S 2005-R80B", "S 2005-Y", "S 2010-G30Y",
-    "S 2010-Y30R", "S 2030-Y80R", "S 2040-Y30R", "S 2502-Y", "S 3005-Y20R", "S 3040-Y50R",
-    "S 3040-Y80R", "S 4000-N", "S 4010-B90G", "S 5020-B", "S 6000-N", "S 1002-Y"
-)
 
 @Composable
 fun OpmuringSurfaceStep(
@@ -52,19 +33,43 @@ fun OpmuringSurfaceStep(
 ) {
     val data by viewModel.wallData.collectAsStateWithLifecycle()
 
-    WizardStepContainer(
-        title = "Hvilken overfladebehandling ønskes?"
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(24.dp)
     ) {
-        ChoiceBox(
-            options = surfaceOptions,
+        Text(
+            text = "Overfladebehandling",
+            style = MaterialTheme.typography.headlineSmall,
+            fontWeight = FontWeight.Bold,
+            color = Color.White
+        )
+
+        Text(
+            text = "Hvilken overfladebehandling ønsker du på muren?",
+            style = MaterialTheme.typography.titleMedium,
+            color = Color.White
+        )
+
+        val options = listOf(
+            "Ingen/Rå",
+            "Hæftemørtel (DuraPuds 615)",
+            "Skalcem S2000",
+            "Vandskuring",
+            "Andet"
+        )
+
+        ChoiceBoxColumn(
+            options = options,
             selectedOption = data.surfaceFinish,
-            onOptionSelected = { option ->
+            onOptionSelected = {
                 viewModel.updateWallData(
                     data.copy(
-                        surfaceFinish = option,
-                        customSurface = if (option == "Andet") data.customSurface else null,
-                        haeftemoertelFarve = if (option == "Hæftemørtel (DuraPuds 615)") data.haeftemoertelFarve else null,
-                        skalcemFarve = if (option == "Skalcem S2000") data.skalcemFarve else null
+                        surfaceFinish = it,
+                        customSurface = if (it == "Andet") data.customSurface else null,
+                        haeftemoertelFarve = if (it == "Hæftemørtel (DuraPuds 615)") data.haeftemoertelFarve else null,
+                        skalcemFarve = if (it == "Skalcem S2000") data.skalcemFarve else null
                     )
                 )
             }
@@ -84,7 +89,7 @@ fun OpmuringSurfaceStep(
                 verticalArrangement = Arrangement.spacedBy(16.dp),
                 modifier = Modifier.fillMaxWidth()
             ) {
-                durapudsFarver.forEach { farve ->
+                listOf("Cementgrå", "Hvid").forEach { farve ->
                     val color = getDurapudsSwatchColor(farve)
                     val isSelected = data.haeftemoertelFarve == farve
 
@@ -103,7 +108,7 @@ fun OpmuringSurfaceStep(
                     ) {
                         Text(
                             text = farve,
-                            color = if (color.luminance() > 0.5f) Color.Black else Color.White,  // FIX: luminance() + auto tekstfarve
+                            color = if (color.luminance() > 0.5f) Color.Black else Color.White,
                             style = MaterialTheme.typography.bodyMedium
                         )
                     }
@@ -125,7 +130,12 @@ fun OpmuringSurfaceStep(
                 verticalArrangement = Arrangement.spacedBy(16.dp),
                 modifier = Modifier.fillMaxWidth()
             ) {
-                skalcemFarver.forEach { farve ->
+                listOf(
+                    "Hvid", "S 0505-Y20R", "S 1005-Y30R", "S 1005-Y50R", "S 1010-Y20R", "S 1010-Y50R",
+                    "S 1020-Y20R", "S 1040-Y20R", "S 1500-N", "S 2005-R80B", "S 2005-Y", "S 2010-G30Y",
+                    "S 2010-Y30R", "S 2030-Y80R", "S 2040-Y30R", "S 2502-Y", "S 3005-Y20R", "S 3040-Y50R",
+                    "S 3040-Y80R", "S 4000-N", "S 4010-B90G", "S 5020-B", "S 6000-N", "S 1002-Y"
+                ).forEach { farve ->
                     val color = getSkalcemSwatchColor(farve)
                     val isSelected = data.skalcemFarve == farve
 
@@ -144,7 +154,7 @@ fun OpmuringSurfaceStep(
                     ) {
                         Text(
                             text = farve,
-                            color = if (color.luminance() > 0.5f) Color.Black else Color.White,  // FIX: luminance() + auto tekstfarve
+                            color = if (color.luminance() > 0.5f) Color.Black else Color.White,
                             style = MaterialTheme.typography.bodyMedium
                         )
                     }

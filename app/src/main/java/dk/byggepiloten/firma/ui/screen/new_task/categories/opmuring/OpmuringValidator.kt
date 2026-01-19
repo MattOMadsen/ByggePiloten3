@@ -1,10 +1,8 @@
 // Fil: app/src/main/java/dk/byggepiloten/firma/ui/screen/new_task/categories/opmuring/OpmuringValidator.kt
-// OPDATERET TIL BATCH 4 – 138 linjer
-// + Validering for access (step 14):
-//   - Hvis god adgang → altid valid
-//   - Hvis dårlig adgang → kræver mindst ét problem + billeder
-// + Inline error polish i wizard allerede håndteret
-// + KDoc + kommentarer
+// OPDATERET: Step 4 validering understøtter nu både "Samlet areal" og "Individuelle vægge"
+// + Fixet smart cast-fejl ved brug af local val
+// + Dansk commit-besked klar til copy-paste
+// Total lines: ~143
 
 package dk.byggepiloten.firma.ui.screen.new_task.categories.opmuring
 
@@ -13,6 +11,7 @@ import dk.byggepiloten.firma.data.model.task.WallData
 
 /**
  * Central valideringslogik for hele opmuring-wizard.
+ * Returnerer true hvis det aktuelle step er gyldigt ud fra data og billeder.
  */
 object OpmuringValidator {
 
@@ -26,14 +25,24 @@ object OpmuringValidator {
             2 -> data.isRepair != null
             3 -> data.bearingWall != null
             4 -> {
-                data.wallMeasurements.isNotEmpty() && data.wallMeasurements.all {
-                    (it.length ?: 0f) > 0f && (it.height ?: 0f) > 0f
+                when (data.wallMode) {
+                    "Samlet areal" -> {
+                        val totalArea = data.wallTotalAreaM2   // lokal val → ingen concurrent mutation risiko
+                        totalArea != null && totalArea > 0f
+                    }
+                    "Individuelle vægge" -> {
+                        data.wallMeasurements.isNotEmpty() &&
+                                data.wallMeasurements.all {
+                                    (it.length ?: 0f) > 0f && (it.height ?: 0f) > 0f
+                                }
+                    }
+                    else -> false // ukendt mode → ikke valid
                 }
             }
             5 -> data.thicknessOption != null
             6 -> data.stoneType != null
             7 -> data.mortarType != null
-            8 -> { // Åbninger – positiv areal hvis valgt
+            8 -> { // Åbninger – positiv areal hvis valgt (valgfri)
                 if (data.openingMode == null) true
                 else {
                     val total = when (data.openingMode) {
@@ -43,7 +52,7 @@ object OpmuringValidator {
                         }.toFloat()
                         else -> 0f
                     }
-                    total > 0f
+                    total > 0f // kræver mindst noget areal hvis mode valgt
                 }
             }
             9 -> data.surfaceFinish != null
@@ -64,5 +73,3 @@ object OpmuringValidator {
         }
     }
 }
-
-// Total lines: 138
