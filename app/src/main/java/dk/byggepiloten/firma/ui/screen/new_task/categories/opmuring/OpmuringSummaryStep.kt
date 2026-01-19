@@ -1,15 +1,14 @@
 // Fil: app/src/main/java/dk/byggepiloten/firma/ui/screen/new_task/categories/opmuring/OpmuringSummaryStep.kt
-// RETTET: Korrekt funktionsnavn (var forkert copy-paste til OpmuringOpeningsStep)
-// + Beholdt alle tidligere features (netto-areal teaser, SummaryRow, AI-estimat)
-// + Ingen andre ændringer – fuldt kompatibel med WizardScreen
-// Total lines: 202
+// FIX: Erstattet alle direkte .value-kald med collectAsStateWithLifecycle()
+// - Nu bruges by-delegation på description, imageUris og stepPhotos
+// - Fjerner lint-warningen "StateFlow.value should not be called within composition"
+// - Beholdt alle tidligere features (netto-areal, SummaryRow, AI-estimat, billed-count)
+// - Ingen nested scroll (allerede fjernet tidligere)
+// Total lines: 198
 
 package dk.byggepiloten.firma.ui.screen.new_task.categories.opmuring
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -34,11 +33,13 @@ fun OpmuringSummaryStep(
 ) {
     val aiPriceEstimate by viewModel.aiPriceEstimate.collectAsStateWithLifecycle()
     val isGeneratingEstimate by viewModel.isGeneratingEstimate.collectAsStateWithLifecycle()
+    val description by viewModel.description.collectAsStateWithLifecycle()
+    val imageUris by viewModel.imageUris.collectAsStateWithLifecycle()
+    val stepPhotos by viewModel.stepPhotos.collectAsStateWithLifecycle()
 
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .verticalScroll(rememberScrollState())
             .padding(horizontal = 16.dp),
         verticalArrangement = Arrangement.spacedBy(24.dp)
     ) {
@@ -79,7 +80,7 @@ fun OpmuringSummaryStep(
             }
         }
 
-        // Resten af opsummering
+        // Resten af opsummering (uændret)
         data.murType?.let { SummaryRow("Type mur", it) }
         data.customMurType?.let { SummaryRow("Anden type", it) }
         data.isRepair?.let { SummaryRow("Ny eller reparation", if (it) "Reparation" else "Ny mur") }
@@ -132,13 +133,13 @@ fun OpmuringSummaryStep(
         )
 
         // Beskrivelse
-        if (viewModel.description.value.isNotBlank()) {
-            SummaryRow("Din beskrivelse", viewModel.description.value)
+        if (description.isNotBlank()) {
+            SummaryRow("Din beskrivelse", description)
         }
 
         // Billeder
-        val generalCount = viewModel.imageUris.value.size
-        val stepCount = viewModel.stepPhotos.value.values.sumOf { it.size }
+        val generalCount = imageUris.size
+        val stepCount = stepPhotos.values.sumOf { it.size }
         Text(
             text = "Uploadede billeder: $generalCount generelle + $stepCount trin-specifikke",
             style = MaterialTheme.typography.bodyLarge,
