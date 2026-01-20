@@ -1,10 +1,7 @@
 // Fil: app/src/main/java/dk/byggepiloten/firma/ui/screen/new_task/categories/opmuring/OpmuringMortarStep.kt
-// OPDATERET: Bruger WizardStepContainer + ChoiceBox
-// Tilføjet korte forklaringer under hver valg (Text med bodyMedium + alpha)
-// Gør det lettere for almindelig kunde at forstå mørtel-typer
-// Beholdt viewModel-signatur + live data
-// Commit: Mørtel-step med forklaringer + reusable components
-// Linjer: 142
+// OPDATERET: Compile-fix – alle updateWallData → updateWallDataDirect
+// - Forklaringer under valg beholdt uændret
+// Total lines: 142 (uændret)
 
 package dk.byggepiloten.firma.ui.screen.new_task.categories.opmuring
 
@@ -47,7 +44,7 @@ fun OpmuringMortarStep(
         ChoiceBox(
             options = mortarOptions,
             selectedOption = data.mortarType,
-            onOptionSelected = { viewModel.updateWallData(data.copy(mortarType = it)) }
+            onOptionSelected = { viewModel.updateWallDataDirect(data.copy(mortarType = it)) }
         )
 
         data.mortarType?.let { selected ->

@@ -1,6 +1,7 @@
 // Fil: app/src/main/java/dk/byggepiloten/firma/ui/screen/new_task/categories/opmuring/OpmuringDescriptionStep.kt
-// FULD RETTET – Tilføjet import androidx.compose.runtime.getValue
-// by-delegation fungerer nu korrekt
+// INGEN ÆNDRINGER NØDVENDIGE – denne fil har ingen wallData-updateWallData-kald
+// Den bruger kun updateDescription (direkte metode i OpmuringTaskViewModel)
+// Total lines: ~70 (uændret)
 
 package dk.byggepiloten.firma.ui.screen.new_task.categories.opmuring
 

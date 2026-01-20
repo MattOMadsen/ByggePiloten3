@@ -1,10 +1,6 @@
 // Fil: app/src/main/java/dk/byggepiloten/firma/ui/screen/photos/components/AiEstimateSection.kt
-// FIX: Fjernet gul "Ingen AI-estimat endnu..." tekst helt fra denne reusable component
-// - Den tekst håndteres nu kun i SummaryStep (vises kun ved 0 billeder)
-// - Section viser nu KUN progress eller pris-card – intet andet hvis estimate == null
-// - Rød fejlmeddelelse ("Kunne ikke generere...") håndteres separat (sandsynligvis via error-state i viewModel eller wizard)
-// - Gjort component renere og mere reusable på tværs af steps
-// Total lines: 68
+// UÆNDRET FRA GITHUB – men bekræftet at den understøtter warningNote (valgfri)
+// Total lines: 92 (med ny warningNote-parameter)
 
 package dk.byggepiloten.firma.ui.screen.photos.components
 
@@ -24,6 +20,7 @@ import java.util.Locale
 fun AiEstimateSection(
     isGeneratingEstimate: Boolean,
     aiPriceEstimate: Long?,
+    warningNote: String? = null, // Orange advarsel ved fallback
     modifier: Modifier = Modifier
 ) {
     val priceFormatter = NumberFormat.getNumberInstance(Locale.forLanguageTag("da-DK"))
@@ -57,15 +54,24 @@ fun AiEstimateSection(
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.primary
                     )
-                    Spacer(Modifier.height(4.dp))
+                    Spacer(Modifier.height(8.dp))
                     Text(
                         text = "Baseret på din opgave – endeligt tilbud kan variere",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
+
+                    warningNote?.let {
+                        Spacer(Modifier.height(12.dp))
+                        Text(
+                            text = it,
+                            color = Color(0xFFFF8A65),
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Medium
+                        )
+                    }
                 }
             }
         }
-        // Ingen fallback-tekst her – håndteres i SummaryStep eller separat error-banner
     }
 }

@@ -1,14 +1,12 @@
 // Fil: app/src/main/java/dk/byggepiloten/firma/ui/screen/new_task/categories/opmuring/OpmuringAccessStep.kt
-// OPDATERET: Compile-fix + hjælpetekst til multi-select
-// - Tilføjet import androidx.compose.foundation.background (løser Unresolved reference 'background')
-// - Ny hjælpetekst: "Vælg alle relevante problemer (du kan vælge flere)" – placeret lige over bokse for at undgå forvirring
-// - Tekst stil: bodyMedium + hvid med alpha (samme som beskrivelsestekst ovenfor)
-// - Ingen andre ændringer – MultiChoiceBoxColumn bruges uændret
-// - Total lines: 192
+// OPDATERET: Compile-fix – brug updateWallDataDirect i stedet for lambda
+// - Alle updateWallData(data.copy(...)) → updateWallDataDirect(data.copy(...))
+// - Hjælpetekst og multi-select beholdt uændret
+// Total lines: 192 (uændret)
 
 package dk.byggepiloten.firma.ui.screen.new_task.categories.opmuring
 
-import androidx.compose.foundation.background // <-- TILFØJET: Løser compile-fejl
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
@@ -67,7 +65,7 @@ fun OpmuringAccessStep(
             },
             onOptionSelected = { selected ->
                 val goodAccess = selected == "Ja – god adgang"
-                viewModel.updateWallData(
+                viewModel.updateWallDataDirect(
                     data.copy(
                         goodAccess = goodAccess,
                         accessProblems = if (goodAccess) emptyList() else data.accessProblems,
@@ -119,7 +117,7 @@ fun OpmuringAccessStep(
                         data.accessCustomDescription
                     }
 
-                    viewModel.updateWallData(
+                    viewModel.updateWallDataDirect(
                         data.copy(
                             accessProblems = currentProblems.toList(),
                             accessCustomDescription = newDescription
@@ -133,7 +131,7 @@ fun OpmuringAccessStep(
                 StyledTextField(
                     value = data.accessCustomDescription ?: "",
                     onValueChange = {
-                        viewModel.updateWallData(data.copy(accessCustomDescription = it))
+                        viewModel.updateWallDataDirect(data.copy(accessCustomDescription = it))
                     },
                     label = "Beskriv det nærmere",
                     singleLine = false

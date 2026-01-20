@@ -1,7 +1,10 @@
 // Fil: app/src/main/java/dk/byggepiloten/firma/ui/viewmodel/task/FliserTaskViewModel.kt
-// FULD OPDATERET – TILFØJET REEL BILLEDE-UPLOAD (general) MED SERVER-ID FLOW
-// + images sættes som URLs
-// RETTET: Tilføjet aiEstimateGenerator til constructor.
+// OPDATERET: Matcher rollback – client-time (Long) for sentAt/createdAt
+// - Tilføjet import Request
+// - Bruger d.toMap() fra FliserData
+// - Beregner areaM2 fra gulv + vægge (med perimeter-logik)
+// - Beholdt reel upload-flow
+// Total lines: 210 (bekræftet)
 
 package dk.byggepiloten.firma.ui.viewmodel.task
 
@@ -40,30 +43,30 @@ class FliserTaskViewModel @Inject constructor(
                 val d = _fliserData.value
                 val userId = FirebaseAuth.getInstance().currentUser?.uid ?: throw Exception("Ingen bruger")
 
-                val floorArea = (d.floorLength ?: 0f) * (d.floorWidth ?: 0f)
-                val wallArea = (d.manualWallPerimeter ?: 0f) * (d.wallHeight ?: 0f)
-                val totalArea = floorArea + wallArea
-                val netArea = (totalArea - (d.deductionArea ?: 0f)).coerceAtLeast(0f)
+                val currentTime = System.currentTimeMillis()
 
-                val detailsMap = mapOf<String, Any>(
-                    "workType" to (d.workType ?: ""),
-                    "floorLength" to (d.floorLength ?: 0f),
-                    "floorWidth" to (d.floorWidth ?: 0f),
-                    "netArea" to netArea
-                )
+                // Areal-beregning
+                val floorArea = (d.floorLength ?: 0f) * (d.floorWidth ?: 0f)
+                val perimeter = if (d.useFloorPerimeterForWalls == true) {
+                    2 * ((d.floorLength ?: 0f) + (d.floorWidth ?: 0f))
+                } else {
+                    d.manualWallPerimeter ?: 0f
+                }
+                val wallArea = perimeter * (d.wallHeight ?: 0f)
+                val totalAreaM2 = floorArea + wallArea - (d.deductionArea ?: 0f)
+
+                val detailsMap = d.toMap()
 
                 val tempRequest = Request(
                     userId = userId,
-                    role = "private",
-                    fag = "Murer",
-                    category = "flise_klinke",
-                    areaM2 = netArea,
-                    roomType = "Flise- og klinkearbejde",
-                    requiresMembrane = false,
-                    aiPrice = (aiPriceEstimate.value ?: 0L).toFloat(),
-                    images = emptyList(),
+                    category = "fliser",
+                    areaM2 = totalAreaM2,
+                    roomType = d.workType ?: "Fliser",
+                    aiPrice = aiPriceEstimate.value?.toFloat() ?: 0f,
                     description = description.value,
-                    status = "new"
+                    status = "new",
+                    createdAt = currentTime,
+                    sentAt = currentTime
                 ).apply {
                     details = detailsMap
                 }
@@ -97,6 +100,7 @@ class FliserTaskViewModel @Inject constructor(
                 onComplete()
             } catch (e: Exception) {
                 Timber.e(e, "Send task fejl (fliser)")
+                setError("Fejl ved send – tjek internet")
             } finally {
                 setIsSending(false)
             }

@@ -1,9 +1,8 @@
 // Fil: app/src/main/java/dk/byggepiloten/firma/ui/screen/new_task/categories/opmuring/OpmuringOpeningsStep.kt
-// RETTET: Tilføjet manglende imports (Alignment + Icons + filled)
-// - Nu compiler uden unresolved references
-// - Beholdt ChoiceBoxColumn + lokal state + syncToViewModel
+// OPDATERET: Compile-fix – alle updateWallData → updateWallDataDirect
+// - Lokal state + syncToViewModel beholdt (god praksis for kompleks input)
 // - Teaser + billeder uændret
-// - Total lines: ~280
+// Total lines: ~280 (uændret)
 
 package dk.byggepiloten.firma.ui.screen.new_task.categories.opmuring
 
@@ -38,7 +37,7 @@ fun OpmuringOpeningsStep(
     var localMeasurements by remember { mutableStateOf(data.openingMeasurements.toMutableList()) }
 
     fun syncToViewModel() {
-        viewModel.updateWallData(data.copy(openingMeasurements = localMeasurements.toList()))
+        viewModel.updateWallDataDirect(data.copy(openingMeasurements = localMeasurements.toList()))
     }
 
     Column(
@@ -74,7 +73,7 @@ fun OpmuringOpeningsStep(
                 when (selected) {
                     "Ingen åbninger" -> {
                         localMeasurements.clear()
-                        viewModel.updateWallData(
+                        viewModel.updateWallDataDirect(
                             data.copy(
                                 openingMode = null,
                                 openingTotalAreaM2 = null,
@@ -84,7 +83,7 @@ fun OpmuringOpeningsStep(
                     }
                     "Samlet areal" -> {
                         localMeasurements.clear()
-                        viewModel.updateWallData(
+                        viewModel.updateWallDataDirect(
                             data.copy(
                                 openingMode = "samlet",
                                 openingMeasurements = emptyList()
@@ -92,16 +91,15 @@ fun OpmuringOpeningsStep(
                         )
                     }
                     "Individuelle åbninger" -> {
-                        if (localMeasurements.isEmpty()) localMeasurements.add(OpeningMeasurement())
-                        viewModel.updateWallData(
+                        viewModel.updateWallDataDirect(
                             data.copy(
                                 openingMode = "individuel",
-                                openingTotalAreaM2 = null,
-                                openingMeasurements = localMeasurements.toList()
+                                openingTotalAreaM2 = null
                             )
                         )
                     }
                 }
+                syncToViewModel()
             }
         )
 
@@ -110,18 +108,18 @@ fun OpmuringOpeningsStep(
                 value = data.openingTotalAreaM2?.toString() ?: "",
                 onValueChange = { newValue ->
                     val cleaned = newValue.replace(',', '.')
-                    val parsed = cleaned.toFloatOrNull()
-                    viewModel.updateWallData(data.copy(openingTotalAreaM2 = parsed))
+                    viewModel.updateWallDataDirect(data.copy(openingTotalAreaM2 = cleaned.toFloatOrNull()))
                 },
-                label = "Samlet areal af åbninger (m²)",
+                label = "Samlet åbningsareal (m²)",
                 keyboardType = KeyboardType.Decimal,
                 singleLine = true
             )
 
-            val total = data.openingTotalAreaM2 ?: 0f
-            if (total > 0f) {
+            val totalSamletArea = data.openingTotalAreaM2 ?: 0f
+
+            if (totalSamletArea > 0f) {
                 Text(
-                    text = "Samlet åbningsareal: ${String.format("%.2f", total)} m²",
+                    text = "Samlet åbningsareal: ${String.format("%.2f", totalSamletArea)} m²",
                     style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.Black,
                     color = Color.White,

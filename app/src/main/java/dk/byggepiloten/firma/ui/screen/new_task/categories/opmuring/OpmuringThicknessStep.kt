@@ -1,7 +1,7 @@
 // Fil: app/src/main/java/dk/byggepiloten/firma/ui/screen/new_task/categories/opmuring/OpmuringThicknessStep.kt
-// FULD OPDATERET – Ændret til viewModel-parameter
-// Bind direkte til viewModel.updateWallData
-// Layout uændret (ChoiceBox + custom felt)
+// OPDATERET: Compile-fix – alle updateWallData → updateWallDataDirect
+// - Custom felt + keyboardType beholdt
+// Total lines: ~100 (uændret)
 
 package dk.byggepiloten.firma.ui.screen.new_task.categories.opmuring
 
@@ -12,6 +12,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dk.byggepiloten.firma.ui.screen.new_task.components.common.ChoiceBox
@@ -43,7 +44,7 @@ fun OpmuringThicknessStep(
             options = thicknessOptions,
             selectedOption = data.thicknessOption,
             onOptionSelected = { option ->
-                viewModel.updateWallData(
+                viewModel.updateWallDataDirect(
                     data.copy(
                         thicknessOption = option,
                         customThickness = if (option == "Andet") data.customThickness else null
@@ -56,10 +57,10 @@ fun OpmuringThicknessStep(
             StyledTextField(
                 value = data.customThickness?.toString() ?: "",
                 onValueChange = { value ->
-                    viewModel.updateWallData(data.copy(customThickness = value.toIntOrNull()))
+                    viewModel.updateWallDataDirect(data.copy(customThickness = value.toIntOrNull()))
                 },
                 label = "Angiv tykkelse i mm",
-                keyboardType = androidx.compose.ui.text.input.KeyboardType.Number,
+                keyboardType = KeyboardType.Number,
                 singleLine = true
             )
         }

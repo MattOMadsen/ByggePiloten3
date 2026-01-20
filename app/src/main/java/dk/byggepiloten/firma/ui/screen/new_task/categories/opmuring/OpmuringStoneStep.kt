@@ -1,7 +1,7 @@
 // Fil: app/src/main/java/dk/byggepiloten/firma/ui/screen/new_task/categories/opmuring/OpmuringStoneStep.kt
-// OPDATERET: Bruger nu reusable ChoiceBoxColumn
-// - "Cellesten" tilføjet
-// - Conditional specialsten felter beholdt
+// OPDATERET: Compile-fix – alle updateWallData → updateWallDataDirect
+// - ChoiceBoxColumn + conditional specialsten beholdt
+// Total lines: ~150 (uændret)
 
 package dk.byggepiloten.firma.ui.screen.new_task.categories.opmuring
 
@@ -57,7 +57,7 @@ fun OpmuringStoneStep(
             options = options,
             selectedOption = data.stoneType,
             onOptionSelected = {
-                viewModel.updateWallData(
+                viewModel.updateWallDataDirect(
                     data.copy(
                         stoneType = it,
                         specialStoneName = if (it == "Special sten") data.specialStoneName else null,
@@ -70,7 +70,7 @@ fun OpmuringStoneStep(
         ConditionalContent(visible = data.stoneType == "Special sten") {
             StyledTextField(
                 value = data.specialStoneName ?: "",
-                onValueChange = { viewModel.updateWallData(data.copy(specialStoneName = it)) },
+                onValueChange = { viewModel.updateWallDataDirect(data.copy(specialStoneName = it)) },
                 label = "Navn på special sten",
                 singleLine = true
             )
@@ -79,7 +79,7 @@ fun OpmuringStoneStep(
 
             StyledTextField(
                 value = data.specialStoneLink ?: "",
-                onValueChange = { viewModel.updateWallData(data.copy(specialStoneLink = it)) },
+                onValueChange = { viewModel.updateWallDataDirect(data.copy(specialStoneLink = it)) },
                 label = "Link til sten (valgfrit – f.eks. leverandørs side)",
                 keyboardType = KeyboardType.Uri,
                 singleLine = true

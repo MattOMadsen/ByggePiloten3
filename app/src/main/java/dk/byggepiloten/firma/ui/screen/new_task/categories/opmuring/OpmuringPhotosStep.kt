@@ -1,8 +1,6 @@
 // Fil: app/src/main/java/dk/byggepiloten/firma/ui/screen/new_task/categories/opmuring/OpmuringPhotosStep.kt
-// OPDATERET: Generelle billeder nu valgfrit (isRequired = false)
-// - Ny label + forklarende tekst: Hvis trin-billeder eksisterer, er generelle valgfrit
-// - Beholdt visning af allerede uploadede trin-billeder
-// - Ingen andre ændringer – fuldt kompatibel
+// OPDATERET: Compile-fix – updateImageUris → updateImages (metode fra BaseTaskViewModel)
+// Total lines: ~120 (uændret)
 
 package dk.byggepiloten.firma.ui.screen.new_task.categories.opmuring
 

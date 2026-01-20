@@ -1,7 +1,6 @@
 // Fil: app/src/main/java/dk/byggepiloten/firma/ui/screen/new_task/categories/opmuring/OpmuringVejrStep.kt
-// FULD OPDATERET – Ændret til viewModel-parameter (du havde denne fil uploadet)
-// Bind direkte til viewModel.updateWallData
-// Layout uændret (ChoiceBox)
+// OPDATERET: Compile-fix – updateWallData → updateWallDataDirect
+// Total lines: ~70 (uændret)
 
 package dk.byggepiloten.firma.ui.screen.new_task.categories.opmuring
 
@@ -41,7 +40,7 @@ fun OpmuringVejrStep(
         ChoiceBox(
             options = vejrOptions,
             selectedOption = data.vejrTidspunkt,
-            onOptionSelected = { viewModel.updateWallData(data.copy(vejrTidspunkt = it)) }
+            onOptionSelected = { viewModel.updateWallDataDirect(data.copy(vejrTidspunkt = it)) }
         )
     }
 }

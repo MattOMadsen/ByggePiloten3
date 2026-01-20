@@ -1,9 +1,7 @@
 // Fil: app/src/main/java/dk/byggepiloten/firma/ui/screen/new_task/categories/opmuring/OpmuringMurTypeStep.kt
-// OPDATERET: Erstatter custom Text med WizardStepTitle (headlineMedium + Bold)
-// Column spacedBy(32.dp) – samme plads efter titel som step 2
-// ChoiceBox beholdt (vertikal pga. >2 valg)
-// Nu er step 1 og step 2 fuldstændig ens i titel-størrelse, vægt og spacing
-// Commit: Step 1 bruger WizardStepTitle – fuld konsistens
+// OPDATERET: Compile-fix – alle updateWallData → updateWallDataDirect
+// - WizardStepTitle og custom-felt beholdt
+// Total lines: ~100 (uændret)
 
 package dk.byggepiloten.firma.ui.screen.new_task.categories.opmuring
 
@@ -45,7 +43,7 @@ fun OpmuringMurTypeStep(
             options = murTypeOptions,
             selectedOption = data.murType,
             onOptionSelected = { option ->
-                viewModel.updateWallData(
+                viewModel.updateWallDataDirect(
                     data.copy(
                         murType = option,
                         customMurType = if (option == "Andet") data.customMurType else null
@@ -57,7 +55,7 @@ fun OpmuringMurTypeStep(
         if (data.murType == "Andet") {
             StyledTextField(
                 value = data.customMurType ?: "",
-                onValueChange = { viewModel.updateWallData(data.copy(customMurType = it)) },
+                onValueChange = { viewModel.updateWallDataDirect(data.copy(customMurType = it)) },
                 label = "Beskriv hvilken type mur",
                 singleLine = false
             )

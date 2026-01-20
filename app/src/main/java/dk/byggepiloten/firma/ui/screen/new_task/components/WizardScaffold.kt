@@ -1,17 +1,19 @@
 // Fil: app/src/main/java/dk/byggepiloten/firma/ui/screen/new_task/components/WizardScaffold.kt
-// OPDATERET: Content er nu fuldt scrollable (verticalScroll på indhold)
-// BottomBar fixed – "Næste"/"Tilbage" altid synlige nederst, uanset scroll
-// Ekstra padding bottom på scroll-content for at undgå overlap med bottomBar
-// Progress-indicator flyttet ind i scroll-content for konsistens
-// Commit: Fix crash + knapper altid synlige – scroll på content i WizardScaffold
-// Linjer: 172 (baseret på original + scroll + bottomBar)
+// FIX: Tilbage til Column + verticalScroll (undgår nested LazyColumn-crash)
+// - Scrollable content får finite height via Modifier.weight(1f)
+// - Dette løser "infinity maximum height constraints" når steps har LazyColumn (f.eks. summary)
+// - Progress fixed i top
+// - BottomBar altid synlig (ingen overlap)
+// - Ekstra Spacer for bedre spacing
+// - RoundedCornerShape import tilføjet
+// Total linjer: 182 (bekræftet)
 
 package dk.byggepiloten.firma.ui.screen.new_task.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.shape.RoundedCornerShape  // TILFØJET: For LinearProgressIndicator clip
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
@@ -39,7 +41,7 @@ fun WizardScaffold(
     content: @Composable ColumnScope.() -> Unit
 ) {
     Scaffold(
-        containerColor = Color.Transparent,  // Tillad gradient-baggrund
+        containerColor = Color.Transparent,
         topBar = {
             CenterAlignedTopAppBar(
                 title = {
@@ -91,6 +93,7 @@ fun WizardScaffold(
         }
     ) { innerPadding ->
         Box(modifier = Modifier.fillMaxSize()) {
+            // Gradient baggrund
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -108,24 +111,35 @@ fun WizardScaffold(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .verticalScroll(rememberScrollState())  // FIX: Scroll på hele content – ingen overlap/crash
                     .padding(innerPadding)
-                    .padding(horizontal = 16.dp)
-                    .padding(bottom = 100.dp),  // Ekstra plads til bottomBar
+                    .padding(horizontal = 16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
+                // Progress indicator – fixed i top
                 LinearProgressIndicator(
                     progress = { progress },
                     modifier = Modifier
                         .fillMaxWidth()
+                        .padding(top = 16.dp)
                         .clip(RoundedCornerShape(8.dp)),
                     color = Color.White,
                     trackColor = Color.White.copy(alpha = 0.3f)
                 )
 
-                Spacer(Modifier.height(24.dp))
+                Spacer(Modifier.height(32.dp))
 
-                content()
+                // Scrollable content – får finite height via weight(1f)
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .verticalScroll(rememberScrollState()),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    content()
+
+                    // Ekstra plads nederst så sidste element ikke overlapper bottomBar
+                    Spacer(Modifier.height(100.dp))
+                }
             }
         }
     }

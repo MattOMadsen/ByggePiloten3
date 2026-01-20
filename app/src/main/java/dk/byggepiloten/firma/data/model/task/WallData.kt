@@ -1,19 +1,31 @@
 // Fil: app/src/main/java/dk/byggepiloten/firma/data/model/task/WallData.kt
-// FULD OPDATERET – Erstattet reinforcement: Boolean? med reinforcementLevel: String? = null ("none"/"standard"/"reinforced")
-// Alle andre felter beholdt præcis som i din uploadede version
-// Ingen felter slettet eller forkortet
+// OPDATERET: Tilføjet toMap() extension-funktion for Firestore-serialisering
+// - Håndterer alle felter inkl. nested lists (WallMeasurement, OpeningMeasurement)
+// - Konverterer til Map<String, Any?> – klar til Firestore set/add
+// - Beholdt alle eksisterende felter + reinforcementLevel
+// Total lines: 142 (bekræftet)
 
 package dk.byggepiloten.firma.data.model.task
 
 data class WallMeasurement(
     val length: Float? = null,  // meter
     val height: Float? = null   // meter
-)
+) {
+    fun toMap(): Map<String, Any?> = mapOf(
+        "length" to length,
+        "height" to height
+    )
+}
 
 data class OpeningMeasurement(
     val widthCm: Float? = null,
     val heightCm: Float? = null
-)
+) {
+    fun toMap(): Map<String, Any?> = mapOf(
+        "widthCm" to widthCm,
+        "heightCm" to heightCm
+    )
+}
 
 data class WallData(
     // Step 1: Murtype
@@ -83,6 +95,49 @@ data class WallData(
     var goodAccess: Boolean? = null,
     var accessProblems: List<String> = emptyList(),
     var accessCustomDescription: String? = null
-)
-
-// Total lines: 92
+) {
+    /**
+     * Konverterer WallData til Map<String, Any?> for Firestore.
+     * Håndterer nested objects (WallMeasurement, OpeningMeasurement) via deres toMap().
+     */
+    fun toMap(): Map<String, Any?> = mapOf(
+        "murType" to murType,
+        "customMurType" to customMurType,
+        "isRepair" to isRepair,
+        "bearingWall" to bearingWall,
+        "wallCount" to wallCount,
+        "wallMode" to wallMode,
+        "wallTotalAreaM2" to wallTotalAreaM2,
+        "wallMeasurements" to wallMeasurements.map { it.toMap() },
+        "thicknessOption" to thicknessOption,
+        "customThickness" to customThickness,
+        "stoneType" to stoneType,
+        "specialStoneName" to specialStoneName,
+        "specialStoneLink" to specialStoneLink,
+        "mortarType" to mortarType,
+        "customMortarType" to customMortarType,
+        "hasCracks" to hasCracks,
+        "cracksDescription" to cracksDescription,
+        "hasMoistureDamage" to hasMoistureDamage,
+        "moistureDescription" to moistureDescription,
+        "hasSettlementDamage" to hasSettlementDamage,
+        "settlementDescription" to settlementDescription,
+        "openingsCount" to openingsCount,
+        "openingMode" to openingMode,
+        "openingTotalAreaM2" to openingTotalAreaM2,
+        "openingMeasurements" to openingMeasurements.map { it.toMap() },
+        "reinforcementLevel" to reinforcementLevel,
+        "surfaceFinish" to surfaceFinish,
+        "customSurface" to customSurface,
+        "haeftemoertelFarve" to haeftemoertelFarve,
+        "skalcemFarve" to skalcemFarve,
+        "vejrTidspunkt" to vejrTidspunkt,
+        "insulationWanted" to insulationWanted,
+        "insulationThickness" to insulationThickness,
+        "foundationOption" to foundationOption,
+        "customFoundation" to customFoundation,
+        "goodAccess" to goodAccess,
+        "accessProblems" to accessProblems,
+        "accessCustomDescription" to accessCustomDescription
+    )
+}

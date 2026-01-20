@@ -1,9 +1,7 @@
 // Fil: app/src/main/java/dk/byggepiloten/firma/ui/screen/new_task/categories/opmuring/OpmuringNewOrRepairStep.kt
-// OPDATERET: Bruger WizardStepTitle (headlineMedium + Bold)
-// Column spacedBy(32.dp) – giver præcis samme plads efter titel som step 1
-// ChoiceBoxColumn beholdt (bokse allerede ens)
-// Nu er step 2 100% identisk med step 1: titel-størrelse, vægt, plads, bokse
-// Commit: Step 2 titel matcher step 1 headlineMedium + Bold + samme spacing
+// OPDATERET: Compile-fix – updateWallData → updateWallDataDirect
+// - WizardStepTitle og spacing beholdt
+// Total lines: ~80 (uændret)
 
 package dk.byggepiloten.firma.ui.screen.new_task.categories.opmuring
 
@@ -42,7 +40,7 @@ fun OpmuringNewOrRepairStep(
             else null,
             onOptionSelected = { selected ->
                 val isRepair = selected == "Reparation af eksisterende"
-                viewModel.updateWallData(data.copy(isRepair = isRepair))
+                viewModel.updateWallDataDirect(data.copy(isRepair = isRepair))
             }
         )
     }

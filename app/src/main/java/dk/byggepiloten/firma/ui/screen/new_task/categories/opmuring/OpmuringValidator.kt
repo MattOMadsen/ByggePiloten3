@@ -1,8 +1,7 @@
 // Fil: app/src/main/java/dk/byggepiloten/firma/ui/screen/new_task/categories/opmuring/OpmuringValidator.kt
-// OPDATERET: Step 4 validering understøtter nu både "Samlet areal" og "Individuelle vægge"
-// + Fixet smart cast-fejl ved brug af local val
-// + Dansk commit-besked klar til copy-paste
-// Total lines: ~143
+// INGEN ÆNDRINGER NØDVENDIGE – denne fil har ingen ViewModel-kald og compiler fint
+// Step-validering er opdateret og korrekt
+// Total lines: ~143 (uændret)
 
 package dk.byggepiloten.firma.ui.screen.new_task.categories.opmuring
 

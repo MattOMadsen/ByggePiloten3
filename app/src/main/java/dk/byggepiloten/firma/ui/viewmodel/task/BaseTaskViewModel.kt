@@ -1,9 +1,5 @@
 // Fil: app/src/main/java/dk/byggepiloten/firma/ui/viewmodel/task/BaseTaskViewModel.kt
-// FIX: clearError() på succesfuld AI-generation
-// - Error ryddes automatisk når estimat lykkes
-// - Error beholdes hvis generation fejler
-// - Ingen andre ændringer
-// Total lines: 112
+// FIX: Protected setters + extraDetails i generateAiEstimate
 
 package dk.byggepiloten.firma.ui.viewmodel.task
 
@@ -46,8 +42,16 @@ open class BaseTaskViewModel @Inject constructor(
     private val _aiPriceEstimate = MutableStateFlow<Long?>(null)
     val aiPriceEstimate: StateFlow<Long?> = _aiPriceEstimate.asStateFlow()
 
+    protected fun setAiPriceEstimate(value: Long?) {
+        _aiPriceEstimate.value = value
+    }
+
     private val _isGeneratingEstimate = MutableStateFlow(false)
     val isGeneratingEstimate: StateFlow<Boolean> = _isGeneratingEstimate.asStateFlow()
+
+    protected fun setIsGeneratingEstimate(value: Boolean) {
+        _isGeneratingEstimate.value = value
+    }
 
     private val _isSending = MutableStateFlow(false)
     val isSending: StateFlow<Boolean> = _isSending.asStateFlow()
@@ -59,7 +63,6 @@ open class BaseTaskViewModel @Inject constructor(
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = _error.asStateFlow()
 
-    // Public så WizardScreen kan vise fejl som rød tekst
     fun setError(message: String?) {
         _error.value = message
     }
@@ -75,26 +78,27 @@ open class BaseTaskViewModel @Inject constructor(
         _currentCategory.value = category
     }
 
-    open fun generateAiEstimate(areaM2: Float) {
+    open fun generateAiEstimate(areaM2: Float, extraDetails: String? = null) {
         if (_isGeneratingEstimate.value) return
 
         viewModelScope.launch {
-            _isGeneratingEstimate.value = true
-            clearError() // Ryd tidligere fejl før nyt forsøg
+            setIsGeneratingEstimate(true)
+            clearError()
             aiEstimateGenerator.generateEstimate(
                 category = currentCategory.value,
                 areaM2 = areaM2,
-                description = description.value,
+                description = description.value.takeIf { it.isNotBlank() },
+                extraDetails = extraDetails,
                 onSuccess = { estimate ->
-                    _aiPriceEstimate.value = estimate
-                    clearError() // Ryd error ved succes
+                    setAiPriceEstimate(estimate)
+                    clearError()
                 },
                 onError = { msg ->
                     setError(msg)
-                    _aiPriceEstimate.value = null
+                    setAiPriceEstimate(null)
                 }
             )
-            _isGeneratingEstimate.value = false
+            setIsGeneratingEstimate(false)
         }
     }
 

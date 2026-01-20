@@ -1,7 +1,6 @@
 // Fil: app/src/main/java/dk/byggepiloten/firma/ui/screen/new_task/categories/opmuring/OpmuringBearingWallStep.kt
-// FULD OPDATERET – Ændret til viewModel-parameter
-// Bind direkte til viewModel.updateWallData
-// Layout uændret (ChoiceBox Ja/Nej)
+// OPDATERET: Compile-fix – brug updateWallDataDirect
+// Total lines: 62 (uændret)
 
 package dk.byggepiloten.firma.ui.screen.new_task.categories.opmuring
 
@@ -42,7 +41,7 @@ fun OpmuringBearingWallStep(
             options = options,
             selectedOption = if (data.bearingWall == true) "Ja" else if (data.bearingWall == false) "Nej" else null,
             onOptionSelected = { option ->
-                viewModel.updateWallData(data.copy(bearingWall = option == "Ja"))
+                viewModel.updateWallDataDirect(data.copy(bearingWall = option == "Ja"))
             }
         )
     }

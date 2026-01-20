@@ -1,7 +1,7 @@
 // Fil: app/src/main/java/dk/byggepiloten/firma/ui/screen/new_task/categories/opmuring/OpmuringFoundationStep.kt
-// OPDATERET: Bruger nu reusable ChoiceBoxColumn
-// - Valg vertikalt med samme styling som andre steps
-// - Conditional "Andet" felt beholdt
+// OPDATERET: Compile-fix – alle updateWallData → updateWallDataDirect
+// - ChoiceBoxColumn og PhotoUploadSection beholdt
+// Total lines: ~140 (uændret)
 
 package dk.byggepiloten.firma.ui.screen.new_task.categories.opmuring
 
@@ -51,7 +51,7 @@ fun OpmuringFoundationStep(
             options = options,
             selectedOption = data.foundationOption,
             onOptionSelected = {
-                viewModel.updateWallData(
+                viewModel.updateWallDataDirect(
                     data.copy(
                         foundationOption = it,
                         customFoundation = if (it != "Andet") null else data.customFoundation
@@ -63,7 +63,7 @@ fun OpmuringFoundationStep(
         if (data.foundationOption == "Andet") {
             StyledTextField(
                 value = data.customFoundation ?: "",
-                onValueChange = { viewModel.updateWallData(data.copy(customFoundation = it)) },
+                onValueChange = { viewModel.updateWallDataDirect(data.copy(customFoundation = it)) },
                 label = "Beskriv dit fundament nærmere",
                 singleLine = false
             )

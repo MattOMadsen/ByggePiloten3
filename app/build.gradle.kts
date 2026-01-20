@@ -1,9 +1,6 @@
 // Fil: app/build.gradle.kts
-// OPDATERET: Tilføjet sikker BuildConfig-field for GEMINI_API_KEY
-// - Key loades fra gradle.properties (projekt-root eller ~/.gradle/gradle.properties)
-// - Tom string som default → cloud deaktiveret hvis key mangler
-// - Virker i både debug og release
-// - Ingen andre ændringer – fuldt kompatibel med eksisterende setup
+// Opdateret: Tilføjet multiDexEnabled = true for at eliminere debug-overlay duplicate class warnings
+//            Beholdt dine danske kommentarer på Gemini API-key
 
 plugins {
     alias(libs.plugins.android.application)
@@ -26,6 +23,10 @@ android {
         targetSdk = 35
         versionCode = 1
         versionName = "1.0"
+
+        // Tilføjet for at fjerne duplicate class / overlay warnings i debug (især med Hilt)
+        multiDexEnabled = true
+
         testInstrumentationRunner = "dk.bygepiloten.firma.HiltTestRunner"
         vectorDrawables { useSupportLibrary = true }
 
@@ -39,17 +40,16 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-
-            // Gemini API-key til BuildConfig (sikker – aldrig hardcode!)
+            // Gemini API-key – loades sikkert fra gradle.properties
             buildConfigField("String", "GEMINI_API_KEY", "\"${project.findProperty("GEMINI_API_KEY") ?: ""}\"")
         }
         debug {
-            isMinifyEnabled = false  // OPDATERET: Slå minify fra i debug for hurtigere builds (reducerer compile tid; aktiver kun i release).
-
-            // Gemini API-key til BuildConfig (sikker – aldrig hardcode!)
+            isMinifyEnabled = false // Holder debug-builds hurtige og undgår ProGuard-problemer under udvikling
+            // Gemini API-key – loades sikkert fra gradle.properties (samme i debug)
             buildConfigField("String", "GEMINI_API_KEY", "\"${project.findProperty("GEMINI_API_KEY") ?: ""}\"")
         }
     }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_21
         targetCompatibility = JavaVersion.VERSION_21
@@ -124,8 +124,8 @@ dependencies {
     // Play Services
     implementation(libs.play.services.tasks)
 
-    // Navigation
-    implementation(libs.navigation.compose)
+    // Navigation (duplikat fjernet – allerede dækket ovenfor)
+    // implementation(libs.navigation.compose) ← fjernet, da den allerede er tilføjet via Compose-sektionen
 
     // WorkManager
     implementation(libs.work.runtime.ktx)
@@ -145,8 +145,7 @@ dependencies {
     // ML Kit / Gemini Nano
     implementation("com.google.mlkit:vision-common:${libs.versions.mlkit.get()}")
     implementation("com.google.mlkit:genai-prompt:${libs.versions.genaiPrompt.get()}")
-
-    implementation("com.google.ai.client.generativeai:generativeai:0.9.0") // Latest pr. jan 2026 – tjek Maven for nyere hvis nødvendigt
+    implementation("com.google.ai.client.generativeai:generativeai:0.9.0")
 
     // Hilt WorkManager
     implementation(libs.hilt.work)
@@ -164,11 +163,9 @@ dependencies {
     androidTestImplementation(libs.dagger.hilt.android.testing)
     kspAndroidTest(libs.dagger.hilt.android.compiler.test)
 
-    // MockK + Coroutines Test
     androidTestImplementation("io.mockk:mockk-android:1.13.12")
     androidTestImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.8.0")
 
-    // Mockito
     androidTestImplementation(libs.mockito.core)
     androidTestImplementation(libs.mockito.android)
     androidTestImplementation(libs.mockito.kotlin)
@@ -181,7 +178,6 @@ dependencies {
     debugImplementation("androidx.compose.ui:ui-tooling:1.6.8")
     debugImplementation("androidx.compose.ui:ui-test-manifest:1.6.8")
 
-    // Paparazzi for snapshot-testing
     testImplementation("app.cash.paparazzi:paparazzi:1.3.4")
 }
 

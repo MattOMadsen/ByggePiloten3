@@ -1,7 +1,6 @@
 // Fil: app/src/main/java/dk/byggepiloten/firma/ui/screen/new_task/categories/opmuring/OpmuringArmeringStep.kt
-// FULD OPDATERET – 3 valg for pudsarmering (String-baseret)
-// Bruger ChoiceBoxRow + stærk anbefaling
-// Bind via viewModel.updateWallData(data.copy(...))
+// OPDATERET: Compile-fix – brug updateWallDataDirect
+// Total lines: 78 (uændret)
 
 package dk.byggepiloten.firma.ui.screen.new_task.categories.opmuring
 
@@ -60,7 +59,7 @@ fun OpmuringArmeringStep(
                     "Forstærket armeringsnet (ekstra lag eller tættere ved høj risiko)" -> "reinforced"
                     else -> null
                 }
-                viewModel.updateWallData(data.copy(reinforcementLevel = level))
+                viewModel.updateWallDataDirect(data.copy(reinforcementLevel = level))
             },
             modifier = Modifier.padding(bottom = 24.dp)
         )

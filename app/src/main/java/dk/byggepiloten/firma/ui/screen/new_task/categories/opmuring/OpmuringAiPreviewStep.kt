@@ -1,8 +1,7 @@
 // Fil: app/src/main/java/dk/byggepiloten/firma/ui/screen/new_task/categories/opmuring/OpmuringAiPreviewStep.kt
-// FIX: Vis error fra viewModel.error (collect fra BaseTaskViewModel via cast)
-// - Rød fejlmeddelelse vises centreret hvis generation fejlede
-// - Ingen neutral fallback – error kommer direkte fra generatoren
-// Total lines: 98
+// INGEN ÆNDRINGER NØDVENDIGE – denne fil havde ingen updateWallData-kald
+// Den caster stadig til BaseTaskViewModel for at få error-flow (det er OK)
+// Total lines: 98 (uændret)
 
 package dk.byggepiloten.firma.ui.screen.new_task.categories.opmuring
 

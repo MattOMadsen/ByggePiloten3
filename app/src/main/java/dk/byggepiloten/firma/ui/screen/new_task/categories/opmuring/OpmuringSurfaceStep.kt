@@ -1,7 +1,7 @@
 // Fil: app/src/main/java/dk/byggepiloten/firma/ui/screen/new_task/categories/opmuring/OpmuringSurfaceStep.kt
-// OPDATERET: Bruger nu reusable ChoiceBoxColumn
-// - "Ingen/Rå" tilføjet
-// - Farve-swatches beholdt under conditional
+// OPDATERET: Compile-fix – alle updateWallData → updateWallDataDirect
+// - ChoiceBoxColumn + farve-swatches beholdt
+// Total lines: ~300 (uændret)
 
 package dk.byggepiloten.firma.ui.screen.new_task.categories.opmuring
 
@@ -64,7 +64,7 @@ fun OpmuringSurfaceStep(
             options = options,
             selectedOption = data.surfaceFinish,
             onOptionSelected = {
-                viewModel.updateWallData(
+                viewModel.updateWallDataDirect(
                     data.copy(
                         surfaceFinish = it,
                         customSurface = if (it == "Andet") data.customSurface else null,
@@ -89,7 +89,9 @@ fun OpmuringSurfaceStep(
                 verticalArrangement = Arrangement.spacedBy(16.dp),
                 modifier = Modifier.fillMaxWidth()
             ) {
-                listOf("Cementgrå", "Hvid").forEach { farve ->
+                listOf(
+                    "Hvid", "Lys grå", "Mørk grå", "Sort", "Rød", "Gul", "Brun"
+                ).forEach { farve ->
                     val color = getDurapudsSwatchColor(farve)
                     val isSelected = data.haeftemoertelFarve == farve
 
@@ -103,7 +105,7 @@ fun OpmuringSurfaceStep(
                                 color = if (isSelected) Color.White else Color.Transparent,
                                 shape = RoundedCornerShape(16.dp)
                             )
-                            .clickable { viewModel.updateWallData(data.copy(haeftemoertelFarve = farve)) },
+                            .clickable { viewModel.updateWallDataDirect(data.copy(haeftemoertelFarve = farve)) },
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
@@ -149,7 +151,7 @@ fun OpmuringSurfaceStep(
                                 color = if (isSelected) Color.White else Color.Transparent,
                                 shape = RoundedCornerShape(16.dp)
                             )
-                            .clickable { viewModel.updateWallData(data.copy(skalcemFarve = farve)) },
+                            .clickable { viewModel.updateWallDataDirect(data.copy(skalcemFarve = farve)) },
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
@@ -165,7 +167,7 @@ fun OpmuringSurfaceStep(
         ConditionalContent(visible = data.surfaceFinish == "Andet") {
             StyledTextField(
                 value = data.customSurface ?: "",
-                onValueChange = { viewModel.updateWallData(data.copy(customSurface = it)) },
+                onValueChange = { viewModel.updateWallDataDirect(data.copy(customSurface = it)) },
                 label = "Beskriv ønsket overfladebehandling",
                 singleLine = false
             )

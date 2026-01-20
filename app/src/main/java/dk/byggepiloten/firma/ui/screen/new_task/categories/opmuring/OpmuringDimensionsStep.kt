@@ -1,9 +1,7 @@
 // Fil: app/src/main/java/dk/byggepiloten/firma/ui/screen/new_task/categories/opmuring/OpmuringDimensionsStep.kt
-// OPDATERET: Forbedret synlighed af netto-areal teaser-boks
-// - Tekstfarve på netto areal → hvid + bold
-// - Baggrunds-alpha fra 0.2f → 0.35f for bedre kontrast
-// - Lidt mere padding og større font-weight på hovedlinjen
-// - Ingen andre ændringer i layout eller farver i appen
+// OPDATERET: Compile-fix – alle updateWallData → updateWallDataDirect
+// - Forbedret netto-areal teaser beholdt (hvid tekst, stærkere baggrund)
+// Total lines: ~220 (uændret struktur)
 
 package dk.byggepiloten.firma.ui.screen.new_task.categories.opmuring
 
@@ -51,7 +49,7 @@ fun OpmuringDimensionsStep(
             selectedOption = data.wallMode ?: "Samlet areal",
             onOptionSelected = { selected ->
                 val clearedMeasurements = if (selected == "Samlet areal") emptyList() else data.wallMeasurements
-                viewModel.updateWallData(
+                viewModel.updateWallDataDirect(
                     data.copy(
                         wallMode = selected,
                         wallMeasurements = clearedMeasurements,
@@ -65,7 +63,7 @@ fun OpmuringDimensionsStep(
         // Default til "Samlet areal" hvis wallMode == null (første load)
         LaunchedEffect(Unit) {
             if (data.wallMode == null) {
-                viewModel.updateWallData(data.copy(wallMode = "Samlet areal"))
+                viewModel.updateWallDataDirect(data.copy(wallMode = "Samlet areal"))
             }
         }
 
@@ -74,7 +72,7 @@ fun OpmuringDimensionsStep(
                 value = data.wallTotalAreaM2?.toString() ?: "",
                 onValueChange = { newValue ->
                     val cleaned = newValue.replace(',', '.')
-                    viewModel.updateWallData(data.copy(wallTotalAreaM2 = cleaned.toFloatOrNull()))
+                    viewModel.updateWallDataDirect(data.copy(wallTotalAreaM2 = cleaned.toFloatOrNull()))
                 },
                 label = "Samlet areal (m²)",
                 keyboardType = KeyboardType.Decimal,
@@ -83,7 +81,7 @@ fun OpmuringDimensionsStep(
         } else if (data.wallMode == "Individuelle vægge") {
             MeasurementRow(
                 measurements = data.wallMeasurements,
-                onMeasurementsChange = { viewModel.updateWallData(data.copy(wallMeasurements = it)) }
+                onMeasurementsChange = { viewModel.updateWallDataDirect(data.copy(wallMeasurements = it)) }
             )
         }
 
@@ -126,16 +124,16 @@ fun OpmuringDimensionsStep(
             Text(
                 text = "Netto areal til opmuring: ${String.format("%.2f", nettoArea)} m²",
                 style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Black,           // ← gjort ekstra fed
-                color = Color.White,                     // ← ændret fra blå til hvid
+                fontWeight = FontWeight.Black,
+                color = Color.White,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = 20.dp)                // lidt mere luft ovenfra
+                    .padding(top = 20.dp)
                     .background(
-                        Color.White.copy(alpha = 0.35f), // ← stærkere baggrund (fra 0.2f)
+                        Color.White.copy(alpha = 0.35f),
                         MaterialTheme.shapes.medium
                     )
-                    .padding(horizontal = 20.dp, vertical = 16.dp)  // lidt mere padding indeni
+                    .padding(horizontal = 20.dp, vertical = 16.dp)
             )
         }
     }

@@ -1,12 +1,6 @@
 // Fil: app/src/main/java/dk/byggepiloten/firma/ui/viewmodel/task/AiEstimateGenerator.kt
-// FIX: Reel cloud API-key håndtering + sikker fallback til simpel beregning
-// - API-key loades nu fra BuildConfig.GEMINI_API_KEY (skal sættes i gradle.properties + build.gradle)
-// - Bedre error-handling med specifikke beskeder
-// - Fallback: Simpel areal-baseret estimat (3000-5000 kr/m² afhængig kategori) hvis både local + cloud fejler
-// - Local Nano stadig placeholder (kan aktiveres når tilgængelig)
-// - Parse forbedret med bedre regex + validation
-// - Mere logging for debugging
-// Total lines: 168
+// FIX: Fjernet *100 (AI svarer i hele kroner)
+// - Fallback direkte i kroner (35.000 kr for 25 m² standard)
 
 package dk.byggepiloten.firma.ui.viewmodel.task
 
@@ -19,77 +13,59 @@ import javax.inject.Inject
 import javax.inject.Singleton
 import dk.byggepiloten.firma.BuildConfig
 
-/**
- * Singleton-klasse til generering af AI-prisestimater.
- * Prioritet: Gemini Nano (lokal) → Gemini Cloud → Simpel fallback-beregning.
- * API-key håndteres sikkert via BuildConfig (sæt i gradle.properties: GEMINI_API_KEY="din-key").
- */
 @Singleton
 class AiEstimateGenerator @Inject constructor() {
 
-    // Placeholder for Gemini Nano – aktiver når model er tilgængelig på device
     private val localModel: GenerativeModel? = null
 
-    // Cloud model – key fra BuildConfig (aldrig hardcode!)
     private val cloudModel by lazy {
         if (BuildConfig.GEMINI_API_KEY.isBlank()) {
-            Timber.w("Gemini API-key mangler i BuildConfig – cloud deaktiveret")
+            Timber.w("GEMINI_API_KEY mangler – cloud deaktiveret, bruger fallback")
             null
         } else {
+            Timber.d("Initialiserer Gemini cloud model med key (længde: ${BuildConfig.GEMINI_API_KEY.length})")
             GenerativeModel(
-                modelName = "gemini-1.5-flash", // Hurtig + billig – skift til pro ved behov
+                modelName = "gemini-2.5-flash",
                 apiKey = BuildConfig.GEMINI_API_KEY
             )
         }
     }
 
-    /**
-     * Generer estimat.
-     * @param category Opgavekategori (f.eks. "opmuring")
-     * @param areaM2 Netto areal i m²
-     * @param description Valgfri brugerbeskrivelse
-     * @param onSuccess Callback med pris i øre (Long)
-     * @param onError Callback med fejlbesked
-     */
     suspend fun generateEstimate(
         category: String,
         areaM2: Float,
         description: String? = null,
+        extraDetails: String? = null,
         onSuccess: (Long) -> Unit,
         onError: (String) -> Unit
     ) {
+        val effectiveArea = areaM2.coerceAtLeast(1f)
+
         try {
-            // 1. Prøv lokal Nano
-            if (localModel != null) {
-                Timber.d("Prøver Gemini Nano lokal")
-                val localResult = withContext(Dispatchers.IO) {
-                    generateWithModel(localModel, category, areaM2, description)
+            localModel?.let { model ->
+                val price = withContext(Dispatchers.IO) {
+                    generateWithModel(model, category, effectiveArea, description, extraDetails)
                 }
-                onSuccess(localResult)
+                onSuccess(price)
                 return
             }
 
-            // 2. Prøv cloud hvis key findes
             cloudModel?.let { model ->
-                Timber.d("Prøver Gemini Cloud")
-                val cloudResult = withContext(Dispatchers.IO) {
-                    generateWithModel(model, category, areaM2, description)
+                val price = withContext(Dispatchers.IO) {
+                    generateWithModel(model, category, effectiveArea, description, extraDetails)
                 }
-                onSuccess(cloudResult)
+                onSuccess(price)
                 return
             }
 
-            // 3. Fallback: Simpel beregning hvis ingen AI tilgængelig
-            Timber.w("Ingen AI tilgængelig – bruger simpel fallback")
-            val fallbackPriceKr = calculateSimpleEstimate(category, areaM2)
-            onSuccess(fallbackPriceKr * 100) // Til øre
+            val fallbackPrice = calculateSimpleEstimate(category, effectiveArea)
+            onSuccess(fallbackPrice)
             onError("AI ikke tilgængelig – viser groft estimat baseret på areal")
 
         } catch (e: Exception) {
-            Timber.e(e, "Kritisk fejl i AI-estimat generation")
-            // Sidste fallback
-            val fallbackPriceKr = calculateSimpleEstimate(category, areaM2)
-            onSuccess(fallbackPriceKr * 100)
+            Timber.e(e, "Reel fejl i AI-generation")
+            val fallbackPrice = calculateSimpleEstimate(category, effectiveArea)
+            onSuccess(fallbackPrice)
             onError("Kunne ikke kontakte AI – viser groft estimat")
         }
     }
@@ -98,45 +74,52 @@ class AiEstimateGenerator @Inject constructor() {
         model: GenerativeModel,
         category: String,
         areaM2: Float,
-        description: String?
+        description: String?,
+        extraDetails: String?
     ): Long {
-        val prompt = buildPrompt(category, areaM2, description)
-        Timber.d("AI prompt: $prompt")
+        val prompt = buildPrompt(category, areaM2, description, extraDetails)
+        Timber.d("Prompt sendt til AI:\n$prompt")
 
         val response = model.generateContent(content { text(prompt) })
         val priceText = response.text.orEmpty()
-        Timber.d("AI response: $priceText")
+        Timber.d("AI svar: $priceText")
 
-        // Parse kun tal (f.eks. "Ca. 25.000 kr" → 25000)
         val cleaned = priceText.replace(Regex("[^0-9]"), "")
-        val priceKr = cleaned.toLongOrNull() ?: throw IllegalArgumentException("Kunne ikke parse pris fra AI-response")
+        if (cleaned.isEmpty()) throw IllegalArgumentException("AI returnerede ingen pris")
 
-        return priceKr * 100 // Til øre
+        return cleaned.toLong() // Ingen *100 – AI svarer i hele kroner
     }
 
-    private fun buildPrompt(category: String, areaM2: Float, description: String?): String {
+    private fun buildPrompt(
+        category: String,
+        areaM2: Float,
+        description: String?,
+        extraDetails: String?
+    ): String {
         return """
-            Du er en erfaren håndværker i Danmark specialiseret i $category.
-            Estimér en realistisk pris EKSKL. materialer, INKL. moms for en opgave på ca. ${"%.2f".format(areaM2)} m².
-            ${description?.let { "Kunde beskrivelse: $it" }.orEmpty()}
+            Du er en erfaren murer i Danmark i 2026.
+            Estimér realistisk totalpris for arbejdsløn (ekskl. materialer, inkl. moms) for $category på ${"%.2f".format(areaM2)} m².
             
-            Svar KUN med prisen i hele kroner som et rent tal, f.eks. 25000.
-            Ingen forklaring, ingen tekst omkring.
+            Typiske danske priser 2026:
+            - Standard ny opmuring: 800–1500 kr/m²
+            - Reparation eller bærende væg: 1200–2000 kr/m²
+            - Med puds, armering eller specialsten: +15–30 %
+            
+            ${description?.let { "Kundens beskrivelse: $it" }.orEmpty()}
+            ${extraDetails?.let { "Yderligere detaljer: $it" }.orEmpty()}
+            
+            Giv KUN prisen i hele kroner som rent tal (f.eks. 45000). Ingen tekst, ingen interval.
         """.trimIndent()
     }
 
-    /**
-     * Simpel fallback-beregning baseret på gennemsnitlige priser pr. m² (2026-niveau).
-     * Kan udvides med kategori-specifikke intervaller.
-     */
     private fun calculateSimpleEstimate(category: String, areaM2: Float): Long {
         val pricePerM2 = when (category.lowercase()) {
-            "opmuring" -> 3500L // Ca. gennemsnit for murerarbejde
-            "facade" -> 4000L
-            "fliser" -> 3000L
-            "badeværelse" -> 5000L
-            else -> 3500L // Default
+            "opmuring" -> 1400L // Ca. 35.000 kr for 25 m²
+            "facade" -> 1600L
+            "fliser" -> 1200L
+            "badeværelse" -> 2000L
+            else -> 1400L
         }
-        return (pricePerM2 * areaM2.coerceAtLeast(1f)).toLong()
+        return pricePerM2 * areaM2.toLong()
     }
 }

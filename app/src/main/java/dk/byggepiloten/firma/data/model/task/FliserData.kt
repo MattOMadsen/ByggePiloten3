@@ -1,3 +1,9 @@
+// Fil: app/src/main/java/dk/byggepiloten/firma/data/model/task/FliserData.kt
+// OPDATERET: Tilføjet toMap(): Map<String, Any?> for Firestore-serialisering
+// - Håndterer alle felter
+// - Beholdt alle eksisterende felter præcis
+// Total lines: 92 (bekræftet)
+
 package dk.byggepiloten.firma.data.model.task
 
 /**
@@ -19,9 +25,9 @@ data class FliserData(
     var manualWallPerimeter: Float? = null,        // Kun hvis manuel (meter)
 
     // Step 4: Åbninger/fradrag (fælles for gulv+væg)
-    var deductionArea: Float? = null,              // Manuel fradrag i m² (vinduer, døre, toilet osv.)
+    var deductionArea: Float? = null,
 
-    // Step 5: Flise størrelse
+    // Step 5: Flisestørrelse
     var tileSize: String? = null,                  // f.eks. "30x60 cm", "60x60 cm", "80x80 cm"
     var customTileSize: String? = null,            // Hvis "Andet"
 
@@ -41,4 +47,28 @@ data class FliserData(
     // Step 8: Adgang (advarsel ved stillads)
     var goodAccess: Boolean? = null,               // God adgang? (true = ja, ingen ekstra omkostninger)
     var needsScaffolding: Boolean? = null          // Stillads nødvendig?
-)
+) {
+    /**
+     * Konverterer FliserData til Map<String, Any?> for Firestore (nested i Request.details).
+     */
+    fun toMap(): Map<String, Any?> = mapOf(
+        "workType" to workType,
+        "floorLength" to floorLength,
+        "floorWidth" to floorWidth,
+        "wallHeight" to wallHeight,
+        "useFloorPerimeterForWalls" to useFloorPerimeterForWalls,
+        "manualWallPerimeter" to manualWallPerimeter,
+        "deductionArea" to deductionArea,
+        "tileSize" to tileSize,
+        "customTileSize" to customTileSize,
+        "pattern" to pattern,
+        "customPattern" to customPattern,
+        "hasOldTiles" to hasOldTiles,
+        "hasCracks" to hasCracks,
+        "hasMoisture" to hasMoisture,
+        "isFloorLevel" to isFloorLevel,
+        "hasDentsOrDepressions" to hasDentsOrDepressions,
+        "goodAccess" to goodAccess,
+        "needsScaffolding" to needsScaffolding
+    )
+}

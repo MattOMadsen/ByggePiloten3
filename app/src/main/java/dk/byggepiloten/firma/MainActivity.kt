@@ -1,9 +1,10 @@
 // Fil: app/src/main/java/dk/byggepiloten/firma/MainActivity.kt
-// FULD RETTET VERSION – tilføjet routes til nye screens
-// + "task_images/{taskId}" → ImagesScreen
-// + "task_full_details/{taskId}" → FullDetailsScreen
-// + Nye imports
-// + Ingen andre ændringer – 378 linjer
+// OPDATERET VERSION – fixes til resume timeout + bedre logging
+// + Try-catch i setContent
+// + Global uncaught exception handler
+// + Timber-logs i onCreate/onResume
+// + Dine ekstra routes beholdt (task_images, task_full_details)
+// Total linjer: ca. 420
 
 package dk.byggepiloten.firma
 
@@ -73,156 +74,178 @@ class MainActivity : ComponentActivity() {
     private var navController: NavController? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        // Global uncaught exception handler – logger alt der crasher appen
+        Thread.setDefaultUncaughtExceptionHandler { thread, throwable ->
+            Timber.e(throwable, "Uncaught exception i thread ${thread.name} – app crasher!")
+        }
+
         super.onCreate(savedInstanceState)
+        Timber.d("MainActivity.onCreate() kaldt – start")
         handleDeepLink(intent)
 
-        setContent {
-            ByggePilotenTheme {
-                val navController = rememberNavController()
-                this@MainActivity.navController = navController
-                val onboardingViewModel: OnboardingViewModel = hiltViewModel()
+        try {
+            setContent {
+                ByggePilotenTheme {
+                    val navController = rememberNavController()
+                    this@MainActivity.navController = navController
+                    val onboardingViewModel: OnboardingViewModel = hiltViewModel()
 
-                NavHost(navController = navController, startDestination = "splash") {
-                    composable("splash") {
-                        SplashScreen(navController = navController)
-                    }
+                    Timber.d("Compose NavHost setup startet")
 
-                    composable("welcome") {
-                        WelcomeScreen(navController = navController)
-                    }
+                    NavHost(navController = navController, startDestination = "splash") {
+                        composable("splash") {
+                            SplashScreen(navController = navController)
+                        }
 
-                    composable("onboarding") {
-                        val authViewModel: AuthViewModel = hiltViewModel()
-                        OnboardingScreen(
-                            navController = navController,
-                            onRoleSelected = { role ->
-                                Timber.d("Onboarding: Rollevalg: $role")
-                                when (role) {
-                                    "private" -> {
-                                        onboardingViewModel.selectRole("PRIVATE")
-                                        try {
-                                            navController.navigate("private_details")
-                                        } catch (e: IllegalArgumentException) {
-                                            Timber.e(e, "Route private_details mangler")
+                        composable("welcome") {
+                            WelcomeScreen(navController = navController)
+                        }
+
+                        composable("onboarding") {
+                            val authViewModel: AuthViewModel = hiltViewModel()
+                            OnboardingScreen(
+                                navController = navController,
+                                onRoleSelected = { role ->
+                                    Timber.d("Onboarding: Rollevalg: $role")
+                                    when (role) {
+                                        "private" -> {
+                                            onboardingViewModel.selectRole("PRIVATE")
+                                            try {
+                                                navController.navigate("private_details")
+                                            } catch (e: IllegalArgumentException) {
+                                                Timber.e(e, "Route private_details mangler")
+                                            }
                                         }
-                                    }
 
-                                    "contractor" -> {
-                                        onboardingViewModel.selectRole("CONTRACTOR")
-                                        try {
-                                            navController.navigate("contractor_type_selection")
-                                        } catch (e: IllegalArgumentException) {
-                                            Timber.e(e, "Route contractor_type_selection mangler")
+                                        "contractor" -> {
+                                            onboardingViewModel.selectRole("CONTRACTOR")
+                                            try {
+                                                navController.navigate("contractor_type_selection")
+                                            } catch (e: IllegalArgumentException) {
+                                                Timber.e(e, "Route contractor_type_selection mangler")
+                                            }
                                         }
                                     }
                                 }
-                            }
-                        )
+                            )
+                        }
+
+                        composable("private_details") {
+                            PrivateDetailsScreen(navController = navController)
+                        }
+
+                        composable("contractor_type_selection") {
+                            ContractorTypeSelectionScreen(navController = navController)
+                        }
+
+                        composable("contractor_details") {
+                            ContractorDetailsScreen(navController = navController)
+                        }
+
+                        composable("login") {
+                            LoginScreen(navController = navController)
+                        }
+
+                        composable("dashboard") {
+                            DashboardScreen(
+                                navController = navController,
+                                authRepository = authRepository
+                            )
+                        }
+
+                        composable("settings") {
+                            SettingsScreen(navController = navController)
+                        }
+
+                        composable("new_task") {
+                            NewTaskWizardScreen(navController = navController)
+                        }
+
+                        composable("facade_pudsning") {
+                            FacadePudsningWizardScreen(navController = navController)
+                        }
+
+                        composable("badeværelse") {
+                            BadevaerelseWizardScreen(navController = navController)
+                        }
+
+                        composable("opmuring") {
+                            OpmuringWizardScreen(navController = navController)
+                        }
+
+                        composable("flise_klinke") {
+                            FliserWizardScreen(navController = navController)
+                        }
+
+                        composable("omfugning") {
+                            OmfugningScreen(navController = navController)
+                        }
+
+                        composable("nedbrydning") {
+                            NedbrydningScreen(navController = navController)
+                        }
+
+                        composable("skorsten") {
+                            SkorstenScreen(navController = navController)
+                        }
+
+                        composable("fundament") {
+                            FundamentScreen(navController = navController)
+                        }
+
+                        composable("task_detail/{taskId}") { backStackEntry ->
+                            val taskId = backStackEntry.arguments?.getString("taskId") ?: ""
+                            TaskDetailScreen(navController = navController, taskId = taskId)
+                        }
+
+                        composable("task_images/{taskId}") { backStackEntry ->
+                            val taskId = backStackEntry.arguments?.getString("taskId") ?: ""
+                            ImagesScreen(navController = navController, taskId = taskId)
+                        }
+
+                        composable("task_full_details/{taskId}") { backStackEntry ->
+                            val taskId = backStackEntry.arguments?.getString("taskId") ?: ""
+                            FullDetailsScreen(navController = navController, taskId = taskId)
+                        }
+
+                        composable("bids/{taskId}") { backStackEntry ->
+                            val taskId = backStackEntry.arguments?.getString("taskId") ?: ""
+                            BidsScreen(navController = navController, taskId = taskId)
+                        }
+
+                        composable("bid_detail/{bidId}") { backStackEntry ->
+                            val bidId = backStackEntry.arguments?.getString("bidId") ?: ""
+                            BidDetailScreen(navController = navController, bidId = bidId)
+                        }
+
+                        composable("task_photos_description/{category}") { backStackEntry ->
+                            val category = backStackEntry.arguments?.getString("category") ?: ""
+                            TaskPhotosDescriptionScreen(navController = navController, category = category)
+                        }
+
+                        composable("bid_pool") {
+                            ContractorBidsScreen(navController = navController)
+                        }
+
+                        composable("my_bids") {
+                            ContractorMyBidsScreen(navController = navController)
+                        }
                     }
 
-                    composable("private_details") {
-                        PrivateDetailsScreen(navController = navController)
-                    }
-
-                    composable("contractor_type_selection") {
-                        ContractorTypeSelectionScreen(navController = navController)
-                    }
-
-                    composable("contractor_details") {
-                        ContractorDetailsScreen(navController = navController)
-                    }
-
-                    composable("login") {
-                        LoginScreen(navController = navController)
-                    }
-
-                    composable("dashboard") {
-                        DashboardScreen(
-                            navController = navController,
-                            authRepository = authRepository
-                        )
-                    }
-
-                    composable("settings") {
-                        SettingsScreen(navController = navController)
-                    }
-
-                    composable("new_task") {
-                        NewTaskWizardScreen(navController = navController)
-                    }
-
-                    composable("facade_pudsning") {
-                        FacadePudsningWizardScreen(navController = navController)
-                    }
-
-                    composable("badeværelse") {
-                        BadevaerelseWizardScreen(navController = navController)
-                    }
-
-                    composable("opmuring") {
-                        OpmuringWizardScreen(navController = navController)
-                    }
-
-                    composable("flise_klinke") {
-                        FliserWizardScreen(navController = navController)
-                    }
-
-                    composable("omfugning") {
-                        OmfugningScreen(navController = navController)
-                    }
-
-                    composable("nedbrydning") {
-                        NedbrydningScreen(navController = navController)
-                    }
-
-                    composable("skorsten") {
-                        SkorstenScreen(navController = navController)
-                    }
-
-                    composable("fundament") {
-                        FundamentScreen(navController = navController)
-                    }
-
-                    composable("task_detail/{taskId}") { backStackEntry ->
-                        val taskId = backStackEntry.arguments?.getString("taskId") ?: ""
-                        TaskDetailScreen(navController = navController, taskId = taskId)
-                    }
-
-                    composable("task_images/{taskId}") { backStackEntry ->
-                        val taskId = backStackEntry.arguments?.getString("taskId") ?: ""
-                        ImagesScreen(navController = navController, taskId = taskId)
-                    }
-
-                    composable("task_full_details/{taskId}") { backStackEntry ->
-                        val taskId = backStackEntry.arguments?.getString("taskId") ?: ""
-                        FullDetailsScreen(navController = navController, taskId = taskId)
-                    }
-
-                    composable("bids/{taskId}") { backStackEntry ->
-                        val taskId = backStackEntry.arguments?.getString("taskId") ?: ""
-                        BidsScreen(navController = navController, taskId = taskId)
-                    }
-
-                    composable("bid_detail/{bidId}") { backStackEntry ->
-                        val bidId = backStackEntry.arguments?.getString("bidId") ?: ""
-                        BidDetailScreen(navController = navController, bidId = bidId)
-                    }
-
-                    composable("task_photos_description/{category}") { backStackEntry ->
-                        val category = backStackEntry.arguments?.getString("category") ?: ""
-                        TaskPhotosDescriptionScreen(navController = navController, category = category)
-                    }
-
-                    composable("bid_pool") {
-                        ContractorBidsScreen(navController = navController)
-                    }
-
-                    composable("my_bids") {
-                        ContractorMyBidsScreen(navController = navController)
-                    }
+                    Timber.d("Compose NavHost setup færdig")
                 }
             }
+        } catch (e: Exception) {
+            Timber.e(e, "Fatal fejl i setContent – Compose setup crashede!")
+            // Her kan du vise en simpel fejlskærm hvis nødvendigt
         }
+
+        Timber.d("MainActivity.onCreate() færdig")
+    }
+
+    override fun onResume() {
+        super.onResume()
+        Timber.d("MainActivity.onResume() kaldt – hvis dette tager >5 sek, får vi timeout!")
     }
 
     private fun handleDeepLink(intent: Intent) {

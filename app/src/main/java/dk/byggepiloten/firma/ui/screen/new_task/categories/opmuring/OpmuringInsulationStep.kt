@@ -1,7 +1,7 @@
 // Fil: app/src/main/java/dk/byggepiloten/firma/ui/screen/new_task/categories/opmuring/OpmuringInsulationStep.kt
-// FULD OPDATERET – Ændret til viewModel-parameter
-// Bind direkte til viewModel.updateWallData
-// Layout uændret (ChoiceBox Ja/Nej + tykkelse-felt)
+// OPDATERET: Compile-fix – alle updateWallData → updateWallDataDirect
+// - Ja/Nej + tykkelse-felt beholdt
+// Total lines: ~110 (uændret)
 
 package dk.byggepiloten.firma.ui.screen.new_task.categories.opmuring
 
@@ -44,7 +44,7 @@ fun OpmuringInsulationStep(
             options = options,
             selectedOption = if (data.insulationWanted == true) "Ja" else if (data.insulationWanted == false) "Nej" else null,
             onOptionSelected = { option ->
-                viewModel.updateWallData(
+                viewModel.updateWallDataDirect(
                     data.copy(
                         insulationWanted = option == "Ja",
                         insulationThickness = if (option == "Nej") null else data.insulationThickness
@@ -57,7 +57,7 @@ fun OpmuringInsulationStep(
             StyledTextField(
                 value = data.insulationThickness?.toString() ?: "",
                 onValueChange = { value ->
-                    viewModel.updateWallData(data.copy(insulationThickness = value.toFloatOrNull()))
+                    viewModel.updateWallDataDirect(data.copy(insulationThickness = value.toFloatOrNull()))
                 },
                 label = "Isoleringstykkelse (cm)",
                 keyboardType = KeyboardType.Decimal,

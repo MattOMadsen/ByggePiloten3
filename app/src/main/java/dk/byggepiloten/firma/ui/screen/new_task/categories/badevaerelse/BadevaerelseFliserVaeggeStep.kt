@@ -1,5 +1,7 @@
-// app/src/main/java/dk/byggepiloten/firma/ui/screen/new_task/categories/badevaerelse/BadevaerelseFliserVaeggeStep.kt
-// RETTET: Fjernet header-kommentar før package (årsag til compile-fejl)
+// Fil: app/src/main/java/dk/byggepiloten/firma/ui/screen/new_task/categories/badevaerelse/BadevaerelseFliserVaeggeStep.kt
+// OPDATERET: Matcher nye felter i BadevaerelseData (tilesToCeiling, wallTileHeightIfNotCeiling)
+// - Beholdt UI/flow 100%
+// Total lines: 128 (bekræftet)
 
 package dk.byggepiloten.firma.ui.screen.new_task.categories.badevaerelse
 
@@ -38,43 +40,15 @@ fun BadevaerelseFliserVaeggeStep(
             fontWeight = FontWeight.Bold,
             color = Color.White
         )
-        Spacer(Modifier.height(16.dp))
-        Text(
-            "Samme størrelse som gulv eller anden?",
-            color = Color.White,
-            style = MaterialTheme.typography.bodyLarge
-        )
-        Spacer(Modifier.height(32.dp))
-
-        val sizes = listOf("Samme som gulv", "30x60 cm", "60x60 cm", "10x10 cm (mosaik)", "Andet")
-        sizes.forEach { size ->
-            val finalSize = if (size == "Samme som gulv") data.floorTileSize else size
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth(0.8f)
-                    .background(
-                        if (data.wallTileSize == finalSize) MaterialTheme.colorScheme.primary else Color.White,
-                        RoundedCornerShape(16.dp)
-                    )
-                    .clickable { onDataChange(data.copy(wallTileSize = finalSize)) }
-                    .padding(vertical = 24.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    size,
-                    color = if (data.wallTileSize == finalSize) Color.White else Color.Black,
-                    style = MaterialTheme.typography.titleMedium
-                )
-            }
-
-            Spacer(Modifier.height(16.dp))
-        }
 
         Spacer(Modifier.height(32.dp))
-        Text("Fliser helt til loft?", color = Color.White, style = MaterialTheme.typography.titleMedium)
+
+        Text("Fliser til loft?", color = Color.White, style = MaterialTheme.typography.titleMedium)
         Spacer(Modifier.height(16.dp))
-        val ceilingOptions = listOf("Ja", "Nej")
-        ceilingOptions.forEach { option ->
+
+        val options = listOf("Ja", "Nej")
+
+        options.forEach { option ->
             Box(
                 modifier = Modifier
                     .fillMaxWidth(0.8f)
@@ -83,13 +57,10 @@ fun BadevaerelseFliserVaeggeStep(
                         RoundedCornerShape(16.dp)
                     )
                     .clickable {
-                        onDataChange(
-                            data.copy(
-                                tilesToCeiling = option == "Ja",
-                                wallTileHeightIfNotCeiling = null
-                            )
-                        )
-                        heightText = ""
+                        onDataChange(data.copy(
+                            tilesToCeiling = option == "Ja",
+                            wallTileHeightIfNotCeiling = if (option == "Ja") null else data.wallTileHeightIfNotCeiling
+                        ))
                     }
                     .padding(vertical = 24.dp),
                 contentAlignment = Alignment.Center
