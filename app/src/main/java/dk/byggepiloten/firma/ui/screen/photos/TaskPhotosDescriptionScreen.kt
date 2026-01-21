@@ -1,7 +1,7 @@
 // Fil: app/src/main/java/dk/byggepiloten/firma/ui/screen/photos/TaskPhotosDescriptionScreen.kt
-// OPDATERET: Tilføjet manglende imports (Icons + ArrowBack)
-// - Ingen andre ændringer
-// Total lines: ~400 (uændret)
+// FULD FIL – rettet type mismatch + fuld support for PudsTaskViewModel
+// Facade-referencer fjernet
+// FontWeight import + alle andre imports medtaget
 
 package dk.byggepiloten.firma.ui.screen.photos
 
@@ -23,6 +23,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
@@ -38,9 +39,9 @@ import dk.byggepiloten.firma.ui.screen.photos.components.SendTaskSection
 import dk.byggepiloten.firma.ui.theme.ByggePilotenBlue
 import dk.byggepiloten.firma.ui.viewmodel.task.BadevaerelseTaskViewModel
 import dk.byggepiloten.firma.ui.viewmodel.task.BaseTaskViewModel
-import dk.byggepiloten.firma.ui.viewmodel.task.FacadeTaskViewModel
 import dk.byggepiloten.firma.ui.viewmodel.task.FliserTaskViewModel
 import dk.byggepiloten.firma.ui.viewmodel.task.OpmuringTaskViewModel
+import dk.byggepiloten.firma.ui.viewmodel.task.PudsTaskViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -54,18 +55,18 @@ fun TaskPhotosDescriptionScreen(
 
     val viewModel: BaseTaskViewModel = if (wizardBackStackEntry != null) {
         when (category) {
-            "fliser" -> hiltViewModel<FliserTaskViewModel>(wizardBackStackEntry)
+            "flise_klinke" -> hiltViewModel<FliserTaskViewModel>(wizardBackStackEntry)
             "badeværelse" -> hiltViewModel<BadevaerelseTaskViewModel>(wizardBackStackEntry)
             "opmuring" -> hiltViewModel<OpmuringTaskViewModel>(wizardBackStackEntry)
-            "facade" -> hiltViewModel<FacadeTaskViewModel>(wizardBackStackEntry)
-            else -> hiltViewModel<OpmuringTaskViewModel>()
+            "pudsning" -> hiltViewModel<PudsTaskViewModel>(wizardBackStackEntry)
+            else -> hiltViewModel<OpmuringTaskViewModel>(wizardBackStackEntry)
         }
     } else {
         when (category) {
-            "fliser" -> hiltViewModel<FliserTaskViewModel>()
+            "flise_klinke" -> hiltViewModel<FliserTaskViewModel>()
             "badeværelse" -> hiltViewModel<BadevaerelseTaskViewModel>()
             "opmuring" -> hiltViewModel<OpmuringTaskViewModel>()
-            "facade" -> hiltViewModel<FacadeTaskViewModel>()
+            "pudsning" -> hiltViewModel<PudsTaskViewModel>()
             else -> hiltViewModel<OpmuringTaskViewModel>()
         }
     }
@@ -79,129 +80,145 @@ fun TaskPhotosDescriptionScreen(
 
     var fullscreenImageUri by remember { mutableStateOf<Uri?>(null) }
 
-    val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
 
-    Scaffold(
-        snackbarHost = { SnackbarHost(snackbarHostState) },
-        topBar = {
-            CenterAlignedTopAppBar(
-                title = { Text("Fuldfør opgave", color = Color.White) },
-                navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Tilbage", tint = Color.White)
-                    }
-                },
-                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = ByggePilotenBlue)
-            )
-        }
-    ) { padding ->
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .background(Brush.verticalGradient(listOf(ByggePilotenBlue, Color(0xFF0D47A1))))
-        ) {
-            item {
-                Spacer(Modifier.height(24.dp))
-                Text(
-                    text = "Se billeder og AI-estimat",
-                    style = MaterialTheme.typography.headlineMedium,
-                    color = Color.White,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.fillMaxWidth()
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(
+                brush = Brush.verticalGradient(
+                    colors = listOf(ByggePilotenBlue, Color(0xFF42A5F5), Color(0xFF90CAF9))
                 )
-                Spacer(Modifier.height(32.dp))
-            }
-
-            if (imageUris.isNotEmpty()) {
+            )
+    ) {
+        Scaffold(
+            topBar = {
+                CenterAlignedTopAppBar(
+                    title = {
+                        Text(
+                            "Billeder og beskrivelse",
+                            color = Color.White,
+                            fontWeight = FontWeight.Bold
+                        )
+                    },
+                    navigationIcon = {
+                        IconButton(onClick = { navController.popBackStack() }) {
+                            Icon(Icons.Filled.ArrowBack, contentDescription = "Tilbage", tint = Color.White)
+                        }
+                    },
+                    colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = Color.Transparent)
+                )
+            },
+            snackbarHost = { SnackbarHost(snackbarHostState) },
+            containerColor = Color.Transparent
+        ) { padding ->
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding),
+                contentPadding = PaddingValues(bottom = 80.dp)
+            ) {
                 item {
                     Text(
-                        text = "Dine billeder",
-                        style = MaterialTheme.typography.titleLarge,
-                        color = Color.White,
-                        modifier = Modifier.padding(horizontal = 16.dp)
-                    )
-                    Spacer(Modifier.height(16.dp))
-                    LazyRow(
-                        horizontalArrangement = Arrangement.spacedBy(12.dp),
-                        contentPadding = PaddingValues(horizontal = 16.dp)
-                    ) {
-                        items(imageUris) { uri ->
-                            AsyncImage(
-                                model = uri,
-                                contentDescription = null,
-                                modifier = Modifier
-                                    .size(100.dp)
-                                    .clip(RoundedCornerShape(8.dp))
-                                    .clickable { fullscreenImageUri = uri },
-                                contentScale = ContentScale.Crop
-                            )
-                        }
-                    }
-                    Spacer(Modifier.height(32.dp))
-                }
-            }
-
-            item {
-                AiEstimateSection(
-                    isGeneratingEstimate = isGenerating,
-                    aiPriceEstimate = aiEstimate,
-                    modifier = Modifier.padding(horizontal = 16.dp)
-                )
-
-                error?.let {
-                    Text(
-                        text = it,
-                        color = MaterialTheme.colorScheme.error,
+                        text = "Upload billeder af opgaven og tilføj en kort beskrivelse – det hjælper håndværkerne med at give et præcist tilbud.",
                         style = MaterialTheme.typography.bodyLarge,
+                        color = Color.White,
+                        textAlign = TextAlign.Center,
                         modifier = Modifier.padding(16.dp)
                     )
+                    Spacer(Modifier.height(32.dp))
+                }
+
+                if (imageUris.isNotEmpty()) {
+                    item {
+                        Text(
+                            text = "Dine billeder",
+                            style = MaterialTheme.typography.titleLarge,
+                            color = Color.White,
+                            modifier = Modifier.padding(horizontal = 16.dp)
+                        )
+                        Spacer(Modifier.height(16.dp))
+                        LazyRow(
+                            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                            contentPadding = PaddingValues(horizontal = 16.dp)
+                        ) {
+                            items(imageUris) { uri ->
+                                AsyncImage(
+                                    model = uri,
+                                    contentDescription = null,
+                                    modifier = Modifier
+                                        .size(100.dp)
+                                        .clip(RoundedCornerShape(8.dp))
+                                        .clickable { fullscreenImageUri = uri },
+                                    contentScale = ContentScale.Crop
+                                )
+                            }
+                        }
+                        Spacer(Modifier.height(32.dp))
+                    }
+                }
+
+                item {
+                    AiEstimateSection(
+                        isGeneratingEstimate = isGenerating,
+                        aiPriceEstimate = aiEstimate,
+                        modifier = Modifier.padding(horizontal = 16.dp)
+                    )
+
+                    error?.let {
+                        Text(
+                            text = it,
+                            color = MaterialTheme.colorScheme.error,
+                            style = MaterialTheme.typography.bodyLarge,
+                            modifier = Modifier.padding(16.dp)
+                        )
+                    }
+                }
+
+                item {
+                    DescriptionSection(
+                        description = description,
+                        onDescriptionChange = { viewModel.updateDescription(it) }
+                    )
+                }
+
+                item {
+                    ImageSelectionSection(viewModel, imageUris)
+                }
+
+                item {
+                    SendTaskSection(
+                        viewModel = viewModel,
+                        imageUris = imageUris,
+                        navController = navController,
+                        snackbarHostState = snackbarHostState,
+                        scope = scope,
+                        isSending = isSending
+                    )
+                    Spacer(Modifier.height(40.dp))
                 }
             }
 
-            item {
-                DescriptionSection(
-                    description = description,
-                    onDescriptionChange = { viewModel.updateDescription(it) }
-                )
-            }
-
-            item {
-                ImageSelectionSection(viewModel, imageUris)
-            }
-
-            item {
-                SendTaskSection(
-                    viewModel = viewModel,
-                    imageUris = imageUris,
-                    navController = navController,
-                    snackbarHostState = snackbarHostState,
-                    scope = scope,
-                    isSending = isSending
-                )
-                Spacer(Modifier.height(40.dp))
-            }
-        }
-
-        if (fullscreenImageUri != null) {
-            Dialog(
-                onDismissRequest = { fullscreenImageUri = null },
-                properties = DialogProperties(usePlatformDefaultWidth = false)
-            ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(Color.Black.copy(alpha = 0.9f))
-                        .clickable { fullscreenImageUri = null },
-                    contentAlignment = Alignment.Center
+            if (fullscreenImageUri != null) {
+                Dialog(
+                    onDismissRequest = { fullscreenImageUri = null },
+                    properties = DialogProperties(usePlatformDefaultWidth = false)
                 ) {
-                    AsyncImage(
-                        model = fullscreenImageUri,
-                        contentDescription = "Full screen image",
-                        modifier = Modifier.fillMaxSize(0.9f),
-                        contentScale = ContentScale.Fit
-                    )
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(Color.Black.copy(alpha = 0.9f))
+                            .clickable { fullscreenImageUri = null },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        AsyncImage(
+                            model = fullscreenImageUri,
+                            contentDescription = "Full screen image",
+                            modifier = Modifier.fillMaxSize(0.9f),
+                            contentScale = ContentScale.Fit
+                        )
+                    }
                 }
             }
         }

@@ -1,9 +1,7 @@
 // Fil: app/src/main/java/dk/byggepiloten/firma/ui/screen/new_task/NewTaskWizardScreen.kt
-// OPDATERET: Fliser-kategori tekst ændret til "Flise- og klinkearbejde".
-// - Subtitle beholdt "Fliser på gulv og vægge".
-// - Route ændret til "flise_klinke" for at matche MainActivity.
-// - Alt andet 100% som din originale (gradient, TopAppBar, cards osv.).
-// - Linjer: 170.
+// OPDATERET – "Facadepudsning" fjernet, ny "Pudsning" tilføjet (route "pudsning")
+// Ikon: FormatPaint (passende til pudsning)
+// Subtitle: "Pudsning af vægge – inde eller ude"
 
 package dk.byggepiloten.firma.ui.screen.new_task
 
@@ -42,9 +40,9 @@ data class TaskCategory(
 @Composable
 fun NewTaskWizardScreen(navController: NavController) {
     val categories = listOf(
-        TaskCategory("Facadepudsning", "Pudsning og reparation af ydervægge", Icons.Default.Home, "facade_pudsning"),
         TaskCategory("Opmuring", "Opførelse af nye vægge", Icons.Default.Wallpaper, "opmuring"),
-        TaskCategory("Flise- og klinkearbejde", "Fliser på gulv og vægge", Icons.Default.GridOn, "flise_klinke"), // OPDATERET ROUTE
+        TaskCategory("Pudsning", "Pudsning af vægge – inde eller ude", Icons.Default.FormatPaint, "pudsning"), // NY – erstatter Facadepudsning
+        TaskCategory("Flise- og klinkearbejde", "Fliser på gulv og vægge", Icons.Default.GridOn, "flise_klinke"),
         TaskCategory("Badeværelse", "Komplet eller delvis renovering", Icons.Default.Bathtub, "badeværelse"),
         TaskCategory("Omfugning", "Omfugning af murværk", Icons.Default.Build, "omfugning"),
         TaskCategory("Nedbrydning", "Nedrivning af vægge og fliser", Icons.Default.DeleteForever, "nedbrydning"),
@@ -119,7 +117,7 @@ private fun TaskCategoryCard(category: TaskCategory, onClick: () -> Unit) {
     Card(
         onClick = onClick,
         modifier = Modifier
-            .fillMaxSize()
+            .fillMaxWidth()   // Ændret fra fillMaxSize() → bedre i grid
             .height(180.dp),
         shape = RoundedCornerShape(24.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 12.dp),

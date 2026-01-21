@@ -1,4 +1,7 @@
 // Fil: app/src/main/java/dk/byggepiloten/firma/ui/screen/new_task/components/common/StyledTextField.kt
+// OPDATERET – tilføjet valgfri keyboardOptions-parameter for fuld fleksibilitet
+// (løser fejl i PudsAreaStep, PudsHoejdeStep osv.)
+
 package dk.byggepiloten.firma.ui.screen.new_task.components.common
 
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -18,17 +21,22 @@ fun StyledTextField(
     onValueChange: (String) -> Unit,
     label: String,
     modifier: Modifier = Modifier,
-    keyboardType: KeyboardType = KeyboardType.Text,
-    singleLine: Boolean = true
+    keyboardType: KeyboardType = KeyboardType.Text,           // Beholdes for bagudkompatibilitet
+    keyboardOptions: KeyboardOptions = KeyboardOptions(       // NY – fuld override mulig
+        keyboardType = keyboardType,
+        imeAction = if (keyboardType == KeyboardType.Text) ImeAction.Next else ImeAction.Done,
+        autoCorrect = false
+    ),
+    singleLine: Boolean = true,
+    maxLines: Int = if (singleLine) 1 else 10
 ) {
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
         label = { Text(label, color = ByggePilotenBlue) },
         modifier = modifier.fillMaxWidth(),
-        // Hvis singleLine er false, tillader vi multiLine og enter
         singleLine = singleLine,
-        maxLines = if (singleLine) 1 else 10,
+        maxLines = maxLines,
         colors = OutlinedTextFieldDefaults.colors(
             focusedContainerColor = Color.White,
             unfocusedContainerColor = Color.White,
@@ -42,12 +50,7 @@ fun StyledTextField(
             unfocusedTextColor = Color.Black,
             disabledTextColor = Color.Black
         ),
-        keyboardOptions = KeyboardOptions(
-            keyboardType = keyboardType,
-            // Hvis det er multi-line, skal ImeAction være Default for at 'Enter' virker
-            imeAction = if (singleLine) ImeAction.Next else ImeAction.Default,
-            autoCorrect = false
-        ),
+        keyboardOptions = keyboardOptions,  // Bruger nu den sendte (eller default baseret på keyboardType)
         shape = MaterialTheme.shapes.medium
     )
 }
