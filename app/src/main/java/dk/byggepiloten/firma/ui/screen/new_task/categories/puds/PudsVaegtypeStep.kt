@@ -1,12 +1,22 @@
 // Fil: app/src/main/java/dk/byggepiloten/firma/ui/screen/new_task/categories/puds/PudsVaegtypeStep.kt
-// RETTET – Bruger nu ChoiceBoxRow (som opmuring) + custom tekstfelt ved "Anden"
-// stepPhotos-type tvunget for at undgå delegation-fejl
+// OPDATERET – conditional tekstfelt ved "Anden", ens Card-struktur
 
 package dk.byggepiloten.firma.ui.screen.new_task.categories.puds
 
-import androidx.compose.foundation.layout.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
@@ -18,25 +28,20 @@ import dk.byggepiloten.firma.ui.viewmodel.task.PudsTaskViewModel
 
 private val vaegTyper = listOf("Gasbeton", "Beton", "Mursten", "Letbeton", "Anden")
 
-/**
- * Trin 3 i puds-wizarden: Valg af vægtype/underlag.
- * Ved "Anden" vises tekstfelt til fri beskrivelse – præcis som i opmuring.
- */
 @Composable
 fun PudsVaegtypeStep(
     viewModel: PudsTaskViewModel
 ) {
-    val pudsData by viewModel.pudsData.collectAsStateWithLifecycle()
+    val data by viewModel.pudsData.collectAsStateWithLifecycle()
     val stepPhotos by viewModel.stepPhotos.collectAsStateWithLifecycle(emptyMap<String, List<android.net.Uri>>())
 
-    var customType by remember { mutableStateOf(pudsData.andenVaegtype ?: "") }
+    var customType by remember { mutableStateOf(data.andenVaegtype ?: "") }
 
-    LaunchedEffect(pudsData.vaegtype, customType) {
-        val updated = pudsData.copy(
-            vaegtype = pudsData.vaegtype,
-            andenVaegtype = if (pudsData.vaegtype == "Anden") customType.takeIf { it.isNotEmpty() } else null
+    LaunchedEffect(data.vaegtype, customType) {
+        val updated = data.copy(
+            andenVaegtype = if (data.vaegtype == "Anden") customType.takeIf { it.isNotEmpty() } else null
         )
-        if (updated != pudsData) {
+        if (updated != data) {
             viewModel.updatePudsData(updated)
         }
     }
@@ -45,12 +50,6 @@ fun PudsVaegtypeStep(
         modifier = Modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(24.dp)
     ) {
-        Text(
-            text = "Hvilken type væg/underlag?",
-            style = MaterialTheme.typography.titleLarge,
-            color = Color.Black
-        )
-
         Card(
             colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.95f)),
             elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
@@ -59,13 +58,13 @@ fun PudsVaegtypeStep(
                 ChoiceBoxRow(
                     label = null,
                     options = vaegTyper,
-                    selectedOption = pudsData.vaegtype ?: "",
+                    selectedOption = data.vaegtype ?: "",
                     onOptionSelected = {
-                        viewModel.updatePudsData(pudsData.copy(vaegtype = it))
+                        viewModel.updatePudsData(data.copy(vaegtype = it))
                     }
                 )
 
-                if (pudsData.vaegtype == "Anden") {
+                if (data.vaegtype == "Anden") {
                     Spacer(Modifier.height(12.dp))
                     StyledTextField(
                         value = customType,

@@ -1,11 +1,19 @@
 // Fil: app/src/main/java/dk/byggepiloten/firma/ui/screen/new_task/categories/puds/PudsUnderlagStep.kt
-// RETTET – fuld version til "Ude" (revner + fugt + gammel puds), ChoiceBoxRow, stepPhotos-type tvunget
+// FULD RETTET – tilføjet import getValue (fikser delegation fejl)
+// Eksplicit parameter i PhotoUploadSection lambda (fikser type-konflikt med 'it')
 
 package dk.byggepiloten.firma.ui.screen.new_task.categories.puds
 
-import androidx.compose.foundation.layout.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
@@ -25,12 +33,6 @@ fun PudsUnderlagStep(
         modifier = Modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(24.dp)
     ) {
-        Text(
-            "Hvordan er underlaget?",
-            style = MaterialTheme.typography.titleLarge,
-            color = Color.Black
-        )
-
         Card(
             colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.95f)),
             elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
@@ -63,7 +65,7 @@ fun PudsUnderlagStep(
             label = "Billeder af underlag (anbefalet)",
             isRequired = false,
             currentUris = stepPhotos["underlag"] ?: emptyList(),
-            onUrisChange = { viewModel.updateStepPhotos("underlag", it) }
+            onUrisChange = { uris -> viewModel.updateStepPhotos("underlag", uris) }
         )
     }
 }

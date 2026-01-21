@@ -1,59 +1,27 @@
 // Fil: app/src/main/java/dk/byggepiloten/firma/ui/screen/new_task/categories/puds/PudsVejrStep.kt
-// RETTET – ChoiceBoxRow, stepPhotos-type tvunget
+// OPDATERET – bruger nu reusable WeatherExposureSection
+// Step-filen er nu meget kortere
 
 package dk.byggepiloten.firma.ui.screen.new_task.categories.puds
 
-import androidx.compose.foundation.layout.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.dp
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import dk.byggepiloten.firma.ui.screen.new_task.components.PhotoUploadSection
-import dk.byggepiloten.firma.ui.screen.new_task.components.common.ChoiceBoxRow
+import dk.byggepiloten.firma.ui.screen.new_task.components.common.WeatherExposureSection
 import dk.byggepiloten.firma.ui.viewmodel.task.PudsTaskViewModel
 
 @Composable
 fun PudsVejrStep(
     viewModel: PudsTaskViewModel
 ) {
-    val pudsData by viewModel.pudsData.collectAsStateWithLifecycle()
+    val data by viewModel.pudsData.collectAsStateWithLifecycle()
     val stepPhotos by viewModel.stepPhotos.collectAsStateWithLifecycle(emptyMap<String, List<android.net.Uri>>())
 
-    val options = listOf("Forår/sommer", "Efterår/vinter", "Helårs eksponeret")
-
-    Column(
-        modifier = Modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(24.dp)
-    ) {
-        Text(
-            "Hvornår på året udsættes væggen mest for vejr?",
-            style = MaterialTheme.typography.titleLarge,
-            color = Color.Black
-        )
-
-        Card(
-            colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.95f)),
-            elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
-        ) {
-            Column(modifier = Modifier.padding(20.dp)) {
-                ChoiceBoxRow(
-                    label = null,
-                    options = options,
-                    selectedOption = pudsData.vejretidspunkt ?: "",
-                    onOptionSelected = {
-                        viewModel.updatePudsData(pudsData.copy(vejretidspunkt = it))
-                    }
-                )
-            }
-        }
-
-        PhotoUploadSection(
-            label = "Billeder af vejrpåvirkning (valgfrit)",
-            isRequired = false,
-            currentUris = stepPhotos["vejr"] ?: emptyList(),
-            onUrisChange = { viewModel.updateStepPhotos("vejr", it) }
-        )
-    }
+    WeatherExposureSection(
+        vejretidspunkt = data.vejretidspunkt,
+        photoKey = "vejr",
+        currentPhotos = stepPhotos["vejr"] ?: emptyList(),
+        onDataChanged = { viewModel.updatePudsData(data.copy(vejretidspunkt = it)) },
+        onPhotosChanged = { viewModel.updateStepPhotos("vejr", it) }
+    )
 }

@@ -1,26 +1,33 @@
 // Fil: app/src/main/java/dk/byggepiloten/firma/ui/viewmodel/task/PudsTaskViewModel.kt
-// FULD RETTET VERSION – matcher BaseTaskViewModel præcis
-// Tilføjet override på sendTask
-// Bruger setIsSending (korrekt navn fra base)
-// Matcher Opmuring's sendTask-logik (lambda onSuccess)
+// OPDATERET – wallMeasurements i stedet for vaegMaalinger (konsistens med opmuring)
+// - Trådsikker updatePudsData med .update { }
+// - Konsistent med PudsAreaStep og Opmuring-struktur
 
 package dk.byggepiloten.firma.ui.viewmodel.task
 
 import android.net.Uri
 import androidx.lifecycle.viewModelScope
+import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.FieldValue
+import com.google.firebase.storage.FirebaseStorage
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dk.byggepiloten.firma.data.model.task.PudsData
+import dk.byggepiloten.firma.data.model.task.WallMeasurement
+import dk.byggepiloten.firma.data.repository.AuthRepository
 import dk.byggepiloten.firma.ui.screen.new_task.categories.puds.PudsValidator
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
 @HiltViewModel
 class PudsTaskViewModel @Inject constructor(
-    aiEstimateGenerator: AiEstimateGenerator
+    aiEstimateGenerator: AiEstimateGenerator,
+    private val authRepository: AuthRepository
 ) : BaseTaskViewModel(aiEstimateGenerator) {
 
     private val _pudsData = MutableStateFlow(PudsData())
@@ -29,8 +36,11 @@ class PudsTaskViewModel @Inject constructor(
     private val _stepPhotos = MutableStateFlow<Map<String, List<Uri>>>(emptyMap())
     val stepPhotos: StateFlow<Map<String, List<Uri>>> = _stepPhotos.asStateFlow()
 
+    private val firestore = FirebaseFirestore.getInstance()
+    private val storage = FirebaseStorage.getInstance()
+
     fun updatePudsData(newData: PudsData) {
-        _pudsData.value = newData
+        _pudsData.update { newData }
     }
 
     fun updateStepPhotos(stepKey: String, uris: List<Uri>) {
@@ -53,10 +63,29 @@ class PudsTaskViewModel @Inject constructor(
             setIsSending(true)
             try {
                 setError(null)
-                // TODO: reel task-save her når repository er klar
+
+                val data = _pudsData.value
+                val allUris = imageUris.value + stepPhotos.value.values.flatten()
+
+                val imageUrls = mutableListOf<String>()
+                for (uri in allUris) {
+                    val ref = storage.reference.child("tasks/puds/${System.currentTimeMillis()}_${uri.lastPathSegment}")
+                    ref.putFile(uri).await()
+                    val url = ref.downloadUrl.await().toString()
+                    imageUrls.add(url)
+                }
+
+                val taskMap = data.toMap().toMutableMap()
+                taskMap["category"] = "pudsning"
+                taskMap["imageUrls"] = imageUrls
+                taskMap["createdAt"] = FieldValue.serverTimestamp()
+                taskMap["userId"] = authRepository.getCurrentUser()?.uid ?: "unknown"
+                taskMap["status"] = "ny"
+
+                firestore.collection("tasks").add(taskMap).await()
                 onSuccess()
             } catch (e: Exception) {
-                setError("Fejl ved afsendelse: ${e.message}")
+                setError("Fejl ved afsendelse: ${e.localizedMessage ?: "Ukendt fejl"}")
             } finally {
                 setIsSending(false)
             }
@@ -64,7 +93,8 @@ class PudsTaskViewModel @Inject constructor(
     }
 
     override fun generateAiEstimate(areaM2: Float, extraDetails: String?) {
-        val pudsDetails = extraDetails ?: "Pudsning ${pudsData.value.indeUde?.lowercase() ?: ""}"
+        val currentData = _pudsData.value
+        val pudsDetails = extraDetails ?: "Pudsning ${currentData.indeUde?.lowercase() ?: ""}"
         super.generateAiEstimate(areaM2, pudsDetails)
     }
 }

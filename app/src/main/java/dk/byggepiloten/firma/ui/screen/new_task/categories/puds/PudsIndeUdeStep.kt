@@ -1,11 +1,16 @@
 // Fil: app/src/main/java/dk/byggepiloten/firma/ui/screen/new_task/categories/puds/PudsIndeUdeStep.kt
-// NY FIL – Trin 1: Inde eller ude? Bruger ChoiceBoxRow som i opmuring (ingen RadioButton)
+// OPDATERET – brug af reusable ChoiceBoxRow i Card (ens med andre simple valg-steps)
 
 package dk.byggepiloten.firma.ui.screen.new_task.categories.puds
 
-import androidx.compose.foundation.layout.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
@@ -15,27 +20,16 @@ import dk.byggepiloten.firma.ui.viewmodel.task.PudsTaskViewModel
 
 private val indeUdeOptions = listOf("Inde", "Ude")
 
-/**
- * Trin 1 i puds-wizarden: Brugeren vælger om pudsningen er inde eller ude.
- * Valget styrer hvilke trin der skippes senere (højde, stillads, vejr, armering/isolering).
- * Bruger ChoiceBoxRow for ensartet design med opmuring.
- */
 @Composable
 fun PudsIndeUdeStep(
     viewModel: PudsTaskViewModel
 ) {
-    val pudsData by viewModel.pudsData.collectAsStateWithLifecycle()
+    val data by viewModel.pudsData.collectAsStateWithLifecycle()
 
     Column(
         modifier = Modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(24.dp)
     ) {
-        Text(
-            text = "Er pudsningen inde eller ude?",
-            style = MaterialTheme.typography.titleLarge,
-            color = Color.Black
-        )
-
         Card(
             colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.95f)),
             elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
@@ -44,9 +38,9 @@ fun PudsIndeUdeStep(
                 ChoiceBoxRow(
                     label = null,
                     options = indeUdeOptions,
-                    selectedOption = pudsData.indeUde ?: "",
+                    selectedOption = data.indeUde ?: "",
                     onOptionSelected = {
-                        viewModel.updatePudsData(pudsData.copy(indeUde = it))
+                        viewModel.updatePudsData(data.copy(indeUde = it))
                     }
                 )
             }

@@ -1,12 +1,24 @@
 // Fil: app/src/main/java/dk/byggepiloten/firma/ui/screen/new_task/categories/puds/PudsHoejdeStep.kt
-// RETTET – stepPhotos-type tvunget + keyboardOptions korrekt import
+// OPDATERET – brug af Card + StyledTextField (ens med andre steps)
+// Ingen LazyColumn eller nested scroll – crash-sikker
 
 package dk.byggepiloten.firma.ui.screen.new_task.categories.puds
 
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.KeyboardType
@@ -20,15 +32,15 @@ import dk.byggepiloten.firma.ui.viewmodel.task.PudsTaskViewModel
 fun PudsHoejdeStep(
     viewModel: PudsTaskViewModel
 ) {
-    val pudsData by viewModel.pudsData.collectAsStateWithLifecycle()
+    val data by viewModel.pudsData.collectAsStateWithLifecycle()
     val stepPhotos by viewModel.stepPhotos.collectAsStateWithLifecycle(emptyMap<String, List<android.net.Uri>>())
 
-    var heightText by remember { mutableStateOf(pudsData.hojde?.toString() ?: "") }
+    var heightText by remember { mutableStateOf(data.hojde?.toString() ?: "") }
 
     LaunchedEffect(heightText) {
         val parsed = heightText.toFloatOrNull()
-        if (parsed != pudsData.hojde) {
-            viewModel.updatePudsData(pudsData.copy(hojde = parsed))
+        if (parsed != data.hojde) {
+            viewModel.updatePudsData(data.copy(hojde = parsed))
         }
     }
 
@@ -36,12 +48,6 @@ fun PudsHoejdeStep(
         modifier = Modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(24.dp)
     ) {
-        Text(
-            "Hvad er bygningens højde?",
-            style = MaterialTheme.typography.titleLarge,
-            color = Color.Black
-        )
-
         Text(
             "Dette bruges til at vurdere om stillads er nødvendigt.",
             style = MaterialTheme.typography.bodyMedium,

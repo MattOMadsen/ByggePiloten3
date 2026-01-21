@@ -1,8 +1,5 @@
 // Fil: app/src/main/java/dk/byggepiloten/firma/ui/screen/new_task/components/common/MeasurementRow.kt
-// FULD RETTET – Tilføjet manglende import: kotlinx.coroutines.flow.snapshotFlow
-// Dette løser "Unresolved reference 'snapshotFlow'"
-// Ingen andre ændringer – "Tilføj væg"-knap beholdt med hvid baggrund/blå tekst for kontrast
-// TotalArea og delete-logik uændret
+// Rullet tilbage til original version da fejlen lå i PudsAreaStep's Column struktur.
 
 package dk.byggepiloten.firma.ui.screen.new_task.components.common
 
@@ -20,7 +17,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import dk.byggepiloten.firma.data.model.task.WallMeasurement
 import dk.byggepiloten.firma.ui.theme.ByggePilotenBlue
-import androidx.compose.runtime.snapshotFlow // NY IMPORT – løser compile-fejlen
+import androidx.compose.runtime.snapshotFlow
 import kotlinx.coroutines.flow.collectLatest
 
 @Composable
